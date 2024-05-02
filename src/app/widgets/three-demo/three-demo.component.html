@@ -1,0 +1,17 @@
+<div #render_container
+     class="renderer-container"
+     (resize)="onResize()">
+</div>
+
+<div *ngIf="showHelp" class="help-container">
+    <div class="help-content">
+        <h3>{{helpTitle}}</h3>
+        <span>{{helpText}}</span>
+        <div class="grid-container">
+            <div *ngFor="let shortcut of shortcuts" class="grid-row">
+                <span class="shortcut">{{shortcut[0]}}</span>
+                <span class="shortcut">{{shortcut[1]}}</span>
+            </div>
+        </div>
+    </div>
+</div>

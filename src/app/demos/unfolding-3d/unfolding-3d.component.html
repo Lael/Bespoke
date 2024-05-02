@@ -1,0 +1,28 @@
+<div class="full-page">
+    <div class="left">
+        <div class="top-left">
+            <polygon-picker
+                    [restriction]="Restriction.CENTRAL"
+                    (verticesEvent)="newVertices($event)"
+                    class="picker">
+
+            </polygon-picker>
+            <vector-picker
+                    [projection]="projectToSphere"
+                    (vectorEvent)="newRayDirection($event)"
+                    class="height">
+            </vector-picker>
+        </div>
+        <div class="bottom-left">
+            <canvas id="chart"></canvas>
+        </div>
+    </div>
+    <unfolder-3d
+            [iterations]="pow(10, params.iterations)"
+            [vertices]="vertices"
+            [height]="exp(params.height)"
+            [ray]="ray"
+            (data)="onNewResults($event)"
+            class="right">
+    </unfolder-3d>
+</div>

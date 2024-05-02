@@ -1,0 +1,41 @@
+.tile-anchor
+  display: flex
+  width: 300px
+  height: 100px
+  border-radius: 16px
+  overflow: hidden
+  color: white
+  text-decoration: none
+
+.overlay
+  width: 300px
+  height: 100px
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: larger
+  background: darkslategray
+  transition: font-size, background
+  transition-duration: 0.3s
+
+
+.highlighted
+  width: 300px
+  height: 100px
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: larger
+  background: linear-gradient(45deg, darkslategray, darkorange)
+  transition: font-size, background
+  transition-duration: 0.3s
+
+.overlay:hover
+  font-size: x-large
+  background: teal
+
+.highlighted:hover
+  font-size: x-large
+  background: linear-gradient(45deg, teal, darkorange)
+
+

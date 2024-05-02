@@ -1,0 +1,17 @@
+<div class="full-page">
+    <div class="top">
+        <polygon-picker class="picker"
+                        [restriction]="params.pickerRestriction"
+                        (verticesEvent)="onNewVertices($event)">
+        </polygon-picker>
+        <unfolding class="unfold"
+                   [iterations]="params.iterations"
+                   [vertices]="vertices"
+                   [restriction]="params.pickerRestriction"
+                   (data)="onNewResults($event)">
+        </unfolding>
+    </div>
+    <div class="bottom">
+        <canvas id="chart"></canvas>
+    </div>
+</div>

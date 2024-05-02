@@ -1,0 +1,22 @@
+<div class="full-page">
+    <div class="left">
+        <polygon-picker
+                [restriction]="Restriction.CONVEX"
+                (verticesEvent)="onNewVertices($event)"
+                class="top-left">
+        </polygon-picker>
+        <phase-picture
+                [polygon]="polygon"
+                [(state)]="state"
+                [phaseTile]="phaseTile"
+                class="bottom-left">
+        </phase-picture>
+    </div>
+    <corridor-unfolder
+            [length]="length"
+            [polygon]="polygon"
+            [state]="state"
+            (phaseBoxesChange)="onNewPhaseTile($event)"
+            class="right">
+    </corridor-unfolder>
+</div>
