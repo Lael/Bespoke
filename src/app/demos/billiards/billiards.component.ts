@@ -57,14 +57,14 @@ const SPHERE_SING_COLOR = 0xffdcad;
 // const SPHERE_SING_COLOR = 0x283845;
 // const SPHERE_SING_COLOR = 0xE26612;
 const FILL_COLOR = 0x283845;
-const CHORDS_COLOR = 0x000000;
+const CHORDS_COLOR = 0xffffff;
 const OUTER_ORBIT_COLOR = 0x0055aa;
 const SPHERE_OUTER_ORBIT_COLOR = 0xaaffff;
 // const SPHERE_OUTER_ORBIT_COLOR = 0x0055aa;
 const SINGULARITY_COLOR = 0xE26612;
 const START_POINT_COLOR = 0x51e76f;
 const END_POINT_COLOR = 0x6f51e7;
-const SCAFFOLD_COLOR = 0xffbbff;
+const SCAFFOLD_COLOR = 0xff00ff;
 const HANDLE_COLOR = 0x990044;
 const CIRCLE_CENTER_COLOR = 0x444400;
 
@@ -125,7 +125,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
     tableParams: TableParams = {
         tableType: TableType.POLYGON,
         polygonParams: {
-            n: 4,
+            n: 3,
             r: 0.5,
         },
         flexigonParams: {
@@ -150,8 +150,9 @@ export class BilliardsComponent extends ThreeDemoComponent {
         derivative: false,
         derivativeBound: 5,
         derivativeStep: -1,
-        scaffold: true,
+        scaffold: false,
         centers: false,
+        stereograph: true,
     }
 
     gameParams = {
@@ -185,7 +186,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
     scaffold: THREE.Object3D[] = [];
     antiTable = new THREE.Mesh();
     tableMesh = new THREE.Mesh();
-    strip: Mesh;
+    // strip: Mesh;
 
     // Billiards
     affineOuterTable!: AffineOuterBilliardTable;
@@ -264,8 +265,8 @@ export class BilliardsComponent extends ThreeDemoComponent {
 
         this.lights.push(al, dl);
 
-        this.strip = new Mesh(new PlaneGeometry(100, Math.sqrt(2)), new MeshBasicMaterial({color: 0xdddddd}));
-        this.strip.position.set(50 + Math.sqrt(2) / 2, Math.sqrt(2), -0.1);
+        // this.strip = new Mesh(new PlaneGeometry(100, Math.sqrt(2)), new MeshBasicMaterial({color: 0xdddddd}));
+        // this.strip.position.set(50 + Math.sqrt(2) / 2, Math.sqrt(2), -0.1);
     }
 
     private processKeyboardInput(dt: number): void {
@@ -316,6 +317,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
         const z = 0.5 / this.camera.zoom;
         this.startPoint.scale.set(z, z, z);
         this.nextPoint.scale.set(z, z, z);
+        this.draggables.map(d => d.scale.set(z / 2, z / 2, z / 2));
         this.processKeyboardInput(dt);
 
         if (this.cameraSwitch) {
@@ -333,19 +335,27 @@ export class BilliardsComponent extends ThreeDemoComponent {
                 this.orthographicCamera.rotation.set(0, 0, 0);
                 break;
             case Geometry.SPHERICAL:
-                // this.useOrthographic = false;
-                this.orbitControls.reset();
-                this.orbitControls.enablePan = false;
-                this.orbitControls.enableRotate = true;
-                this.orbitControls.zoomToCursor = false;
-                this.updateOrthographicCamera();
-                this.orthographicCamera.rotation.set(0, 0, 0);
+                if (this.drawParams.stereograph) {
+                    this.orbitControls.reset();
+                    this.orbitControls.enablePan = true;
+                    this.orbitControls.enableRotate = false;
+                    this.orbitControls.zoomToCursor = true;
+                    this.updateOrthographicCamera();
+                    this.orthographicCamera.rotation.set(0, 0, 0);
+                } else {
+                    this.orbitControls.reset();
+                    this.orbitControls.enablePan = false;
+                    this.orbitControls.enableRotate = true;
+                    this.orbitControls.zoomToCursor = false;
+                    this.updateOrthographicCamera();
+                    this.orthographicCamera.rotation.set(0, 0, 0);
+                }
                 break;
             }
         }
 
         if (this.tableDirty) this.updateTable();
-        if (this.singularityDirty) this.updateSingularities();
+        if (this.singularityDirty && this.drawParams.singularities && this.duality === Duality.OUTER) this.updateSingularities();
         if (this.geometry === Geometry.HYPERBOLIC && this.duality === Duality.OUTER && this.hyperbolicTable.fresh) {
             this.drawHyperbolicPreimages(this.hyperbolicTable.singularities);
             this.hyperbolicTable.fresh = false;
@@ -445,9 +455,13 @@ export class BilliardsComponent extends ThreeDemoComponent {
                 .min(0).max(12).step(1)
                 .onFinishChange(this.markOrbitDirty.bind(this));
         }
-        if (this.geometry === Geometry.EUCLIDEAN && this.duality === Duality.OUTER && this.generator === Generator.LENGTH) {
+        if (this.geometry === Geometry.EUCLIDEAN &&
+            ((this.duality === Duality.OUTER && this.generator === Generator.LENGTH) ||
+                this.duality === Duality.INNER && this.generator === Generator.AREA)) {
             drawFolder.add(this.drawParams, 'scaffold').name('Scaffold').onFinishChange(
                 this.markOrbitDirty.bind(this));
+        }
+        if (this.geometry === Geometry.EUCLIDEAN && this.duality === Duality.OUTER && this.generator === Generator.LENGTH) {
             drawFolder.add(this.drawParams, 'centers').name('Centers').onFinishChange(
                 this.markOrbitDirty.bind(this));
             // drawFolder.add(this.drawParams, 'derivative').name('Derivative')
@@ -458,6 +472,12 @@ export class BilliardsComponent extends ThreeDemoComponent {
             // drawFolder.add(this.drawParams, 'derivativeStep').name('Der. step (log)')
             //     .min(-8).max(0).step(1)
             //     .onFinishChange(this.markDerivativeDirty.bind(this));
+        }
+        if (this.geometry === Geometry.SPHERICAL) {
+            drawFolder.add(this.drawParams, 'stereograph').name('Stereographic').onFinishChange(() => {
+                this.cameraSwitch = true;
+                this.updateTableParams();
+            });
         }
         drawFolder.open();
 
@@ -635,7 +655,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
         const points = [];
         this.scene.remove(...this.draggables);
         while (this.draggables.length) this.draggables.pop();
-        if (this.geometry !== Geometry.HYPERBOLIC && this.tableParams.tableType === TableType.POLYGON) {
+        if (this.geometry === Geometry.EUCLIDEAN && this.tableParams.tableType === TableType.POLYGON) {
             const n = this.tableParams.polygonParams.n;
             const dtheta = Math.PI * 2 / n;
             const offset = Math.PI / n - Math.PI / 2;
@@ -646,13 +666,12 @@ export class BilliardsComponent extends ThreeDemoComponent {
             }
             for (let p of points) {
                 const dot = new Mesh(
-                    new CircleGeometry(0.025, 16),
+                    new CircleGeometry(0.05, 16),
                     new MeshBasicMaterial({color: HANDLE_COLOR}));
                 dot.translateX(p.x);
                 dot.translateY(p.y);
                 dot.translateZ(0.01);
                 this.draggables.push(dot);
-                this.scene.add(dot);
             }
         }
         this.tableDirty = true;
@@ -731,9 +750,11 @@ export class BilliardsComponent extends ThreeDemoComponent {
 
         switch (this.geometry) {
         case Geometry.SPHERICAL:
-            this.antiTable = this.sphericalTable.mesh(36, SPHERE_SING_COLOR);
-            this.antiTable.scale.set(-1, -1, -1);
-            this.tableMesh = this.sphericalTable.mesh(36, SPHERE_TABLE_COLOR);
+            if (!this.drawParams.stereograph) {
+                this.antiTable = this.sphericalTable.mesh(36, SPHERE_SING_COLOR, this.drawParams.stereograph);
+                this.antiTable.scale.set(-1, -1, -1);
+            }
+            this.tableMesh = this.sphericalTable.mesh(36, SPHERE_TABLE_COLOR, this.drawParams.stereograph);
             break;
         case Geometry.EUCLIDEAN:
         case Geometry.HYPERBOLIC:
@@ -767,7 +788,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
             const lsp: Vector3[] = [];
             const spherePreimages = this.sphericalTable.preimages(this.generator, si);
             for (let sp of spherePreimages) {
-                const spp = sp.points(36);
+                const spp = sp.points(36, this.drawParams.stereograph);
                 for (let i = 0; i < spp.length - 1; i++) {
                     lsp.push(spp[i], spp[i + 1]);
                 }
@@ -940,17 +961,23 @@ export class BilliardsComponent extends ThreeDemoComponent {
 
                 const ce = this.drawParams.connectEvery;
                 if (ce === 0) {
+                    let vectors;
+                    if (this.drawParams.stereograph) {
+                        vectors = orbit[0].map(sp => sp.stereographic);
+                    } else {
+                        vectors = orbit[0].map(sp => sp.coords.clone().multiplyScalar(1.001));
+                    }
                     this.orbit = [
                         new Points(
-                            new BufferGeometry().setFromPoints(orbit[0].map(sp => sp.coords.clone().multiplyScalar(1.001))),
+                            new BufferGeometry().setFromPoints(vectors),
                             new PointsMaterial({color: SPHERE_OUTER_ORBIT_COLOR})
                         )
                     ];
                 } else if (ce === 1) {
                     const line = [];
                     for (let i = 0; i < orbit[0].length - 1; i++) {
-                        line.push(...new SphericalArc(orbit[0][i], orbit[1][i]).points(36));
-                        line.push(...new SphericalArc(orbit[1][i], orbit[0][i + 1]).points(36));
+                        line.push(...new SphericalArc(orbit[0][i], orbit[1][i]).points(36, this.drawParams.stereograph));
+                        line.push(...new SphericalArc(orbit[1][i], orbit[0][i + 1]).points(36, this.drawParams.stereograph));
                     }
                     this.orbit = [
                         new Line(
@@ -964,7 +991,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
                         paths.push([]);
                     }
                     for (let i = 0; i < orbit[0].length - 1; i++) {
-                        paths[i % ce].push(...new SphericalArc(orbit[0][i], orbit[0][i + 1]).points(36));
+                        paths[i % ce].push(...new SphericalArc(orbit[0][i], orbit[0][i + 1]).points(36, this.drawParams.stereograph));
                     }
                     this.orbit = paths.map(path => new Line(
                         new BufferGeometry().setFromPoints(path),
@@ -973,10 +1000,10 @@ export class BilliardsComponent extends ThreeDemoComponent {
                 }
 
                 if (orbit.length === 0) return;
-                let start = orbit[0][0].coords;
+                let start = this.drawParams.stereograph ? orbit[0][0].stereographic : orbit[0][0].coords;
                 this.startPoint.position.set(start.x, start.y, start.z);
                 if (orbit[0].length > 1) {
-                    let end = orbit[0][1].coords;
+                    let end = this.drawParams.stereograph ? orbit[0][1].stereographic : orbit[0][1].coords;
                     this.nextPoint.visible = true;
                     this.nextPoint.position.set(end.x, end.y, end.z);
                 } else {
@@ -1184,7 +1211,11 @@ export class BilliardsComponent extends ThreeDemoComponent {
         this.drawDirty = false;
         this.scene.clear();
         this.scene.add(this.tableMesh);
-        this.scene.add(this.strip);
+        // this.scene.add(this.strip);
+
+        if (this.tableParams.tableType === TableType.POLYGON) {
+            this.scene.add(...this.draggables);
+        }
 
         switch (this.geometry) {
         case Geometry.EUCLIDEAN:
@@ -1195,9 +1226,11 @@ export class BilliardsComponent extends ThreeDemoComponent {
             this.scene.add(this.hyperbolicDisk);
             break;
         case Geometry.SPHERICAL:
-            this.scene.add(this.antiTable);
-            this.scene.add(this.sphericalSphere);
-            this.scene.add(...this.lights);
+            if (!this.drawParams.stereograph) {
+                this.scene.add(this.antiTable);
+                this.scene.add(this.sphericalSphere);
+                this.scene.add(...this.lights);
+            }
             break;
         }
 

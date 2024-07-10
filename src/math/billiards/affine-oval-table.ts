@@ -1,7 +1,7 @@
-import {Vector2} from "three";
+import {Vector2, Vector3} from "three";
 import {AffineCircle} from "../geometry/affine-circle";
 import {Line} from "../geometry/line";
-import {normalizeAngle} from "../math-helpers";
+import {closeEnough, normalizeAngle} from "../math-helpers";
 import {AffineOuterBilliardTable, fixTime} from "./tables";
 import {Complex} from "../complex";
 
@@ -46,33 +46,106 @@ const EPSILON = 0.000_001;
 //     return (value(t + EPSILON) - value(t - EPSILON)) / (2 * EPSILON);
 // }
 
-// function findOnInterval(value: (t: number) => number,
-//                         debug: boolean = false,
-//                         start: number,
-//                         end: number): number {
-//     if (closeEnough(start, end)) return start;
-//     let g1 = start;
-//     let g2 = start + (end - start) / 3;
-//     let g3 = start + 2 * (end - start) / 3;
-//     let g4 = end;
-//     // let v1 = value(g1);
-//     // let v2 = value(g2);
-//     // let v3 = value(g3);
-//     // let v4 = value(g4);
-//     // ddd -> g3, g4
-//     // ddu -> g2, g4
-//     // dud -> g1, g3 (assert(v1 < v3))
-//     // udd ->
-//     // duu ->
-//     // udu ->
-//     // uud ->
-//     // uuu ->
-//     return 0;
-// }
+function findOnInterval(f: (t: number) => number,
+                        start: number,
+                        end: number): number {
+    if (closeEnough(start, end)) return start;
+    let g1 = start;
+    let g2 = start + (end - start) / 3;
+    let g3 = start + 2 * (end - start) / 3;
+    let g4 = end;
+    let v1 = f(g1);
+    let v2 = f(g2);
+    let v3 = f(g3);
+    let v4 = f(g4);
+    if (v2 === v3) {
+        return findOnInterval(f, g2, g3);
+    } else if (v2 < v3) {
+        return findOnInterval(f, g1, g3);
+    } else {
+        return findOnInterval(f, g2, g4);
+    }
+    // ddd -> g2, g4
+    // ddu -> g2, g4
+    // dud -> // impossible?
+    // udd -> // impossible?
+    // duu -> g1, g3
+    // udu -> // impossible?
+    // uud -> // impossible?
+    // uuu -> g1, g3
+}
 
-// Assumptions: value(t) = value(t + 1) & value has one min and one max on [0, 1).
-function findOnCircle(value: (t: number) => number): number {
-    return value(0);
+// Assumptions: f(t) = f(t + 1) & value has one min and one max on [0, 1).
+function findOnCircle(f: (t: number) => number): number {
+    let tv = new Vector3(0.0, 1. / 3, 2. / 3);
+    let v1 = f(tv.x);
+    let v2 = f(tv.y);
+    let v3 = f(tv.z);
+    if (v1 === v2) {
+        tv.y = 0.5;
+        v2 = f(tv.y);
+    } else if (v2 === v3) {
+        tv.z = 0.75;
+        v3 = f(tv.z);
+    } else if (v3 === v1) {
+        tv.x = 0.25;
+        v1 = f(tv.x);
+    }
+    if (v1 === v2 || v2 === v3) {
+        // constant function
+        return 0;
+    }
+    if (v1 > v2) {
+        if (v2 > v3) {
+            // •       •
+            //  X     /
+            //   •   /
+            //    \ /
+            //     •
+            return findOnInterval(f, tv.y, tv.x + 1);
+        } else {
+            if (v3 > v1) {
+                //       •
+                //      / X
+                // •   /   •
+                //  \ /
+                //   •
+                return findOnInterval(f, tv.x, tv.z);
+            } else {
+                // •       •
+                //  \     X
+                //   \   •
+                //    \ /
+                //     •
+                return findOnInterval(f, tv.x, tv.z);
+            }
+        }
+    } else {
+        if (v2 < v3) {
+            //     •
+            //    X \
+            //   •   \
+            //  /     \
+            // •       •
+            return findOnInterval(f, tv.z, tv.y + 1);
+        } else {
+            if (v3 < v1) {
+                //   •
+                //  X \
+                // •   \   •
+                //      \ /
+                //       •
+                return findOnInterval(f, tv.y, tv.x + 1);
+            } else {
+                //     •
+                //    / X
+                //   /   •
+                //  /     \
+                // •       •
+                return findOnInterval(f, tv.z, tv.y + 1);
+            }
+        }
+    }
 }
 
 // Assumed to be smooth and strictly convex

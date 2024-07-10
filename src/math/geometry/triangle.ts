@@ -1,4 +1,4 @@
-import {BufferGeometry, Line as ThreeLine, LineBasicMaterial, Vector2} from "three";
+import {BufferGeometry, Line as ThreeLine, LineBasicMaterial, Vector2, Vector3} from "three";
 import {closeEnough, includedAngle} from "../math-helpers";
 import {Line} from "./line";
 import {Complex} from "../complex";
@@ -22,6 +22,14 @@ export class Triangle {
 
     get angleC(): number {
         return includedAngle(this.p2, this.p3, this.p1);
+    }
+
+    get angles(): Vector3 {
+        return new Vector3(
+            this.angleA,
+            this.angleB,
+            this.angleC,
+        );
     }
 
     get sideA(): number {

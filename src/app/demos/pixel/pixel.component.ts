@@ -13,11 +13,13 @@ import {
     Matrix4,
     PlaneGeometry,
     Vector2,
-    Vector3
+    Vector3,
+    Vector4
 } from "three";
+import {GUI} from "dat.gui";
 
-const GRID_ROWS = 100;
-const GRID_COLS = 100;
+const GRID_ROWS = 102;
+const GRID_COLS = 102;
 const CELL_SIZE = 0.1;
 
 const TOP = +(GRID_ROWS / 2) * CELL_SIZE;
@@ -31,6 +33,8 @@ const TABLE_COLOR = new Color(0xffffff);
 const ORBIT_COLOR = new Color(0x88bb88);
 const ORBIT_STATE_COLOR = new Color(0xffffff);
 
+const DEDUPE_SCAN = true;
+
 enum DragState {
     NOT_DRAGGING,
     TABLE,
@@ -42,7 +46,12 @@ enum PixelDirection {
     NORTHEAST,
     NORTHWEST,
     SOUTHWEST,
-    SOUTHEAST
+    SOUTHEAST,
+}
+
+enum TablePattern {
+    RECTANGLE = "Rectangle",
+    ELL = "Ell",
 }
 
 const NORTHEAST_DIFF = new Vector2(+1, +1);
@@ -105,10 +114,16 @@ export class PixelComponent extends ThreeDemoComponent {
     grid: InstancedMesh;
     gridBorder: LineSegments;
 
+    tableChanged = true;
     dirty = true;
     dragState: DragState = DragState.NOT_DRAGGING;
 
     orbitStates: PixelBilliardState[] = [];
+
+    gui: GUI = new GUI();
+    tablePattern: TablePattern = TablePattern.ELL;
+    ellParams = new Vector4(6, 6, 3, 3);
+    rectParams = new Vector2(5, 5);
 
     constructor() {
         super();
@@ -135,9 +150,156 @@ export class PixelComponent extends ThreeDemoComponent {
         }
         this.gridBorder = new LineSegments(new BufferGeometry().setFromPoints(lsp), new LineBasicMaterial({color: GRID_LINE_COLOR}));
         this.scene.add(this.grid, this.gridBorder);
+
+        this.setTableFromPattern();
+
+        this.updateGUI();
+    }
+
+    updateGUI() {
+        this.gui.destroy();
+        this.gui = new GUI();
+        this.gui.open();
+
+        const tableFolder = this.gui.addFolder('Table');
+        tableFolder.add(this, 'tablePattern', Object.values(TablePattern)).onFinishChange(() => {
+            this.setTableFromPattern();
+            this.updateGUI();
+        });
+        switch (this.tablePattern) {
+        case TablePattern.RECTANGLE:
+            tableFolder.add(this.rectParams, 'x').min(1).max(100).step(1)
+                .name('Width').onChange(this.setTableFromPattern.bind(this));
+            tableFolder.add(this.rectParams, 'y').min(1).max(100).step(1)
+                .name('Height').onChange(this.setTableFromPattern.bind(this));
+            break;
+        case TablePattern.ELL:
+            tableFolder.add(this.ellParams, 'x').min(this.ellParams.w).max(100).step(1)
+                .name('Width')
+                .onChange(this.setTableFromPattern.bind(this))
+                .onFinishChange(this.updateGUI.bind(this));
+            tableFolder.add(this.ellParams, 'y').min(this.ellParams.z).max(100).step(1)
+                .name('Height')
+                .onChange(this.setTableFromPattern.bind(this))
+                .onFinishChange(this.updateGUI.bind(this));
+            tableFolder.add(this.ellParams, 'z').min(1).max(this.ellParams.y).step(1)
+                .name('Thickness (h)')
+                .onChange(this.setTableFromPattern.bind(this))
+                .onFinishChange(this.updateGUI.bind(this));
+            tableFolder.add(this.ellParams, 'w').min(1).max(this.ellParams.x).step(1)
+                .name('Thickness (v)')
+                .onChange(this.setTableFromPattern.bind(this))
+                .onFinishChange(this.updateGUI.bind(this));
+            break;
+        }
+
+        tableFolder.open();
+    }
+
+    setTableFromPattern() {
+        switch (this.tablePattern) {
+        case TablePattern.RECTANGLE:
+            this.setRectangleTable(this.rectParams.x, this.rectParams.y);
+            break;
+        case TablePattern.ELL:
+            this.setEllTable(this.ellParams.x, this.ellParams.y, this.ellParams.z, this.ellParams.w);
+            break;
+        }
+    }
+
+    override ngOnDestroy() {
+        super.ngOnDestroy();
+        this.gui.destroy();
+    }
+
+    scan(): void {
+        const orbits = [];
+        const representatives = new Set<string>;
+        const states = new Set<string>();
+        for (let index of this.tableCells) {
+            states.add(JSON.stringify({cellIndex: index, direction: PixelDirection.SOUTHWEST}));
+            states.add(JSON.stringify({cellIndex: index, direction: PixelDirection.SOUTHEAST}));
+            states.add(JSON.stringify({cellIndex: index, direction: PixelDirection.NORTHEAST}));
+            states.add(JSON.stringify({cellIndex: index, direction: PixelDirection.NORTHWEST}));
+        }
+
+        while (states.size > 0) {
+            let start;
+
+            // I know, I know.
+            for (const v of states) {
+                start = JSON.parse(v) as PixelBilliardState;
+                states.delete(v);
+                break;
+            }
+
+            if (!start) throw Error('start undefined');
+
+            const bounces = [];
+            const orbitStates = [start];
+            const orbitSet = new Set();
+            let current = start;
+            let safety = this.tableCells.size * 4;
+            let i = 0;
+            while (!orbitSet.has(JSON.stringify(current)) && safety > 0) {
+                i++;
+                safety--;
+                orbitStates.push(current);
+                orbitSet.add(JSON.stringify(current));
+                const next = this.nextState(current);
+                if (current.direction !== next.direction) {
+                    bounces.push(i);
+                }
+                current = next;
+                states.delete(JSON.stringify(current));
+            }
+            if (safety === 0) console.log('timeout!');
+            // Find out which is the start of the loop
+            const index = orbitStates.findIndex((v) => {
+                return !statesDiffer(v, current);
+            });
+            const orbit = orbitStates.slice(index);
+            // Choose a representative of the loop.
+
+            let rep;
+            if (DEDUPE_SCAN) {
+                rep = {cellIndex: orbit[0].cellIndex, direction: orbit[0].direction % 2};
+            } else {
+                rep = {...orbit[0]};
+            }
+            for (let s of orbit) {
+                if (DEDUPE_SCAN) {
+                    if ((s.cellIndex === rep.cellIndex && s.direction % 2 < rep.direction % 2) || s.cellIndex < rep.cellIndex) {
+                        rep = {cellIndex: s.cellIndex, direction: s.direction % 2};
+                    }
+                } else {
+                    if ((s.cellIndex === rep.cellIndex && s.direction < rep.direction) || s.cellIndex < rep.cellIndex) {
+                        rep = {...s};
+                    }
+                }
+            }
+            let bounceCount = 0;
+            for (let bi of bounces) {
+                if (bi >= index) bounceCount++;
+            }
+
+            const s = JSON.stringify(rep);
+            if (!representatives.has(s)) {
+                representatives.add(s);
+                orbits.push(bounceCount);
+            }
+        }
+        // console.clear();
+        orbits.sort((a, b) => a - b);
+        console.log(orbits);
     }
 
     frame(dt: number): void {
+        if (this.tableChanged) {
+            this.tableChanged = false;
+            this.scan();
+            this.dirty = true;
+        }
         if (this.dirty) {
             this.dirty = false;
             this.scene.clear();
@@ -171,8 +333,6 @@ export class PixelComponent extends ThreeDemoComponent {
                     CELL_SIZE * 0.25,
                 ));
             }
-            // orbitMesh.instanceMatrix.needsUpdate = true;
-            // this.scene.add(orbitMesh);
         }
     }
 
@@ -202,6 +362,26 @@ export class PixelComponent extends ThreeDemoComponent {
         this.computeOrbit(cellIndex, dir);
     }
 
+    nextState(state: PixelBilliardState): PixelBilliardState {
+        if (!this.tableCells.has(state.cellIndex)) throw Error('outside the table');
+        const l = this.leftCellInTable(state);
+        const f = this.frontCellInTable(state);
+        const r = this.rightCellInTable(state);
+        let newState = {...state};
+        if (f && l && r) {
+            newState = stepForward(state);
+        } else if (l === r) {
+            newState.direction = invertDirection(state.direction);
+        } else if (l && !r) {
+            newState.direction = leftDirection(state.direction);
+        } else if (r && !l) {
+            newState.direction = rightDirection(state.direction);
+        } else {
+            throw Error(`what? ${l}, ${f}, ${r}`);
+        }
+        return newState;
+    }
+
     computeOrbit(cellIndex: number, direction: PixelDirection) {
         this.orbitStates = [];
         this.orbitCells.clear();
@@ -214,21 +394,7 @@ export class PixelComponent extends ThreeDemoComponent {
             this.orbitStates.push({...currentState});
             this.orbitCells.add(currentState.cellIndex);
             this.dirty = true;
-            const l = this.leftCellInTable(currentState);
-            const f = this.frontCellInTable(currentState);
-            const r = this.rightCellInTable(currentState);
-            if (f && l && r) {
-                currentState = stepForward(currentState);
-            } else if (l === r) {
-                currentState.direction = invertDirection(currentState.direction);
-            } else if (l && !r) {
-                currentState.direction = leftDirection(currentState.direction);
-            } else if (r && !l) {
-                currentState.direction = rightDirection(currentState.direction);
-            } else {
-                console.log('what?', l, f, r);
-                break;
-            }
+            currentState = this.nextState(currentState);
         } while (safety < this.tableCells.size * 4 && statesDiffer(initialState, currentState));
     }
 
@@ -265,7 +431,7 @@ export class PixelComponent extends ThreeDemoComponent {
                 this.tableCells.delete(cellIndex);
                 this.orbitCells.clear();
                 this.orbitStates = [];
-                this.dirty = true;
+                this.tableChanged = true;
             }
         } else {
             this.dragState = DragState.TABLE;
@@ -273,7 +439,7 @@ export class PixelComponent extends ThreeDemoComponent {
                 this.tableCells.add(cellIndex);
                 this.orbitCells.clear();
                 this.orbitStates = [];
-                this.dirty = true;
+                this.tableChanged = true;
             }
         }
     }
@@ -292,7 +458,7 @@ export class PixelComponent extends ThreeDemoComponent {
                 this.tableCells.delete(cellIndex);
                 this.orbitCells.clear();
                 this.orbitStates = [];
-                this.dirty = true;
+                this.tableChanged = true;
             }
         } else {
             this.dragState = DragState.TABLE;
@@ -300,7 +466,7 @@ export class PixelComponent extends ThreeDemoComponent {
                 this.tableCells.add(cellIndex);
                 this.orbitCells.clear();
                 this.orbitStates = [];
-                this.dirty = true;
+                this.tableChanged = true;
             }
         }
     }
@@ -313,12 +479,42 @@ export class PixelComponent extends ThreeDemoComponent {
     validateTable() {
     }
 
-    setRectangleTable() {
-
+    setRectangleTable(w: number, h: number) {
+        if (w <= 0 || h <= 0) throw Error('negative inputs');
+        this.tableChanged = true;
+        this.tableCells.clear();
+        const lx = (GRID_COLS - GRID_COLS % 2) / 2 - (w - w % 2) / 2;
+        const ly = (GRID_ROWS - GRID_ROWS % 2) / 2 - (h - h % 2) / 2;
+        for (let i = lx; i < lx + w; i++) {
+            for (let j = ly; j < ly + h; j++) {
+                const index = rowColToCellIndex(j, i);
+                if (index === undefined) console.error('bad index');
+                else this.tableCells.add(index);
+            }
+        }
     }
 
-    setLTable() {
-
+    setEllTable(w: number, h: number, ht: number, vt: number) {
+        if (w <= 0 || h <= 0 || ht <= 0 || vt <= 0) throw Error('negative inputs');
+        if (ht > h || vt > w) throw Error('bad L');
+        this.tableCells.clear();
+        this.tableChanged = true;
+        const lx = (GRID_COLS - GRID_COLS % 2) / 2 - (w - w % 2) / 2;
+        const ly = (GRID_ROWS - GRID_ROWS % 2) / 2 - (h - h % 2) / 2;
+        for (let i = lx; i < lx + vt; i++) {
+            for (let j = ly; j < ly + h; j++) {
+                const index = rowColToCellIndex(j, i);
+                if (index === undefined) console.error('bad index');
+                else this.tableCells.add(index);
+            }
+        }
+        for (let i = lx; i < lx + w; i++) {
+            for (let j = ly; j < ly + ht; j++) {
+                const index = rowColToCellIndex(j, i);
+                if (index === undefined) console.error('bad index');
+                else this.tableCells.add(index);
+            }
+        }
     }
 }
 
@@ -330,6 +526,12 @@ function stepForward(state: PixelBilliardState): PixelBilliardState {
 
 function statesDiffer(s1: PixelBilliardState, s2: PixelBilliardState): boolean {
     return s1.cellIndex !== s2.cellIndex || s1.direction !== s2.direction;
+}
+
+function rowColToCellIndex(row: number, col: number): number | undefined {
+    if (row < 0 || row >= GRID_ROWS) return undefined;
+    if (col < 0 || col >= GRID_COLS) return undefined;
+    return row * GRID_COLS + col;
 }
 
 function positionToCellIndex(pos: Vector2): number | undefined {
@@ -351,7 +553,7 @@ function cellIndexToPosition(index: number): Vector2 {
 }
 
 function cellIndexToRowCol(index: number): number[] {
-    const row = Math.floor(index / GRID_ROWS);
-    const col = index % GRID_ROWS;
+    const row = Math.floor(index / GRID_COLS);
+    const col = index % GRID_COLS;
     return [row, col];
 }

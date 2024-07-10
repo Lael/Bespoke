@@ -1,7 +1,9 @@
 import {AfterViewInit, Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import * as THREE from 'three';
+import {Vector2} from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module'
 import {CommonModule} from "@angular/common";
+import {Line2} from "three/examples/jsm/lines/Line2";
 
 @Component({
     selector: 'three-demo',
@@ -24,6 +26,7 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
     stats: Stats;
 
     private resized = true;
+    resolution = new Vector2(1, 1);
 
     showHelp = false;
     helpTitle = 'Demo';
@@ -156,10 +159,16 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
             this.resized = false;
             const w = this.hostElement?.nativeElement.offsetWidth || 0;
             const h = this.hostElement?.nativeElement.offsetHeight || 0;
+            this.resolution.set(w, h);
             this.renderer.setSize(w, h);
             this.perspectiveCamera.aspect = w / h;
             this.perspectiveCamera.updateProjectionMatrix();
             this.updateOrthographicCamera();
+            for (let child of this.scene.children) {
+                if (child instanceof Line2) {
+                    child.material.resolution.set(w, h);
+                }
+            }
         }
         this.stats.update();
         const now = Date.now();

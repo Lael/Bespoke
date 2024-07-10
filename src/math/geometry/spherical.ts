@@ -1,11 +1,14 @@
 import {Color, ColorRepresentation, Matrix4, Mesh, MeshBasicMaterial, SphereGeometry, Vector2, Vector3} from "three";
-import {closeEnough} from "../math-helpers";
+import {closeEnough, normalizeAngle} from "../math-helpers";
+import {ArcSegment} from "./arc-segment";
+import {AffineCircle} from "./affine-circle";
+import {Complex} from "../complex";
 
 export class SpherePoint {
     mesh: Mesh | undefined;
 
     constructor(readonly coords: Vector3) {
-        if (coords.length() === 0) throw Error('point not on sphericalSphere');
+        if (coords.length() === 0) throw Error('point not on sphere');
         this.coords.normalize();
     }
 
@@ -61,6 +64,12 @@ export class SpherePoint {
 
     equals(other: SpherePoint) {
         return this.distanceTo(other) < 0.000_001;
+    }
+
+    get stereographic(): Vector3 {
+        if (this.z === -1) throw Error('singular point');
+        const d = this.z + 1;
+        return new Vector3(this.x / d, this.y / d, 0);
     }
 }
 
@@ -144,11 +153,37 @@ export class SphericalArc {
         return sphericalLerp(this.p1, this.p2, alpha);
     }
 
-    points(scale: number) {
+    points(scale: number, stereograph: boolean = false) {
         const pts = [];
+        if (stereograph) {
+            // make a circular arc in the plane, then interpolate that
+            const p1 = this.p1.stereographic;
+            const mid = this.lerp(0.5).stereographic;
+            const p2 = this.p2.stereographic;
+            const p1c = new Complex(p1.x, p1.y);
+            const midc = new Complex(mid.x, mid.y);
+            const p2c = new Complex(p2.x, p2.y);
+            const c = AffineCircle.fromThreePoints(p1c, midc, p2c);
+
+            const a1 = c.center.heading(p1c);
+            const am = normalizeAngle(c.center.heading(midc), a1);
+            const a2 = normalizeAngle(c.center.heading(p2c), a1);
+            let arc: ArcSegment;
+            if (am > a2) {
+                arc = new ArcSegment(c.center, c.radius, a2, normalizeAngle(a1, a2));
+            } else {
+                arc = new ArcSegment(c.center, c.radius, a1, a2);
+            }
+            return arc.interpolate(-1).map(c => new Vector3(c.x, c.y, 0));
+        }
         let segments = Math.ceil(scale * this.length) + 1;
         for (let i = 0; i < segments + 1; i++) {
-            pts.push(this.lerp(i / segments).coords.multiplyScalar(1.001));
+            const pt = this.lerp(i / segments);
+            if (stereograph) {
+                pts.push(pt.stereographic)
+            } else {
+                pts.push(pt.coords.multiplyScalar(1.001));
+            }
         }
         return pts;
     }

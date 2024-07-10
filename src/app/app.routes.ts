@@ -4,7 +4,6 @@ import {CrossingComponent} from "./demos/crossing/crossing.component";
 import {TileBilliardsComponent} from "./demos/tile-billiards/tile-billiards.component";
 import {BilliardsUnfoldingComponent} from "./demos/unfolding/billiards-unfolding.component";
 import {SymmetricComponent} from "./demos/symmetry/symmetric.component";
-import {PolygonMapComponent} from "./demos/symplectic-table/symplectic-table.component";
 import {BilliardsComponent} from "./demos/billiards/billiards.component";
 import {Regge3Component} from "./demos/regge/regge3.component";
 import {Unfolding3DComponent} from "./demos/unfolding-3d/unfolding-3d.component";
@@ -22,6 +21,7 @@ import {Regge2p1Component} from "./demos/regge/regge2p1.component";
 import {Regge3p1Component} from "./demos/regge/regge3p1.component";
 import {PixelComponent} from "./demos/pixel/pixel.component";
 import {RotationComponent} from "./demos/rotation/rotation.component";
+import {SymplecticTableContainerComponent} from "./demos/symplectic-table/symplectic-table-container.component";
 
 export const routes: Routes = [
     {path: '', component: HomePageComponent},
@@ -44,7 +44,7 @@ export const routes: Routes = [
     {path: 'symmetric', component: SymmetricComponent},
     {path: 'phase', component: PhaseComponent},
     {path: 'crossing', component: CrossingComponent},
-    {path: 'symplectic-table', component: PolygonMapComponent},
+    {path: 'symplectic-table', component: SymplecticTableContainerComponent},
     {path: 'regge2', component: Regge2Component},
     {path: 'regge2p1', component: Regge2p1Component},
     {path: 'regge3', component: Regge3Component},

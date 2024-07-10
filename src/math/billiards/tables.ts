@@ -176,7 +176,7 @@ export abstract class SphericalOuterBilliardTable {
         return [points, centers];
     }
 
-    mesh(n: number, color: ColorRepresentation): Mesh {
+    mesh(n: number, color: ColorRepresentation, stereograph: boolean): Mesh {
         let points = [];
         for (let i = 0; i <= n; i++) {
             points.push(this.point(i * (1.0 / n)).coords);

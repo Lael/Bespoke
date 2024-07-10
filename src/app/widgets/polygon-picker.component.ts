@@ -1,26 +1,18 @@
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
 import {ThreeDemoComponent} from "./three-demo/three-demo.component";
-import {
-    AxesHelper,
-    BufferGeometry,
-    Color,
-    LineBasicMaterial,
-    LineSegments,
-    Matrix4,
-    Mesh,
-    MeshBasicMaterial,
-    SphereGeometry,
-    Vector2,
-    Vector3
-} from "three";
+import {AxesHelper, Color, Matrix4, Mesh, MeshBasicMaterial, SphereGeometry, Vector2, Vector3} from "three";
 import {DragControls} from "three/examples/jsm/controls/DragControls";
 import {normalizeAngle} from "../../math/math-helpers";
 import {reflectOver} from "../demos/unfolding/unfolding.component";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {CommonModule} from "@angular/common";
+import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry";
+import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
+import {LineSegments2} from "three/examples/jsm/lines/LineSegments2";
 
 const CLEAR_COLOR = new Color(0xfafafa);
 const POINT_RADIUS = 0.025;
+const EDGE_WIDTH = 2;
 
 export enum PolygonRestriction {
     NONE = 'None',
@@ -162,7 +154,7 @@ export class PolygonPickerComponent extends ThreeDemoComponent implements OnChan
         }
     }
 
-    protected reset(n: number = 3, skip: number = 0, offset: number = 0.1234) {
+    reset(n: number = 3, skip: number = 0, offset: number = 0.1234) {
         while (this.draggables.length > 0) {
             this.draggables.pop();
         }
@@ -306,10 +298,10 @@ export class PolygonPickerComponent extends ThreeDemoComponent implements OnChan
                 polyPoints.push(hull[i], hull[(i + 1) % hull.length]);
             }
 
-            const polyGeo = new BufferGeometry().setFromPoints(polyPoints);
-            const polyMat = new LineBasicMaterial({color: 0x283845});
+            const polyGeo = new LineSegmentsGeometry().setPositions(polyPoints.flatMap(v => [v.x, v.y, 0]));
+            const polyMat = new LineMaterial({color: 0x283845, linewidth: EDGE_WIDTH, resolution: this.resolution});
 
-            const poly = new LineSegments(polyGeo, polyMat);
+            const poly = new LineSegments2(polyGeo, polyMat);
             this.scene.add(poly);
         }
     }

@@ -95,7 +95,7 @@ export class SphericalPolygonTable extends SphericalOuterBilliardTable {
         return this.polygon.n;
     }
 
-    override mesh(scale: number, color: ColorRepresentation): Mesh {
+    override mesh(scale: number, color: ColorRepresentation, stereograph: boolean): Mesh {
         const np = new SpherePoint(new Vector3(0, 0, 1));
         let vertices = [];
         for (let a of this.polygon.arcs) {
@@ -117,7 +117,11 @@ export class SphericalPolygonTable extends SphericalOuterBilliardTable {
                         qv.push(q3, q4, q1);
                     }
                     for (let v of qv) {
-                        vertices.push(v.x * 1.001, v.y * 1.001, v.z * 1.001);
+                        if (stereograph) {
+                            vertices.push(v.x / (1 + v.z), v.y / (1 + v.z), 0);
+                        } else {
+                            vertices.push(v.x * 1.001, v.y * 1.001, v.z * 1.001);
+                        }
                     }
                 }
             }

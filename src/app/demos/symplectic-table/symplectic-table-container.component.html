@@ -1,0 +1,21 @@
+<div class="full-page">
+    <div class="table-container">
+        <symplectic-table #tableComponent
+                          class="left"
+                          [n]="params.n"
+                          [iterations]="params.iterations"
+                          [everyOther]="params.everyOther"
+                          [rescale]="params.rescale"
+                          [convex]="params.convex"
+                          [inner]="params.inner"
+                          [vertices]="params.vertices"
+                          [edges]="params.edges"
+                          [restriction]="restriction"
+                          (iterates)="onNewOrbit($event)">
+        </symplectic-table>
+        <affine-normalization class="right"
+                              [iterates]="iterates"
+                              [normalize]="true">
+        </affine-normalization>
+    </div>
+</div>

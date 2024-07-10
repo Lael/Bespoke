@@ -1,97 +1,97 @@
-import {Component} from "@angular/core";
+import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
 import {convexHull, PolygonPickerComponent, PolygonRestriction} from "../../widgets/polygon-picker.component";
-import {GUI} from "dat.gui";
-import {
-    BufferGeometry,
-    Line,
-    LineBasicMaterial,
-    LineSegments,
-    Matrix3,
-    Points,
-    PointsMaterial,
-    Vector2,
-    Vector3,
-    Vector4
-} from "three";
+import {BufferGeometry, Matrix3, Points, PointsMaterial, Vector2, Vector3, Vector4} from "three";
 import {Line as GeoLine} from "../../../math/geometry/line";
 import {Complex} from "../../../math/complex";
 import {CommonModule} from "@angular/common";
+import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
+import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
+import {Line2} from "three/examples/jsm/lines/Line2";
+import {LineSegments2} from "three/examples/jsm/lines/LineSegments2";
+import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry";
+
+const IMAGE_EDGE_WIDTH = 1;
+const FINAL_EDGE_WIDTH = 2;
 
 @Component({
-    selector: 'triangle-map',
+    selector: 'symplectic-table',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
     imports: [CommonModule],
     standalone: true,
 })
-export class PolygonMapComponent extends PolygonPickerComponent {
-    params = {
-        n: 3,
-        iterations: 10,
-        everyOther: false,
-        showAffine: false,
-        rescale: false,
-        convex: true,
-        inner: true,
-        vertices: true,
-        edges: true,
+export class SymplecticTableComponent extends PolygonPickerComponent implements OnChanges {
+
+    @Input() n = 3;
+    @Input() iterations = 10;
+    @Input() everyOther = false;
+    @Input() rescale = false;
+    @Input() convex = true;
+    @Input() inner = true;
+    @Input() vertices = true;
+    @Input() edges = true;
+
+    @Output() iterates = new EventEmitter<Vector2[][]>();
+
+    override ngOnChanges(changes: SimpleChanges) {
+        this.markDirty();
     }
 
-    images: LineSegments = new LineSegments();
-    finalImage: Line = new Line();
-    affineFinal: Line = new Line();
+    images: LineSegments2 = new LineSegments2();
+    finalImage: Line2 = new Line2();
+    affineFinal: Line2 = new Line2();
 
-    gui: GUI;
+    // gui: GUI;
 
     constructor() {
         super();
-        this.restriction = this.params.convex ? PolygonRestriction.CONVEX : PolygonRestriction.NONE;
+        this.restriction = this.convex ? PolygonRestriction.CONVEX : PolygonRestriction.NONE;
         this.useOrthographic = true;
-        this.reset(this.params.n, 0, 0);
-        this.gui = new GUI();
-        this.updateGUI();
+        this.reset(this.n, 0, 0);
+        // this.gui = new GUI();
+        // this.updateGUI();
     }
 
-    updateGUI() {
-        this.gui.destroy();
-        this.gui = new GUI();
-        this.gui.add(this.params, 'n').min(3).max(24).step(1).onChange(() => {
-            this.reset(this.params.n, 0, 0);
-            this.markDirty();
-        })
-        this.gui.add(this.params, 'iterations').name('Iterations').min(1).max(1000).step(1).onFinishChange(() => {
-            this.markDirty();
-        });
-        this.gui.add(this.params, 'everyOther').name('Hide every other').onFinishChange(() => {
-            this.markDirty();
-        });
-        this.gui.add(this.params, 'showAffine').name('Show affine image').onFinishChange(() => {
-            this.markDirty();
-        });
-        this.gui.add(this.params, 'rescale').name('Rescale').onFinishChange(() => {
-            this.markDirty();
-        });
-        this.gui.add(this.params, 'convex').name('Convex').onFinishChange(() => {
-            this.restriction = this.params.convex ? PolygonRestriction.CONVEX : PolygonRestriction.NONE;
-            this.markDirty();
-        });
-        this.gui.add(this.params, 'vertices').name('Vertices').onFinishChange(() => {
-            this.markDirty();
-        });
-        this.gui.add(this.params, 'edges').name('Edges').onFinishChange(() => {
-            this.markDirty();
-        });
-        // this.gui.add(this.params, 'inner').name('Inner').onFinishChange(() => {
-        //     this.params.showAffine = this.params.inner;
-        //     this.markDirty();
-        // });
-        this.gui.open();
-    }
+    // updateGUI() {
+    //     this.gui.destroy();
+    //     this.gui = new GUI();
+    //     this.gui.add(this., 'n').min(3).max(24).step(1).onChange(() => {
+    //         this.reset(this.n, 0, 0);
+    //         this.markDirty();
+    //     })
+    //     this.gui.add(this., 'iterations').name('Iterations').min(1).max(1000).step(1).onFinishChange(() => {
+    //         this.markDirty();
+    //     });
+    //     this.gui.add(this., 'everyOther').name('Hide every other').onFinishChange(() => {
+    //         this.markDirty();
+    //     });
+    //     this.gui.add(this., 'showAffine').name('Show affine image').onFinishChange(() => {
+    //         this.markDirty();
+    //     });
+    //     this.gui.add(this., 'rescale').name('Rescale').onFinishChange(() => {
+    //         this.markDirty();
+    //     });
+    //     this.gui.add(this., 'convex').name('Convex').onFinishChange(() => {
+    //         this.restriction = this.convex ? PolygonRestriction.CONVEX : PolygonRestriction.NONE;
+    //         this.markDirty();
+    //     });
+    //     this.gui.add(this., 'vertices').name('Vertices').onFinishChange(() => {
+    //         this.markDirty();
+    //     });
+    //     this.gui.add(this., 'edges').name('Edges').onFinishChange(() => {
+    //         this.markDirty();
+    //     });
+    //     // this.gui.add(this., 'inner').name('Inner').onFinishChange(() => {
+    //     //     this.showAffine = this.inner;
+    //     //     this.markDirty();
+    //     // });
+    //     this.gui.open();
+    // }
 
-    override ngOnDestroy() {
-        super.ngOnDestroy();
-        this.gui.destroy();
-    }
+    // override ngOnDestroy() {
+    //     super.ngOnDestroy();
+    //     this.gui.destroy();
+    // }
 
     override processKeyboardInput(dt: number) {
 
@@ -102,9 +102,8 @@ export class PolygonMapComponent extends PolygonPickerComponent {
         super.frame(dt);
         if (recompute) {
             this.iterate();
-            if (this.params.edges) this.scene.add(this.images);
+            if (this.edges) this.scene.add(this.images);
             this.scene.add(this.finalImage);
-            if (this.params.showAffine) this.scene.add(this.affineFinal);
         }
     }
 
@@ -113,20 +112,20 @@ export class PolygonMapComponent extends PolygonPickerComponent {
     // }
 
     iterate() {
-        console.clear();
         const ls = [];
         let vertices = this.draggables.map((v) => new Vector2(v.position.x, v.position.y));
-        let polygon = this.params.convex ? convexHull(vertices)[0] : vertices;
+        let polygon = this.convex ? convexHull(vertices)[0] : vertices;
         let iVertices = [];
         let finalPolygon = polygon;
         let area = convexArea(polygon);
         let q = quantity(polygon);
         let n = polygon.length;
-        for (let i = 0; i < this.params.iterations; i++) {
+        const iterates = [];
+        for (let i = 0; i < this.iterations; i++) {
             let newPolygon = [];
 
             let err = false;
-            if (this.params.inner) {
+            if (this.inner) {
                 let lines: GeoLine[] = [];
                 for (let j = 0; j < n; j++) {
                     let v1 = polygon[j];
@@ -145,13 +144,13 @@ export class PolygonMapComponent extends PolygonPickerComponent {
                     err = true;
                     break;
                 }
-                if (this.params.rescale) {
+                if (this.rescale) {
                     let sa = Math.sqrt(area / convexArea(newPolygon));
                     for (let j = 0; j < n; j++) {
                         newPolygon[j] = newPolygon[j].multiplyScalar(sa);
                     }
                 }
-                if (i % 2 == 1 || !this.params.everyOther) iVertices.push(...newPolygon);
+                if (i % 2 == 1 || !this.everyOther) iVertices.push(...newPolygon);
             } else {
                 try {
                     for (let j = 0; j < n; j++) {
@@ -180,13 +179,14 @@ export class PolygonMapComponent extends PolygonPickerComponent {
 
             if (err) break;
 
-            if (i % 2 == 1 || !this.params.everyOther) {
+            if (i % 2 == 1 || !this.everyOther) {
                 for (let j = 0; j < n; j++) {
                     let p1 = newPolygon[j];
                     let p2 = newPolygon[(j + 1) % n];
                     ls.push(p1, p2);
                 }
                 finalPolygon = newPolygon;
+                iterates.push(newPolygon);
             }
 
             let newQ = quantity(newPolygon);
@@ -196,22 +196,26 @@ export class PolygonMapComponent extends PolygonPickerComponent {
             polygon = newPolygon;
         }
 
-        if (this.params.edges) {
-            this.images = new LineSegments(new BufferGeometry().setFromPoints(ls), new LineBasicMaterial({color: 0xaa44aa}));
+        this.iterates.emit(iterates);
+
+        if (this.edges) {
+            this.images = new LineSegments2(
+                new LineSegmentsGeometry().setPositions(ls.flatMap(v => [v.x, v.y, 0])),
+                new LineMaterial({color: 0xaa44aa, linewidth: IMAGE_EDGE_WIDTH, resolution: this.resolution}));
         }
-        this.finalImage = new Line(
-            new BufferGeometry().setFromPoints(finalPolygon.concat([finalPolygon[0]])),
-            new LineBasicMaterial({color: 0x008800})
+        this.finalImage = new Line2(
+            new LineGeometry().setPositions(finalPolygon.concat([finalPolygon[0]]).flatMap((v) => [v.x, v.y, 0])),
+            new LineMaterial({color: 0x008800, linewidth: FINAL_EDGE_WIDTH, resolution: this.resolution})
         );
 
-        if (this.params.vertices) {
+        if (this.vertices) {
             this.scene.add(new Points(new BufferGeometry().setFromPoints(iVertices), new PointsMaterial({
                 color: 0xaa44aa,
-                size: 2
+                size: 4
             })))
         }
 
-        if (this.params.inner) {
+        if (this.inner) {
             const at = affineTransformation(finalPolygon);
             let affinePoints = finalPolygon.map((v) => {
                 let tv = new Vector3(v.x, v.y, 1).applyMatrix3(at);
@@ -236,9 +240,14 @@ export class PolygonMapComponent extends PolygonPickerComponent {
             //     affinePoints = newAffinePoints;
             // }
 
-            this.affineFinal = new Line(
-                new BufferGeometry().setFromPoints(affinePoints.concat(affinePoints[0])),
-                new LineBasicMaterial({color: 0xaa8800})
+            const aps = affinePoints.concat(affinePoints[0]).flatMap((ap) => [ap.x, ap.y, 0]);
+
+            this.affineFinal = new Line2(
+                new LineGeometry().setPositions(aps),
+                new LineMaterial({
+                    color: 0x884400, linewidth: FINAL_EDGE_WIDTH,
+                    resolution: this.resolution,
+                })
             );
             this.affineFinal.translateX(2);
         }

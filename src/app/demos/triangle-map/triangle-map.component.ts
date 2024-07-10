@@ -8,6 +8,7 @@ import {
     InstancedMesh,
     Line as ThreeLine,
     LineBasicMaterial,
+    LineSegments,
     Matrix4,
     Mesh,
     MeshBasicMaterial,
@@ -52,7 +53,6 @@ const CLEAR_COLOR = 0xfafafa;
 export class TriangleMapComponent extends ThreeDemoComponent implements OnDestroy, OnInit {
     orbitControls: OrbitControls;
     space: ThreeLine;
-    angleSpace = true;
     start: Object3D;
 
     v = new Vector2(0, 0.0001);
@@ -66,6 +66,10 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
     sampleQueue: SampleJob[] = [];
     phaseQueue: PhaseJob[] = [];
 
+    uhpTri: LineSegments = new LineSegments();
+    successBest = Number.NEGATIVE_INFINITY;
+    failureWorst = Number.POSITIVE_INFINITY;
+
     params = {
         sample: false,
         clear: false,
@@ -77,6 +81,7 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
         attempts: 8,
         fixArea: true,
         fixPerimeter: false,
+        uhp: false,
     }
 
     gui: GUI;
@@ -105,7 +110,7 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
         this.orbitControls.zoomToCursor = true;
         if (this.params.sample) this.sampleSetup();
         if (this.params.phase) this.phaseSetup();
-        this.scene.add(this.space);
+        if (!this.params.uhp) this.scene.add(this.space);
         this.gui = new GUI();
         this.updateGUI();
         this.start = new Mesh(new SphereGeometry(0.01), new MeshBasicMaterial({color: 0x44aaff}));
@@ -139,8 +144,9 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
                     console.log(t);
                     this.updateGUI();
                     this.scene.clear();
-                    this.scene.add(this.space);
+                    if (!this.params.uhp) this.scene.add(this.space);
                     this.scene.add(this.start);
+                    console.log('init set');
                     this.startingTriangle = Triangle.fromThreeAngles(a, b, c);
                     this.dirty = true;
                     this.routerSub?.unsubscribe();
@@ -181,6 +187,22 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
                 this.params.phase = false;
             }
             this.updateGUI();
+            this.dirty = true;
+        });
+
+        this.gui.add(this.params, 'uhp').name('UHP').onFinishChange(() => {
+            if (this.params.uhp) {
+                this.scene.remove(this.space);
+                this.camera.position.set(0.5, 1, 5);
+                this.camera.lookAt(0.5, 1, 0);
+            } else {
+                this.scene.add(this.space);
+                this.camera.position.set(5, 7, 5);
+                this.camera.lookAt(-5, -3, -5);
+            }
+            // this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
+            // this.orbitControls.enableRotate = false;
+            // this.orbitControls.enablePan = true;
             this.dirty = true;
         });
 
@@ -251,7 +273,7 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
 
         if (this.keysPressed.get('KeyC')) {
             this.scene.clear();
-            this.scene.add(this.space);
+            if (!this.params.uhp) this.scene.add(this.space);
             this.scene.add(this.start);
             this.dirty = true;
         }
@@ -267,10 +289,24 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
 
         if (dv.length() != 0) {
             dv.normalize().multiplyScalar(multiplier * SPEED * dt / this.camera.zoom);
-            let d3 = new Vector3(1, 0, -1).normalize().multiplyScalar(dv.x / Math.sqrt(1.5))
-                .add(new Vector3(-1, 2, -1).normalize().multiplyScalar(dv.y));
-            let a = new Vector3(this.startingTriangle.angleA, this.startingTriangle.angleB, this.startingTriangle.angleC).add(d3);
-            this.startingTriangle = Triangle.fromThreeAngles(a.x, a.y, a.z);
+            if (this.params.uhp) {
+                const uhp = triToUHP(new Vector3(
+                    this.startingTriangle.angleA,
+                    this.startingTriangle.angleB,
+                    this.startingTriangle.angleC,
+                ));
+                uhp.add(new Vector3(dv.x, dv.y, 0));
+                const a = uhpToTri(uhp);
+                console.log('uhp key set', dv, uhp, a, triToUHP(a));
+                this.startingTriangle = Triangle.fromThreeAngles(a.x, a.y, a.z);
+                console.log(a, this.startingTriangle.angleA, this.startingTriangle.angleB, this.startingTriangle.angleC)
+            } else {
+                let d3 = new Vector3(1, 0, -1).normalize().multiplyScalar(dv.x / Math.sqrt(1.5))
+                    .add(new Vector3(-1, 2, -1).normalize().multiplyScalar(dv.y));
+                let a = new Vector3(this.startingTriangle.angleA, this.startingTriangle.angleB, this.startingTriangle.angleC).add(d3);
+                console.log('key set', a);
+                this.startingTriangle = Triangle.fromThreeAngles(a.x, a.y, a.z);
+            }
             this.dirty = true;
         }
     }
@@ -296,21 +332,11 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
 
     iterateExtouch() {
         let t = this.startingTriangle;
-        let points;
-        if (this.angleSpace) {
-            points = [new Vector3(t.angleA, t.angleB, t.angleC)];
-        } else {
-            points = [new Vector3(t.sideA, t.sideB, t.sideC)];
-        }
+        let points = [new Vector3(t.angleA, t.angleB, t.angleC)];
         for (let i = 0; i < 1000; i++) {
             try {
                 t = t.guessTouch();
-                let v;
-                if (this.angleSpace) {
-                    v = new Vector3(t.angleA, t.angleB, t.angleC);
-                } else {
-                    v = new Vector3(t.sideA, t.sideB, t.sideC);
-                }
+                let v = new Vector3(t.angleA, t.angleB, t.angleC);
                 points.push(v);
                 if (this.print) {
                     const s = (t.sideA + t.sideB + t.sideC) / 3;
@@ -322,7 +348,9 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
             }
         }
         this.print = false;
-
+        if (this.params.uhp) {
+            points = points.map(p => triToUHP(p));
+        }
         this.pts = new Points(new BufferGeometry().setFromPoints(points),
             new PointsMaterial({color: 0xffff88, size: 0.025}));
         this.scene.add(this.pts);
@@ -330,36 +358,28 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
 
     iterateVectorField() {
         const dt = 0.001;
-        let t = this.startingTriangle;
-        let points;
-        if (this.angleSpace) {
-            points = [new Vector3(t.angleA, t.angleB, t.angleC)];
-        } else {
-            points = [new Vector3(t.sideA, t.sideB, t.sideC)];
-        }
+        let t = new Triangle(
+            this.startingTriangle.p1.clone(),
+            this.startingTriangle.p2.clone(),
+            this.startingTriangle.p3.clone(),
+        );
+        let points = [t.angles];
         for (let i = 0; i < 10000; i++) {
             t = t.evolve(dt);
-            let v;
-            if (this.angleSpace) {
-                v = new Vector3(t.angleA, t.angleB, t.angleC);
-            } else {
-                v = new Vector3(t.sideA, t.sideB, t.sideC);
-            }
-            points.push(v);
+            points.push(t.angles);
+        }
+        if (this.params.uhp) {
+            points = points.map(p => triToUHP(p));
         }
         this.pts = new Points(new BufferGeometry().setFromPoints(points),
-            new PointsMaterial({color: 0xffff88, size: 0.025}));
+            new PointsMaterial({color: 0x440088, size: 0.025}));
         this.scene.add(this.pts);
+        this.dirty = false;
     }
 
     iterateMap(triangle: Triangle = this.startingTriangle, t: number = this.params.t) {
         let tri = new Triangle(triangle.p1, triangle.p2, triangle.p3);
-        let points;
-        if (this.angleSpace) {
-            points = [new Vector3(tri.angleA, tri.angleB, tri.angleC)];
-        } else {
-            points = [new Vector3(tri.sideA, tri.sideB, tri.sideC)];
-        }
+        let points = [new Vector3(tri.angleA, tri.angleB, tri.angleC)];
         let failed = false;
         for (let i = 0; i < Math.pow(2, this.params.attempts) - 1; i++) {
             let newVertices = [];
@@ -372,12 +392,7 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
             tri = new Triangle(newVertices[0], newVertices[1], newVertices[2])
             if (this.params.fixPerimeter) tri.withPerimeter(1);
             if (this.params.fixArea) tri.withArea(1);
-            let v;
-            if (this.angleSpace) {
-                v = new Vector3(tri.angleA, tri.angleB, tri.angleC);
-            } else {
-                v = new Vector3(tri.sideA, tri.sideB, tri.sideC);
-            }
+            let v = new Vector3(tri.angleA, tri.angleB, tri.angleC);
             points.push(v);
         }
         if (failed) return;
@@ -387,6 +402,10 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
             randFloat(0, 0.7),
             randFloat(0, 0.7),
             randFloat(0, 0.7));
+
+        if (this.params.uhp) {
+            points = points.map(p => triToUHP(p));
+        }
         this.pts = new Points(new BufferGeometry().setFromPoints(points),
             new PointsMaterial({color: failed ? new Color().setRGB(1, 0, 0) : color}));
         this.scene.add(this.pts);
@@ -395,9 +414,11 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
 
     sampleSetup() {
         this.scene.clear();
-        this.scene.add(this.space);
+        if (!this.params.uhp) this.scene.add(this.space);
         this.scene.add(this.start);
         this.sampleQueue = [];
+        this.successBest = Number.NEGATIVE_INFINITY;
+        this.failureWorst = Number.POSITIVE_INFINITY;
         const resolution = Math.pow(2, this.params.resolution);
         const t = this.params.t;
         const scale = Math.PI / resolution;
@@ -467,7 +488,7 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
 
     phaseSetup() {
         this.scene.clear();
-        this.scene.add(this.space);
+        if (!this.params.uhp) this.scene.add(this.space);
         this.scene.add(this.start);
         this.sampleQueue = [];
         this.phaseQueue = [];
@@ -506,7 +527,23 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
             while (now < start + 40 && this.sampleQueue.length > 0) {
                 const job = this.sampleQueue.pop();
                 if (job === undefined) continue;
-                const success = testEvasion([job.triangle.p1, job.triangle.p2, job.triangle.p3], job.t, Math.pow(2, this.params.attempts));
+                const q = 1 / (Math.tan(job.triangle.angleA / 2) * Math.tan(job.triangle.angleB / 2) * Math.tan(job.triangle.angleC / 2));
+                let success: number;
+                // if (q < 0.95 * this.successBest) {
+                //     success = 1;
+                // } else if (q > 1.05 * this.failureWorst) {
+                //     success = 0;
+                // } else {
+                //     success = testEvasion([job.triangle.p1, job.triangle.p2, job.triangle.p3], job.t, Math.pow(2, this.params.attempts));
+                // }
+                success = testEvasion([job.triangle.p1, job.triangle.p2, job.triangle.p3], job.t, Math.pow(2, this.params.attempts));
+                if (success === 1 && q > this.successBest) {
+                    this.successBest = q;
+                    console.log(this.successBest, this.failureWorst, this.successBest < this.failureWorst);
+                } else if (success < 1 && q < this.failureWorst) {
+                    this.failureWorst = q;
+                    console.log(this.successBest, this.failureWorst, this.successBest < this.failureWorst);
+                }
                 const successColor = new Color(0x759AAB);
                 const failureColor = new Color(0x931621);
                 const color = successColor.multiplyScalar(success).add(failureColor.multiplyScalar(1 - success));
@@ -538,12 +575,29 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
             if (this.dirty) {
                 if (this.params.clear) {
                     this.scene.clear();
-                    this.scene.add(this.space);
+                    if (!this.params.uhp) this.scene.add(this.space);
                     this.scene.add(this.start);
                 }
 
-                this.iterateMap();
-                this.start.position.set(this.startingTriangle.angleA, this.startingTriangle.angleB, this.startingTriangle.angleC);
+                this.iterateVectorField();
+                // this.iterateMap();
+                if (this.params.uhp) {
+                    const uhpStart = triToUHP(new Vector3(this.startingTriangle.angleA, this.startingTriangle.angleB, this.startingTriangle.angleC));
+                    this.scene.remove(this.uhpTri);
+                    this.uhpTri = new LineSegments(new BufferGeometry().setFromPoints([
+                        new Vector3(0, 0, 0),
+                        new Vector3(1, 0, 0),
+                        new Vector3(1, 0, 0),
+                        uhpStart,
+                        uhpStart,
+                        new Vector3(0, 0, 0),
+                    ]), new LineBasicMaterial({color: 0x000000}));
+                    this.scene.add(this.uhpTri);
+                    this.start.position.set(uhpStart.x, uhpStart.y, 0);
+                } else {
+                    this.scene.remove(this.uhpTri);
+                    this.start.position.set(this.startingTriangle.angleA, this.startingTriangle.angleB, this.startingTriangle.angleC);
+                }
             }
         }
     }
@@ -565,6 +619,24 @@ function xyToTriSpace(xy: Vector2): Vector3 {
     let d3 = new Vector3(-1, 0, 1).normalize().multiplyScalar(xy.x / Math.sqrt(6))
         .add(new Vector3(-1, 2, -1).normalize().multiplyScalar(xy.y));
     return new Vector3(Math.PI / 3, Math.PI / 3, Math.PI / 3).add(d3);
+}
+
+function triToUHP(abc: Vector3): Vector3 {
+    const ta = Math.tan(abc.x);
+    const tb = Math.tan(abc.y);
+    const x = tb / (ta + tb);
+    const y = x * ta;
+    return new Vector3(x, y, 0);
+    // y = tan(b) x
+    // y = -tan(c) (x-1)
+    // tan(b) x = tan(c)-tan(c) x
+    // x = (tan(b) + tan(c)) / tan(c)
+    // y = tan(b) * x
+}
+
+function uhpToTri(xy: Vector3): Vector3 {
+    const t = new Triangle(new Vector2(0, 0), new Vector2(1, 0), new Vector2(xy.x, xy.y));
+    return t.angles;
 }
 
 function shuffle(l: any[]) {
