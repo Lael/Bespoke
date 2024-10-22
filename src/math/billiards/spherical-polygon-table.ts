@@ -1,6 +1,14 @@
 import {SpherePoint, SphericalArc, sphericalLerp, SphericalPolygon} from "../geometry/spherical";
 import {fixTime, SphericalOuterBilliardTable} from "./tables";
-import {BufferAttribute, BufferGeometry, ColorRepresentation, Mesh, MeshBasicMaterial, Vector3} from "three";
+import {
+    BufferAttribute,
+    BufferGeometry,
+    ColorRepresentation,
+    DoubleSide,
+    Mesh,
+    MeshBasicMaterial,
+    Vector3
+} from "three";
 import {Generator} from "./new-billiard";
 
 export class SphericalPolygonTable extends SphericalOuterBilliardTable {
@@ -130,7 +138,7 @@ export class SphericalPolygonTable extends SphericalOuterBilliardTable {
         g.setAttribute('position', new BufferAttribute(new Float32Array(vertices), 3));
         return new Mesh(
             g,
-            new MeshBasicMaterial({color})
+            new MeshBasicMaterial({color, side: DoubleSide}),
         );
     }
 

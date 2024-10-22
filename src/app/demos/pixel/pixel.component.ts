@@ -151,6 +151,22 @@ export class PixelComponent extends ThreeDemoComponent {
         this.gridBorder = new LineSegments(new BufferGeometry().setFromPoints(lsp), new LineBasicMaterial({color: GRID_LINE_COLOR}));
         this.scene.add(this.grid, this.gridBorder);
 
+        const max = 20;
+        let s = '';
+        let l = '';
+        for (let i = 2; i <= max; i++) {
+            for (let j = 2; j <= i; j++) {
+                this.setEllTable(i, i, j, j);
+                let scan = this.scan();
+                s += `\t[${scan}]`;
+                l += `\t${scan.length}`;
+            }
+            s += '\n';
+            l += '\n';
+        }
+        console.log(s);
+        console.log(l);
+
         this.setTableFromPattern();
 
         this.updateGUI();
@@ -212,7 +228,7 @@ export class PixelComponent extends ThreeDemoComponent {
         this.gui.destroy();
     }
 
-    scan(): void {
+    scan(): number[] {
         const orbits = [];
         const representatives = new Set<string>;
         const states = new Set<string>();
@@ -289,15 +305,14 @@ export class PixelComponent extends ThreeDemoComponent {
                 orbits.push(bounceCount);
             }
         }
-        // console.clear();
         orbits.sort((a, b) => a - b);
-        console.log(orbits);
+        return orbits;
     }
 
     frame(dt: number): void {
         if (this.tableChanged) {
             this.tableChanged = false;
-            this.scan();
+            console.log(this.scan());
             this.dirty = true;
         }
         if (this.dirty) {

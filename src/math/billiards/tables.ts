@@ -103,7 +103,7 @@ export abstract class AffineOuterBilliardTable {
                 return [points, centers];
             }
             point = newPoint;
-            if (closeEnough(newPoint.distanceTo(start), 0)) break;
+            // if (closeEnough(newPoint.distanceTo(start), 0)) break;
         }
         return [points, centers];
     }
@@ -119,6 +119,16 @@ export abstract class AffineOuterBilliardTable {
 
     preimages(flavor: Generator, iterations: number): AffineRay[] {
         return [];
+    }
+
+    headingCoords(point: Vector2): Vector2 {
+        const r = this.rightTangentPoint(point);
+        const l = this.leftTangentPoint(point);
+        const x = point.clone().sub(l).angle();
+        const y = r.clone().sub(point).angle();
+        return new Vector2(
+            x, y
+        );
     }
 }
 

@@ -16,7 +16,6 @@ import {
     MeshBasicMaterial,
     MeshPhongMaterial,
     Object3D,
-    PlaneGeometry,
     Points,
     PointsMaterial,
     Shape,
@@ -44,29 +43,39 @@ import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 
 // Colors
 // const CLEAR_COLOR = 0x0a2933;
-const CLEAR_COLOR = 0x000000;
+// const CLEAR_COLOR = 0x000000;
+const CLEAR_COLOR = 0xffffff;
 
-const SPHERE_COLOR = 0xffaadd;
+const SPHERE_COLOR = 0xffffff;
 // const SPHERE_COLOR = 0xFAFAFA;
 const PLANE_COLOR = 0xFAFAFA;
-const HYPERBOLIC_PLANE_COLOR = 0xFAFAFA;
+// const HYPERBOLIC_PLANE_COLOR = 0xFAFAFA;
+const HYPERBOLIC_PLANE_COLOR = 0xffffff;
 
-const SPHERE_TABLE_COLOR = 0xFAFAFA;
+// const SPHERE_TABLE_COLOR = 0xFAFAFA;
+const SPHERE_TABLE_COLOR = 0x0000ff;
 // const SPHERE_TABLE_COLOR = 0x283845;
-const SPHERE_SING_COLOR = 0xffdcad;
+// const SPHERE_SING_COLOR = 0xffdcad;
+const SPHERE_SING_COLOR = 0xff0000;
 // const SPHERE_SING_COLOR = 0x283845;
 // const SPHERE_SING_COLOR = 0xE26612;
-const FILL_COLOR = 0x283845;
+// const FILL_COLOR = 0x283845;
+const FILL_COLOR = 0x0000ff;
 const CHORDS_COLOR = 0xffffff;
-const OUTER_ORBIT_COLOR = 0x0055aa;
+// const OUTER_ORBIT_COLOR = 0x0055aa;
+// const OUTER_ORBIT_COLOR = 0x44aaff;
+const OUTER_ORBIT_COLOR = 0x000000;
 const SPHERE_OUTER_ORBIT_COLOR = 0xaaffff;
 // const SPHERE_OUTER_ORBIT_COLOR = 0x0055aa;
-const SINGULARITY_COLOR = 0xE26612;
+// const SINGULARITY_COLOR = 0xE26612;
+// const SINGULARITY_COLOR = 0xf7a863;
+const SINGULARITY_COLOR = 0xff0000;
+
 const START_POINT_COLOR = 0x51e76f;
 const END_POINT_COLOR = 0x6f51e7;
 const SCAFFOLD_COLOR = 0xff00ff;
 const HANDLE_COLOR = 0x990044;
-const CIRCLE_CENTER_COLOR = 0x444400;
+const CIRCLE_CENTER_COLOR = 0x888800;
 
 enum TableType {
     POLYGON = 'Polygon',
@@ -118,7 +127,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
     // Parameters
     billiardTypeParams = {
         duality: Duality.OUTER,
-        generator: Generator.LENGTH,
+        generator: Generator.AREA,
         geometry: Geometry.EUCLIDEAN,
     }
 
@@ -126,7 +135,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
         tableType: TableType.POLYGON,
         polygonParams: {
             n: 3,
-            r: 0.5,
+            r: 0.35,
         },
         flexigonParams: {
             n: 3,
@@ -142,17 +151,20 @@ export class BilliardsComponent extends ThreeDemoComponent {
 
     drawParams = {
         model: 'Poincaré',
-        singularities: true,
-        singularityIterations: 2,
+        singularities: false,
+        singularityIterations: 0,
         singInterval: 0,
         orbit: true,
+        start: true,
         connectEvery: 1,
         derivative: false,
         derivativeBound: 5,
         derivativeStep: -1,
         scaffold: false,
         centers: false,
-        stereograph: true,
+        stereograph: false,
+        headingCoords: false,
+        orbitSize: 1,
     }
 
     gameParams = {
@@ -172,8 +184,8 @@ export class BilliardsComponent extends ThreeDemoComponent {
     gui: dat.GUI;
 
     // Stuff on the screen
-    planarPlane: THREE.Mesh;
-    hyperbolicPlane: THREE.Mesh;
+    // planarPlane: THREE.Mesh;
+    // hyperbolicPlane: THREE.Mesh;
     hyperbolicDisk: THREE.Line;
     sphericalSphere: THREE.Mesh;
     polygon = new THREE.Mesh();
@@ -201,7 +213,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
     constructor() {
         super();
         this.useOrthographic = true;
-        this.camera.zoom = 0.25;
+        this.camera.zoom = 0.95;
         this.updateOrthographicCamera();
         this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
         this.orbitControls.enableRotate = false;
@@ -221,19 +233,19 @@ export class BilliardsComponent extends ThreeDemoComponent {
         const points = path.getPoints(128);
 
         const diskGeometry = new THREE.BufferGeometry().setFromPoints(points);
-        const diskMaterial = new THREE.LineBasicMaterial({color: SINGULARITY_COLOR});
+        const diskMaterial = new THREE.LineBasicMaterial({color: 0x000000});
         const planeMaterial = new MeshBasicMaterial({color: PLANE_COLOR});
         const hyperbolicPlaneMaterial = new MeshBasicMaterial({color: HYPERBOLIC_PLANE_COLOR});
-        this.planarPlane = new Mesh(new PlaneGeometry(1000, 1000), planeMaterial);
-        this.planarPlane.position.set(0, 0, -1);
-        this.hyperbolicPlane = new Mesh(new CircleGeometry(1, 120), hyperbolicPlaneMaterial);
+        // this.planarPlane = new Mesh(new PlaneGeometry(1000, 1000), planeMaterial);
+        // this.planarPlane.position.set(0, 0, -1);
+        // this.hyperbolicPlane = new Mesh(new CircleGeometry(1, 120), hyperbolicPlaneMaterial);
         this.hyperbolicDisk = new THREE.Line(diskGeometry, diskMaterial);
         this.sphericalSphere = new Mesh(
             new SphereGeometry(1, 180, 180),
             // new MeshBasicMaterial({color: SPHERE_COLOR}),
             new MeshPhongMaterial({
                 transparent: true,
-                opacity: 0.9,
+                opacity: 0.95,
                 color: SPHERE_COLOR,
             })
         );
@@ -259,7 +271,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
         this.updateGUI();
 
         const al = new THREE.AmbientLight(0xffffff, 1);
-        const dl = new THREE.DirectionalLight(0xffffff, 1);
+        const dl = new THREE.DirectionalLight(0xffffff, 2);
         dl.position.set(1, 1, 1);
         dl.target = this.sphericalSphere;
 
@@ -270,6 +282,16 @@ export class BilliardsComponent extends ThreeDemoComponent {
     }
 
     private processKeyboardInput(dt: number): void {
+        if (this.keyJustPressed('KeyC')) {
+            this.camera.position.x = 0;
+            this.camera.position.y = 0;
+            this.camera.zoom = 1;
+            this.updateOrthographicCamera();
+            this.orbitControls.reset();
+        }
+        if (this.keyJustPressed('KeyP')) {
+            this.printScreen();
+        }
         if (this.geometry === Geometry.EUCLIDEAN &&
             this.duality === Duality.OUTER &&
             this.keyJustPressed('KeyK')) {
@@ -446,13 +468,17 @@ export class BilliardsComponent extends ThreeDemoComponent {
             drawFolder.add(this.drawParams, 'singularities').name('Singularities').onFinishChange(
                 this.markDrawDirty.bind(this));
             drawFolder.add(this.drawParams, 'singularityIterations').name('Iterations')
-                .min(0).max(1000).step(1)
+                .min(0).max(
+                this.generator === Generator.AREA ? 1000 : 150).step(1)
                 .onFinishChange(this.markSingularityDirty.bind(this));
             drawFolder.add(this.drawParams, 'singInterval').name('Interval')
                 .min(0).max(12).step(1)
                 .onFinishChange(this.markSingularityDirty.bind(this));
             drawFolder.add(this.drawParams, 'connectEvery').name('Connect every')
                 .min(0).max(12).step(1)
+                .onFinishChange(this.markOrbitDirty.bind(this));
+            drawFolder.add(this.drawParams, 'orbitSize').name('Orbit size')
+                .min(1).max(5).step(1)
                 .onFinishChange(this.markOrbitDirty.bind(this));
         }
         if (this.geometry === Geometry.EUCLIDEAN &&
@@ -463,6 +489,8 @@ export class BilliardsComponent extends ThreeDemoComponent {
         }
         if (this.geometry === Geometry.EUCLIDEAN && this.duality === Duality.OUTER && this.generator === Generator.LENGTH) {
             drawFolder.add(this.drawParams, 'centers').name('Centers').onFinishChange(
+                this.markOrbitDirty.bind(this));
+            drawFolder.add(this.drawParams, 'headingCoords').name('Heading Coords').onFinishChange(
                 this.markOrbitDirty.bind(this));
             // drawFolder.add(this.drawParams, 'derivative').name('Derivative')
             //     .onFinishChange(this.updateDerivativeParams.bind(this));
@@ -483,6 +511,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
 
         const gameFolder = this.gui.addFolder('Game');
         gameFolder.add(this.drawParams, 'orbit').name('Draw Orbit').onChange(this.markDrawDirty.bind(this));
+        gameFolder.add(this.drawParams, 'start').name('Start Point').onChange(this.markDrawDirty.bind(this));
         if (this.duality === Duality.INNER) {
             gameFolder.add(this.gameParams, 'startTime')
                 .min(0).max(1).step(0.01).name('Start time')
@@ -1094,12 +1123,22 @@ export class BilliardsComponent extends ThreeDemoComponent {
                 nextPointPosition = orbit.length > 1 ? orbit[1] : startPointPosition;
 
                 if (this.drawParams.connectEvery == 0) {
-                    const pts = new Points(new BufferGeometry().setFromPoints(orbit), new PointsMaterial({color: OUTER_ORBIT_COLOR}));
+                    const o = this.drawParams.headingCoords ? orbit.map(p => {
+                        // return new Vector2(10 * Math.atan(p.length()), p.angle());
+                        return table.headingCoords(p);
+                    }) : orbit;
+                    const pts = new Points(new BufferGeometry().setFromPoints(o), new PointsMaterial({
+                        color: OUTER_ORBIT_COLOR,
+                        size: this.drawParams.orbitSize,
+                    }));
                     this.orbit = [pts];
                     if (result.length > 1 && this.generator === Generator.LENGTH && this.drawParams.centers) {
                         this.centers = [new THREE.Points(
                             new BufferGeometry().setFromPoints(result[1]),
-                            new PointsMaterial({color: CIRCLE_CENTER_COLOR})
+                            new PointsMaterial({
+                                color: CIRCLE_CENTER_COLOR,
+                                size: this.drawParams.orbitSize,
+                            })
                         )];
                     }
                     break;
@@ -1120,13 +1159,19 @@ export class BilliardsComponent extends ThreeDemoComponent {
                 this.orbit = [];
                 for (let i = 0; i < seqs.length; i++) {
                     geometry = new THREE.BufferGeometry().setFromPoints(seqs[i]);
-                    material = new THREE.LineBasicMaterial({color: OUTER_ORBIT_COLOR});
+                    material = new LineBasicMaterial({
+                        color: OUTER_ORBIT_COLOR,
+                        linewidth: this.drawParams.orbitSize,
+                    });
                     this.orbit.push(new THREE.Line(geometry, material));
                 }
                 if (this.drawParams.centers) {
                     for (let i = 0; i < cseqs.length; i++) {
                         const lineGeometry = new THREE.BufferGeometry().setFromPoints(cseqs[i]);
-                        const lineMaterial = new THREE.LineBasicMaterial({color: CIRCLE_CENTER_COLOR});
+                        const lineMaterial = new LineBasicMaterial({
+                            color: CIRCLE_CENTER_COLOR,
+                            linewidth: this.drawParams.orbitSize
+                        });
                         this.centers.push(new THREE.Line(lineGeometry, lineMaterial));
                     }
                 }
@@ -1165,17 +1210,21 @@ export class BilliardsComponent extends ThreeDemoComponent {
                 else nextPointPosition = orbit[0].resolve(this.model).toVector2();
 
                 if (this.drawParams.connectEvery == 0) {
-                    geometry = new THREE.CircleGeometry(0.005, 16);
-                    material = new THREE.MeshBasicMaterial({color: OUTER_ORBIT_COLOR});
-                    this.orbit = [new THREE.InstancedMesh(geometry, material, orbit.length)];
-                    for (let i = 0; i < orbit.length; i++) {
-                        (this.orbit[0] as THREE.InstancedMesh)
-                            .setMatrixAt(i, new Matrix4().makeTranslation(
-                                orbit[i].resolve(this.model).x,
-                                orbit[i].resolve(this.model).y,
-                                0));
-                    }
-                    (this.orbit[0] as THREE.InstancedMesh).instanceMatrix.needsUpdate = true;
+                    // geometry = new THREE.CircleGeometry(0.005, 16);
+                    // material = new THREE.MeshBasicMaterial({color: OUTER_ORBIT_COLOR});
+                    // this.orbit = [new THREE.InstancedMesh(geometry, material, orbit.length)];
+                    // for (let i = 0; i < orbit.length; i++) {
+                    //     (this.orbit[0] as THREE.InstancedMesh)
+                    //         .setMatrixAt(i, new Matrix4().makeTranslation(
+                    //             orbit[i].resolve(this.model).x,
+                    //             orbit[i].resolve(this.model).y,
+                    //             0));
+                    // }
+                    // (this.orbit[0] as THREE.InstancedMesh).instanceMatrix.needsUpdate = true;
+                    this.orbit = [new THREE.Points(
+                        new BufferGeometry().setFromPoints(orbit.map(pt => pt.resolve(this.model).toVector2())),
+                        new PointsMaterial({color: OUTER_ORBIT_COLOR})
+                    )];
                     break;
                 }
                 // connectEvery > 0
@@ -1219,10 +1268,10 @@ export class BilliardsComponent extends ThreeDemoComponent {
 
         switch (this.geometry) {
         case Geometry.EUCLIDEAN:
-            this.scene.add(this.planarPlane);
+            // this.scene.add(this.planarPlane);
             break;
         case Geometry.HYPERBOLIC:
-            this.scene.add(this.hyperbolicPlane);
+            // this.scene.add(this.hyperbolicPlane);
             this.scene.add(this.hyperbolicDisk);
             break;
         case Geometry.SPHERICAL:
@@ -1242,6 +1291,8 @@ export class BilliardsComponent extends ThreeDemoComponent {
 
         if (this.drawParams.orbit) {
             this.scene.add(...this.orbit);
+        }
+        if (this.drawParams.start) {
             this.scene.add(this.startPoint);
             this.scene.add(this.nextPoint);
         }

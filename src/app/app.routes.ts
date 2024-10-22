@@ -22,6 +22,7 @@ import {Regge3p1Component} from "./demos/regge/regge3p1.component";
 import {PixelComponent} from "./demos/pixel/pixel.component";
 import {RotationComponent} from "./demos/rotation/rotation.component";
 import {SymplecticTableContainerComponent} from "./demos/symplectic-table/symplectic-table-container.component";
+import {KobonComponent} from "./demos/kobon/kobon.component";
 
 export const routes: Routes = [
     {path: '', component: HomePageComponent},
@@ -52,4 +53,5 @@ export const routes: Routes = [
     {path: 'teichmuller', component: TeichmullerComponent},
     {path: 'pixel', component: PixelComponent},
     {path: 'rotation', component: RotationComponent},
+    {path: 'kobon', component: KobonComponent},
 ];

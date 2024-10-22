@@ -163,7 +163,12 @@ export class SphericalArc {
             const p1c = new Complex(p1.x, p1.y);
             const midc = new Complex(mid.x, mid.y);
             const p2c = new Complex(p2.x, p2.y);
-            const c = AffineCircle.fromThreePoints(p1c, midc, p2c);
+            let c;
+            try {
+                c = AffineCircle.fromThreePoints(p1c, midc, p2c);
+            } catch (e) {
+                return [];
+            }
 
             const a1 = c.center.heading(p1c);
             const am = normalizeAngle(c.center.heading(midc), a1);
