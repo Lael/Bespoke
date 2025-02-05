@@ -28,8 +28,8 @@
     "linear-solve": "^1.2.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^17.3.2",
-    "@angular/cli": "^17.3.2",
+    "@angular-devkit/build-angular": "^18.2.14",
+    "@angular/cli": "^18.2.14",
     "@angular/compiler-cli": "^18.2.13",
     "@types/dat.gui": "^0.7.12",
     "@types/jasmine": "~5.1.0",
