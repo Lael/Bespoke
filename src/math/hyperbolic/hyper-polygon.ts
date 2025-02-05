@@ -377,7 +377,7 @@ export class HyperPolygon {
         return new HyperPolygon(edges);
     }
 
-    // static regular(n: number, v1: HyperPoint, v2: HyperPoint): HyperPolygon {
+    // static regular(n: number, v1: HyperPoint, v2: HyperPoint): HyperbolicPolygon {
     //     const l = v1.distance(v2);
     //     const vertices = [v1, v2];
     //     for (let i = 0; i < n; i++) ;

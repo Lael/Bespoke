@@ -18,15 +18,17 @@ const FINAL_EDGE_WIDTH = 2;
 })
 export class SymplecticTableContainerComponent implements OnDestroy {
     params = {
-        n: 3,
-        iterations: 0,
-        everyOther: false,
+        n: 6,
+        iterations: 100,
+        everyOther: true,
         showAffine: true,
-        rescale: false,
+        rescale: true,
         convex: true,
         inner: true,
         vertices: true,
         edges: true,
+        normalize: true,
+        projective: false,
     }
 
     iterates?: Vector2[][] = [];
@@ -44,17 +46,15 @@ export class SymplecticTableContainerComponent implements OnDestroy {
     updateGUI() {
         this.gui.destroy();
         this.gui = new GUI();
+
         this.gui.add(this.params, 'n').min(3).max(24).step(1).onChange(() => {
             this.tableComponent?.reset(this.params.n, 0, 0);
             this.tableComponent?.markDirty();
         })
-        this.gui.add(this.params, 'iterations').name('Iterations').min(1).max(1000).step(1).onFinishChange(() => {
+        this.gui.add(this.params, 'iterations').name('Iterations').min(0).max(1000).step(1).onFinishChange(() => {
             this.tableComponent?.markDirty();
         });
         this.gui.add(this.params, 'everyOther').name('Hide every other').onFinishChange(() => {
-            this.tableComponent?.markDirty();
-        });
-        this.gui.add(this.params, 'showAffine').name('Show affine image').onFinishChange(() => {
             this.tableComponent?.markDirty();
         });
         this.gui.add(this.params, 'rescale').name('Rescale').onFinishChange(() => {
@@ -68,6 +68,12 @@ export class SymplecticTableContainerComponent implements OnDestroy {
             this.tableComponent?.markDirty();
         });
         this.gui.add(this.params, 'edges').name('Edges').onFinishChange(() => {
+            this.tableComponent?.markDirty();
+        });
+        this.gui.add(this.params, 'projective').name('Projective').onFinishChange(() => {
+            this.tableComponent?.markDirty();
+        });
+        this.gui.add(this.params, 'normalize').name('Normalize image').onFinishChange(() => {
             this.tableComponent?.markDirty();
         });
         // this.gui.add(this.params, 'inner').name('Inner').onFinishChange(() => {

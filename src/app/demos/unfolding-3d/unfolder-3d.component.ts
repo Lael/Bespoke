@@ -15,7 +15,7 @@ import {
     Vector2,
     Vector3
 } from "three";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {CommonModule} from "@angular/common";
 
 const CLEAR_COLOR = new Color(0x123456);

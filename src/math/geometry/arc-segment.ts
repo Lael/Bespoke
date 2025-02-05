@@ -48,9 +48,9 @@ export class ArcSegment extends Segment {
     }
 
     override containsPoint(p: Complex): boolean {
-        // const theta = normalizeAngle(this.center.tangentHeading(p), this.startAngle);
+        // const theta = normalizeAngle(this.center.tangentHeading(polygon), this.startAngle);
         // const aMatch = theta <= this.endAngle;
-        // const rMatch = closeEnough(this.center.distance(p), this.radius);
+        // const rMatch = closeEnough(this.center.distance(polygon), this.radius);
         // return aMatch && rMatch;
         return (normalizeAngle(this.center.heading(p), this.startAngle) <= this.endAngle) && closeEnough(this.center.distanceSquared(p), this.radiusSquared);
     }

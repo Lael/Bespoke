@@ -187,7 +187,7 @@ function intersectHelper(a: number, b: number, c: number, r: number): Complex[] 
     if (b === 0) {
         const d = -c / a;
         if (Math.abs(d) > r) return [];
-        if (Math.abs(d) === r) return [new Complex(0, d)];
+        if (Math.abs(d) === r) return [new Complex(d, 0)];
         const s = Math.sqrt(r * r - d * d);
         return [new Complex(d, s), new Complex(d, -s)];
     }

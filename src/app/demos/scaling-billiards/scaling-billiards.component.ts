@@ -16,8 +16,8 @@ import {
     Vector2
 } from 'three';
 import * as dat from 'dat.gui';
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
-import {DragControls} from "three/examples/jsm/controls/DragControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
+import {DragControls} from "three/examples/jsm/controls/DragControls.js";
 import {lpCircle} from "../../../math/billiards/affine-oval-table";
 import {CommonModule} from "@angular/common";
 
@@ -268,7 +268,7 @@ export class ScalingBilliardsComponent extends ThreeDemoComponent {
 
         const gameFolder = this.gui.addFolder('Game');
         gameFolder.add(this.tableParams, 'p')
-            .min(1).max(100).name('Superellipse')
+            .min(1).max(5).name('Superellipse')
             .onFinishChange(this.markTableDirty.bind(this));
         gameFolder.add(this.gameParams, 'scaleFactor')
             .min(0.1).max(1).step(0.0001).name('Decay')

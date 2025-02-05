@@ -9,9 +9,9 @@ export type Parametrization = (t: number) => Vector2;
 export type ContainmentTest = (v: Vector2) => boolean;
 
 export function lpCircle(p: number, xScale: number = 1): AffineOvalTable {
-    // x^p + y^p = 1
-    // x(t) = cos^(2/p)(t), x'(t) = -(2/p)cos^(2/p - 1)(t)*sin(t)
-    // y(t) = sin^(2/p)(t), y'(t) = (2/p)sin^(2/p - 1)(t)*cos(t)
+    // x^polygon + y^polygon = 1
+    // x(t) = cos^(2/polygon)(t), x'(t) = -(2/polygon)cos^(2/polygon - 1)(t)*sin(t)
+    // y(t) = sin^(2/polygon)(t), y'(t) = (2/polygon)sin^(2/polygon - 1)(t)*cos(t)
     const parametrization = (t: number) => {
         const c = Math.cos(2 * Math.PI * t);
         const s = Math.sin(2 * Math.PI * t);

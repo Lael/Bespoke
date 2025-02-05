@@ -7,6 +7,7 @@ import {closeEnough} from "../math-helpers";
 import {AffineCircle} from "./affine-circle";
 
 export interface PointLike {
+    // distanceTo(other: PointLike): number;
     resolve(model?: HyperbolicModel): Complex;
     heading(other: PointLike): number;
 }

@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, OnDestroy} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {GUI} from "dat.gui";
-import Stats from "three/examples/jsm/libs/stats.module";
+import Stats from "three/examples/jsm/libs/stats.module.js";
 import {TorusComponent} from "./torus.component";
 import {HalfplaneComponent} from "./halfplane.component";
 import {Complex} from "../../../math/complex";

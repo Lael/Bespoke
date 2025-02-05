@@ -14,9 +14,9 @@ import {
     Vector3
 } from 'three';
 import * as dat from 'dat.gui';
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {EllipseTable} from "../../../math/billiards/ellipse-table";
-import {randFloat} from "three/src/math/MathUtils";
+import {randFloat} from "three/src/math/MathUtils.js";
 import {CommonModule} from "@angular/common";
 
 // Colors

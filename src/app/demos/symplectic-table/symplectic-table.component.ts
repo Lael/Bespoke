@@ -1,14 +1,14 @@
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
 import {convexHull, PolygonPickerComponent, PolygonRestriction} from "../../widgets/polygon-picker.component";
 import {BufferGeometry, Matrix3, Points, PointsMaterial, Vector2, Vector3, Vector4} from "three";
-import {Line as GeoLine} from "../../../math/geometry/line";
+import {Line, Line as GeoLine} from "../../../math/geometry/line";
 import {Complex} from "../../../math/complex";
 import {CommonModule} from "@angular/common";
-import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
-import {LineGeometry} from "three/examples/jsm/lines/LineGeometry";
-import {Line2} from "three/examples/jsm/lines/Line2";
-import {LineSegments2} from "three/examples/jsm/lines/LineSegments2";
-import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry";
+import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js";
+import {LineGeometry} from "three/examples/jsm/lines/LineGeometry.js";
+import {Line2} from "three/examples/jsm/lines/Line2.js";
+import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
+import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 
 const IMAGE_EDGE_WIDTH = 1;
 const FINAL_EDGE_WIDTH = 2;
@@ -22,10 +22,10 @@ const FINAL_EDGE_WIDTH = 2;
 })
 export class SymplecticTableComponent extends PolygonPickerComponent implements OnChanges {
 
-    @Input() n = 3;
+    @Input() n = 6;
     @Input() iterations = 10;
-    @Input() everyOther = false;
-    @Input() rescale = false;
+    @Input() everyOther = true;
+    @Input() rescale = true;
     @Input() convex = true;
     @Input() inner = true;
     @Input() vertices = true;
@@ -94,10 +94,26 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
     // }
 
     override processKeyboardInput(dt: number) {
-
+        if (this.keyHeld('KeyW')) {
+            this.draggables[1].position.y += dt;
+            this.dirty = true;
+        }
+        if (this.keyHeld('KeyS')) {
+            this.draggables[1].position.y -= dt;
+            this.dirty = true;
+        }
+        if (this.keyHeld('KeyD')) {
+            this.draggables[0].position.x += dt;
+            this.dirty = true;
+        }
+        if (this.keyHeld('KeyA')) {
+            this.draggables[0].position.x -= dt;
+            this.dirty = true;
+        }
     }
 
     override frame(dt: number) {
+        this.processKeyboardInput(dt)
         const recompute = this.dirty;
         super.frame(dt);
         if (recompute) {
@@ -120,7 +136,7 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
         let area = convexArea(polygon);
         let q = quantity(polygon);
         let n = polygon.length;
-        const iterates = [];
+        const iterates: Vector2[][] = [];
         for (let i = 0; i < this.iterations; i++) {
             let newPolygon = [];
 
@@ -134,8 +150,8 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
                     lines.push(GeoLine.srcDir(new Complex(v2.x, v2.y), new Complex(v3.x - v1.x, v3.y - v1.y)));
                 }
                 try {
-                    for (let j = 0; j < n; j++) {
-                        let l1 = lines[j];
+                    for (let j = 0 - ((i + 1) % 2); j < n - ((i + 1) % 2); j++) {
+                        let l1 = lines[(j + n) % n];
                         let l2 = lines[(j + 1) % n];
                         newPolygon.push(l1.intersectLine(l2).toVector2())
                     }
@@ -205,7 +221,11 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
         }
         this.finalImage = new Line2(
             new LineGeometry().setPositions(finalPolygon.concat([finalPolygon[0]]).flatMap((v) => [v.x, v.y, 0])),
-            new LineMaterial({color: 0x008800, linewidth: FINAL_EDGE_WIDTH, resolution: this.resolution})
+            new LineMaterial({
+                color: 0x008800,
+                linewidth: FINAL_EDGE_WIDTH,
+                resolution: this.resolution
+            })
         );
 
         if (this.vertices) {
@@ -272,7 +292,7 @@ function quantity(vertices: Vector2[]) {
         let y2 = nv[0].y;
         const phi = (Math.sqrt(5) + 1) / 2;
         const q = new Vector4(x1 - phi, y1 - 1, x2 - 1, y2 - phi).length();
-        console.log(q);
+        // console.log(q);
         return q;
         // let s = 0;
         // for (let i = 0; i < n; i++) {

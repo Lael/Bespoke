@@ -14,7 +14,7 @@ import {
     ShapeGeometry,
     Vector2
 } from "three";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {Collision, PhaseTile, Polygon, Ray, SubCorridor} from "./corridors.component";
 import {closeEnough, normalizeAngle} from "../../../math/math-helpers";
 import {LineSegment} from "../../../math/geometry/line-segment";

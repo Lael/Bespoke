@@ -14,13 +14,13 @@ import {
     Vector2
 } from 'three';
 import * as dat from 'dat.gui';
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {HyperbolicModel, HyperGeodesic, HyperPoint} from "../../../math/hyperbolic/hyperbolic";
 import {Mobius} from "../../../math/mobius";
 import {Complex} from "../../../math/complex";
 import {lpCircle} from "../../../math/billiards/affine-oval-table";
 import {CommonModule} from "@angular/common";
-import {DragControls} from "three/examples/jsm/controls/DragControls";
+import {DragControls} from "three/examples/jsm/controls/DragControls.js";
 
 // Colors
 const CLEAR_COLOR = 0x0a2933;

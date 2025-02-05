@@ -1,7 +1,7 @@
 import {Routes} from '@angular/router';
 import {HomePageComponent} from "./home-page/home-page.component";
 import {CrossingComponent} from "./demos/crossing/crossing.component";
-import {TileBilliardsComponent} from "./demos/tile-billiards/tile-billiards.component";
+// import {TileBilliardsComponent} from "./demos/tile.ts-billiards/tile.ts-billiards.component";
 import {BilliardsUnfoldingComponent} from "./demos/unfolding/billiards-unfolding.component";
 import {SymmetricComponent} from "./demos/symmetry/symmetric.component";
 import {BilliardsComponent} from "./demos/billiards/billiards.component";
@@ -23,6 +23,8 @@ import {PixelComponent} from "./demos/pixel/pixel.component";
 import {RotationComponent} from "./demos/rotation/rotation.component";
 import {SymplecticTableContainerComponent} from "./demos/symplectic-table/symplectic-table-container.component";
 import {KobonComponent} from "./demos/kobon/kobon.component";
+import {ScatteringComponent} from "./demos/scattering/scattering.component";
+import {TileBilliardsComponent} from "./demos/tile-billiards/tile-billiards-component";
 
 export const routes: Routes = [
     {path: '', component: HomePageComponent},
@@ -36,7 +38,7 @@ export const routes: Routes = [
     {path: 'symplectic', component: SymplecticComponent},
     {path: 'unfolding', component: BilliardsUnfoldingComponent},
     {path: 'unfolding-3d', component: Unfolding3DComponent},
-    {path: 'tile-billiards', component: TileBilliardsComponent},
+    // {path: 'tile.ts-billiards', component: TileBilliardsComponent},
     {path: 'corridors', component: CorridorsComponent},
     {path: 'scaling', component: ScalingBilliardsComponent},
     {path: 'hyperbolic', component: HyperbolicGeometryComponent},
@@ -54,4 +56,6 @@ export const routes: Routes = [
     {path: 'pixel', component: PixelComponent},
     {path: 'rotation', component: RotationComponent},
     {path: 'kobon', component: KobonComponent},
+    {path: 'scattering', component: ScatteringComponent},
+    {path: 'tiling-billiards', component: TileBilliardsComponent}
 ];

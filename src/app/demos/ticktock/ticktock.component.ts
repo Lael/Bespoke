@@ -17,8 +17,8 @@ import {
 } from 'three';
 import * as dat from 'dat.gui';
 import {Complex} from "../../../math/complex";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
-import {DragControls} from "three/examples/jsm/controls/DragControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
+import {DragControls} from "three/examples/jsm/controls/DragControls.js";
 import {normalizeAngle} from "../../../math/math-helpers";
 import {AffineCircle} from "../../../math/geometry/affine-circle";
 import {Line as GeoLine} from "../../../math/geometry/line";

@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {
     BufferGeometry,
     Color,
@@ -21,7 +21,7 @@ import {
 } from "three";
 import {Triangle} from "../../../math/geometry/triangle";
 import {iterate} from "../ticktock/ticktock.component";
-import {randFloat, randInt} from "three/src/math/MathUtils";
+import {randFloat, randInt} from "three/src/math/MathUtils.js";
 import {GUI} from "dat.gui";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Subscription} from "rxjs";

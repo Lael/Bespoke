@@ -381,9 +381,9 @@ export class HyperbolicOuterBilliards {
 //         super(new Disk(gl, new DiskSpec(hob.vertices[index].resolve(hob.settings.model), 0.05, Color.RED, undefined)),
 //             (_x: number, _y: number, _: VertexHandle) => {},
 //             (x: number, y: number, ths: VertexHandle) => {
-//             const p = pixelToWorld(x, y);
-//             ths.drawable.recenter(p.real, p.imag, 0);
-//             hob.moveVertex(index, p);
+//             const polygon = pixelToWorld(x, y);
+//             ths.drawable.recenter(polygon.real, polygon.imag, 0);
+//             hob.moveVertex(index, polygon);
 //             hob.populateScene(scene);
 //             },
 //             (_x: number, _y: number, _: VertexHandle) => {});

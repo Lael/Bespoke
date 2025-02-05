@@ -3,7 +3,7 @@ import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component"
 import {ArrowHelper, BufferGeometry, Color, LineBasicMaterial, LineSegments, Vector2, Vector3} from "three";
 import {UnfoldingData} from "./billiards-unfolding.component";
 import {PolygonRestriction} from "../../widgets/polygon-picker.component";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {CommonModule} from "@angular/common";
 
 type UnfoldingResult = {
@@ -297,7 +297,7 @@ export class UnfoldingComponent extends ThreeDemoComponent implements OnChanges 
 export function reflectOver(l1: Vector2, l2: Vector2, p: Vector2): Vector2 {
     // project l1p onto l2
     // set perp = l1p - proj
-    // return p - 2 * perp
+    // return polygon - 2 * perp
     const l1p = p.clone().sub(l1);
     const l1l2 = l2.clone().sub(l1);
     const parallel = l1l2.clone().multiplyScalar(

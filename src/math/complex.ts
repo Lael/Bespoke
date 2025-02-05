@@ -173,7 +173,7 @@ export class Complex {
 
     equals(other: Complex): boolean {
         if (this.isInfinite()) return other.isInfinite();
-        return closeEnough(this.distanceSquared(other), 0);
+        return closeEnough(this.distance(other), 0);
     }
 
     static lerp(z1: Complex, z2: Complex, t: number) {

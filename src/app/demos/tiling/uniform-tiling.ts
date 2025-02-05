@@ -41,8 +41,8 @@
 //         let next = new Vector2(1, 0);
 //         let frontier =
 //         for (let n of this.ns) {
-//             const tile = new RegularTile(n, root, next);
-//             next = tile.vertices[n - 1];
+//             const tile.ts = new RegularTile(n, root, next);
+//             next = tile.ts.vertices[n - 1];
 //         }
 //
 //         return tiles.map(t => t.vertices);

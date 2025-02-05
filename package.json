@@ -24,7 +24,8 @@
     "rxjs": "~7.8.0",
     "three": "^0.163.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.14.3"
+    "zone.js": "~0.14.3",
+    "linear-solve": "^1.2.1"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^17.3.2",

@@ -28,8 +28,8 @@ export type UnfoldingData = {
     selector: 'billiards-unfolding',
     templateUrl: 'billiards-unfolding.component.html',
     styleUrls: ['billiards-unfolding.component.sass'],
-  imports: [PolygonPickerComponent, UnfoldingComponent],
-  standalone: true,
+    imports: [PolygonPickerComponent, UnfoldingComponent],
+    standalone: true,
 })
 export class BilliardsUnfoldingComponent implements OnDestroy {
     gui = new dat.GUI();
@@ -122,7 +122,7 @@ export class BilliardsUnfoldingComponent implements OnDestroy {
         this.gui.destroy();
         this.gui = new dat.GUI();
 
-        const pickFolder = this.gui.addFolder('Polygon Picker');
+        const pickFolder = this.gui.addFolder('AffinePolygon Picker');
         pickFolder.add(this.params, 'pickerRestriction', Object.values(PolygonRestriction)).name('Rules');
 
         const unfoldFolder = this.gui.addFolder('Unfolding');

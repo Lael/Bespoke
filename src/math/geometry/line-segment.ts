@@ -66,7 +66,8 @@ export class LineSegment extends Segment {
         return candidates.filter(candidate => this.containsPoint(candidate) && other.containsPoint(candidate));
     }
 
-    override containsPoint(p: Complex): boolean {
+    override containsPoint(p: Complex | Vector2): boolean {
+        if (p instanceof Vector2) return this.containsPoint(Complex.fromVector2(p));
         return closeEnough(this.p1.distance(p) + this.p2.distance(p), this.length);
     }
 

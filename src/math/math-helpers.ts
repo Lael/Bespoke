@@ -10,7 +10,7 @@ export function normalizeAngle(theta: number, low: number = -Math.PI) {
 
 export function closeEnough(r1: number, r2: number) {
     if (!isFinite(r1) || !isFinite(r2)) return false;
-    return Math.abs(r1 - r2) < 0.000_000_01;
+    return Math.abs(r1 - r2) < 0.000_000_1;
 }
 
 export function solveQuadratic(a: Complex, b: Complex, c: Complex): Complex[] {
@@ -41,3 +41,5 @@ export function includedAngle(p1: Vector2, p2: Vector2, p3: Vector2) {
     let d2 = p3.clone().sub(p2);
     return Math.acos(d1.dot(d2) / (d1.length() * d2.length()));
 }
+
+export const EPSILON = 1e-12;

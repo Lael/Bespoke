@@ -2,7 +2,7 @@ import {Component} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import {BufferGeometry, CircleGeometry, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial, Vector2} from "three";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 
 @Component({
     selector: 'rotation',

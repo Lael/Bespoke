@@ -48,7 +48,7 @@ const DEFAULT_TILING_PARAMS: TilingParams = {
 const PHI = (Math.sqrt(5) + 1) / 2;
 
 @Component({
-    selector: 'tile',
+    selector: 'tile.ts',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
     imports: [CommonModule],

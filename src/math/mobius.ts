@@ -108,10 +108,10 @@ export class Mobius extends Transformation {
             p.conjugate.scale(2),
             -(1 + p.modulusSquared()),
         );
-        // const g = new HyperbolicGeodesic(Complex.ZERO, p);
+        // const g = new HyperbolicGeodesic(Complex.ZERO, polygon);
         // return this.mapThree(
-        //     p, g.ideal1, g.ideal2,
-        //     p, g.ideal2, g.ideal1
+        //     polygon, g.ideal1, g.ideal2,
+        //     polygon, g.ideal2, g.ideal1
         // );
     }
 

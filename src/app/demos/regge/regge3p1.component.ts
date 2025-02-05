@@ -3,7 +3,7 @@ import {Component} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {BufferGeometry, LineBasicMaterial, LineSegments, Vector3, Vector4} from "three";
 import {closeEnough} from "../../../math/math-helpers";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {GUI} from "dat.gui";
 
 class Space {
@@ -56,9 +56,9 @@ class LineSegment4 {
         const c = this.vector.dot(space.normal);
         if (closeEnough(c, 0)) return [];
         // think of line as v1 + t (v2 - v1)
-        // think of space as (x - p).n = 0
-        // (v1 + t (v2 - v1) - p).n = 0
-        // t = (v1-p).n / (v2-v1).n
+        // think of space as (x - polygon).n = 0
+        // (v1 + t (v2 - v1) - polygon).n = 0
+        // t = (v1-polygon).n / (v2-v1).n
         const t = space.point.clone().sub(this.v1).dot(space.normal) / c;
         if (t > 0 && t < 1) {
             const point = this.v1.clone().addScaledVector(this.vector, t);

@@ -14,8 +14,8 @@ import {
     Vector2
 } from "three";
 import {PhaseTile, Polygon} from "./corridors.component";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
-import {clamp} from "three/src/math/MathUtils";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
+import {clamp} from "three/src/math/MathUtils.js";
 import {LineSegment} from "../../../math/geometry/line-segment";
 import {Complex} from "../../../math/complex";
 import {Line} from "../../../math/geometry/line";

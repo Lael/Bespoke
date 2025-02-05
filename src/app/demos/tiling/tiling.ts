@@ -95,7 +95,7 @@ export class Tiling {
     constructor(readonly tiles: Tile[],
                 readonly positions: TilePosition[][]) {
         const t = tiles.length;
-        if (t < 1) throw Error('Must have at least one tile');
+        if (t < 1) throw Error('Must have at least one tile.ts');
         if (positions.length !== t) throw Error('Must have positions for all tiles');
     }
 

@@ -1,7 +1,7 @@
 import {Component} from "@angular/core";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import {Matrix3, Mesh, MeshBasicMaterial, PlaneGeometry, ShaderMaterial, Vector2, Vector3} from "three";
-import {clamp} from "three/src/math/MathUtils";
+import {clamp} from "three/src/math/MathUtils.js";
 import {CommonModule} from "@angular/common";
 
 const MOVEMENT_SPEED = 1;

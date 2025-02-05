@@ -166,6 +166,7 @@ export class HyperPoint implements PointLike {
     }
 
     distance(other: HyperPoint): number {
+        if (this.equals(other)) return 0;
         const g = new HyperGeodesic(this, other);
         return g.length;
     }

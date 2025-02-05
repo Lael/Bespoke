@@ -12,7 +12,7 @@ import {
     Vector3
 } from "three";
 import {closeEnough} from "../../../math/math-helpers";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {GUI} from "dat.gui";
 
 class Plane {
@@ -64,9 +64,9 @@ class LineSegment3 {
         const c = this.vector.dot(plane.normal);
         if (closeEnough(c, 0)) return [];
         // think of line as v1 + t (v2 - v1)
-        // think of plane as (x - p).n = 0
-        // (v1 + t (v2 - v1) - p).n = 0
-        // t = (v1-p).n / (v2-v1).n
+        // think of plane as (x - polygon).n = 0
+        // (v1 + t (v2 - v1) - polygon).n = 0
+        // t = (v1-polygon).n / (v2-v1).n
         const t = plane.point.clone().sub(this.v1).dot(plane.normal) / c;
         if (t > 0 && t < 1) {
             const point = this.v1.clone().addScaledVector(this.vector, t);

@@ -1,8 +1,8 @@
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
 import {ThreeDemoComponent} from "./three-demo/three-demo.component";
 import {ArrowHelper, AxesHelper, Color, Mesh, MeshBasicMaterial, SphereGeometry, Vector2, Vector3} from "three";
-import {DragControls} from "three/examples/jsm/controls/DragControls";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {DragControls} from "three/examples/jsm/controls/DragControls.js";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {CommonModule} from "@angular/common";
 
 const CLEAR_COLOR = new Color(0x123456);

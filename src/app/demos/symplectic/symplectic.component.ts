@@ -19,8 +19,8 @@ import {
 } from 'three';
 import * as dat from 'dat.gui';
 import {closeEnough} from "../../../math/math-helpers";
-import {ParametricGeometry} from "three/examples/jsm/geometries/ParametricGeometry";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {ParametricGeometry} from "three/examples/jsm/geometries/ParametricGeometry.js";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {CommonModule} from "@angular/common";
 
 // Colors

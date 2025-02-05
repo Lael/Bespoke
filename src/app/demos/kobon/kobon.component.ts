@@ -1,6 +1,6 @@
 import {Component, OnDestroy} from "@angular/core";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
-import Stats from 'three/examples/jsm/libs/stats.module'
+import Stats from "three/examples/jsm/libs/stats.module.js"
 import {
     BufferAttribute,
     BufferGeometry,
@@ -11,13 +11,13 @@ import {
     MeshBasicMaterial,
     Vector2
 } from 'three';
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 import {CommonModule} from "@angular/common";
 import {Line} from "../../../math/geometry/line";
 import {AffineCircle} from "../../../math/geometry/affine-circle";
 import {Complex} from "../../../math/complex";
-import {randFloat} from "three/src/math/MathUtils";
+import {randFloat} from "three/src/math/MathUtils.js";
 
 // Colors
 const CLEAR_COLOR = 0x0a2933;

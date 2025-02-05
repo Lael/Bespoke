@@ -1,9 +1,9 @@
 import {AfterViewInit, Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import * as THREE from 'three';
 import {Vector2} from 'three';
-import Stats from 'three/examples/jsm/libs/stats.module'
+import Stats from 'three/examples/jsm/libs/stats.module.js'
 import {CommonModule} from "@angular/common";
-import {Line2} from "three/examples/jsm/lines/Line2";
+import {Line2} from "three/examples/jsm/lines/Line2.js";
 
 @Component({
     selector: 'three-demo',

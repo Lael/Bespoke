@@ -9,9 +9,9 @@ import {
     Vector2,
     Vector3
 } from "three";
-import {clamp} from "three/src/math/MathUtils";
+import {clamp} from "three/src/math/MathUtils.js";
 import {Component} from "@angular/core";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {CommonModule} from "@angular/common";
 
 const CLEAR_COLOR = 0x0a2933;

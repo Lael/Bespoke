@@ -1,14 +1,14 @@
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
 import {ThreeDemoComponent} from "./three-demo/three-demo.component";
 import {AxesHelper, Color, Matrix4, Mesh, MeshBasicMaterial, SphereGeometry, Vector2, Vector3} from "three";
-import {DragControls} from "three/examples/jsm/controls/DragControls";
+import {DragControls} from "three/examples/jsm/controls/DragControls.js";
 import {normalizeAngle} from "../../math/math-helpers";
 import {reflectOver} from "../demos/unfolding/unfolding.component";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {CommonModule} from "@angular/common";
-import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry";
-import {LineMaterial} from "three/examples/jsm/lines/LineMaterial";
-import {LineSegments2} from "three/examples/jsm/lines/LineSegments2";
+import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry.js";
+import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js";
+import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
 
 const CLEAR_COLOR = new Color(0xfafafa);
 const POINT_RADIUS = 0.025;

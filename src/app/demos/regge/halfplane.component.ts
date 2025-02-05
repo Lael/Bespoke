@@ -1,7 +1,7 @@
 import {Component, Input, OnChanges, SimpleChanges} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {
     BufferGeometry,
     CircleGeometry,

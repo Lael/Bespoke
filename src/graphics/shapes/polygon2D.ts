@@ -121,7 +121,7 @@ export class PolygonSpec {
         readonly fillColor: Color | undefined,
         readonly borderColor: Color | undefined,
         readonly thickness: number = 0) {
-        if (vertices.length < 3) throw Error('Polygon must have at least 3 vertices');
+        if (vertices.length < 3) throw Error('AffinePolygon must have at least 3 vertices');
         if (!fillColor && !borderColor) throw Error('Invisible polygon');
     }
 }

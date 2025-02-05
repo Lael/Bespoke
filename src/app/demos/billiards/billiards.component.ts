@@ -31,15 +31,15 @@ import {HyperbolicPolygonTable} from "../../../math/billiards/hyperbolic-polygon
 import {HyperbolicModel, HyperGeodesic, HyperPoint} from "../../../math/hyperbolic/hyperbolic";
 import {Complex} from "../../../math/complex";
 import {AffineOuterBilliardTable, fixTime, SphericalOuterBilliardTable} from "../../../math/billiards/tables";
-import {DragControls} from "three/examples/jsm/controls/DragControls";
+import {DragControls} from "three/examples/jsm/controls/DragControls.js";
 import {AffineSemidiskTable} from "../../../math/billiards/affine-semidisk-table";
-import {clamp} from "three/src/math/MathUtils";
+import {clamp} from "three/src/math/MathUtils.js";
 import {AffineFlexigonTable} from "../../../math/billiards/affine-flexigon-table";
 import {CommonModule} from "@angular/common";
 import {lpCircle} from "../../../math/billiards/affine-oval-table";
 import {SphericalPolygonTable} from "../../../math/billiards/spherical-polygon-table";
 import {SpherePoint, SphericalArc, sphericalLerp} from "../../../math/geometry/spherical";
-import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
+import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 
 // Colors
 // const CLEAR_COLOR = 0x0a2933;
@@ -128,14 +128,14 @@ export class BilliardsComponent extends ThreeDemoComponent {
     billiardTypeParams = {
         duality: Duality.OUTER,
         generator: Generator.AREA,
-        geometry: Geometry.EUCLIDEAN,
+        geometry: Geometry.HYPERBOLIC,
     }
 
     tableParams: TableParams = {
         tableType: TableType.POLYGON,
         polygonParams: {
-            n: 3,
-            r: 0.35,
+            n: 5,
+            r: 0.40235,
         },
         flexigonParams: {
             n: 3,
@@ -151,11 +151,11 @@ export class BilliardsComponent extends ThreeDemoComponent {
 
     drawParams = {
         model: 'Poincaré',
-        singularities: false,
-        singularityIterations: 0,
+        singularities: true,
+        singularityIterations: 100,
         singInterval: 0,
-        orbit: true,
-        start: true,
+        orbit: false,
+        start: false,
         connectEvery: 1,
         derivative: false,
         derivativeBound: 5,
@@ -1082,7 +1082,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
                 let table = this.affineOuterTable;
                 const result = table.iterateOuter(this.affineOuterStart, this.generator, it, this.drawParams.centers);
                 const orbit = result[0];
-                // const orbit = result[0].filter(p => p.x > Math.sqrt(2) / 2 && p.y > Math.sqrt(2) / 2 && p.y < 3 * Math.sqrt(2) / 2);
+                // const orbit = result[0].filter(polygon => polygon.x > Math.sqrt(2) / 2 && polygon.y > Math.sqrt(2) / 2 && polygon.y < 3 * Math.sqrt(2) / 2);
                 // for (let i = 0; i < orbit.length - 1; i++) {
                 //     console.log(orbit[i + 1].clone().sub(orbit[i]));
                 // }
@@ -1124,7 +1124,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
 
                 if (this.drawParams.connectEvery == 0) {
                     const o = this.drawParams.headingCoords ? orbit.map(p => {
-                        // return new Vector2(10 * Math.atan(p.length()), p.angle());
+                        // return new Vector2(10 * Math.atan(polygon.length()), polygon.angle());
                         return table.headingCoords(p);
                     }) : orbit;
                     const pts = new Points(new BufferGeometry().setFromPoints(o), new PointsMaterial({
@@ -1333,7 +1333,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
         return points;
     }
 
-    // hyperbolicNecklaces(steps: number): HyperPolygon[][] {
+    // hyperbolicNecklaces(steps: number): HyperbolicPolygon[][] {
     //     const n = this.tableParams.polygonParams.n;
     //     const k = this.gameParams.tilingPolygon;
     //     const l = this.hyperbolicTilingRadius();
@@ -1344,8 +1344,8 @@ export class BilliardsComponent extends ThreeDemoComponent {
     //     let oldFrontier: HyperPoint[] = [];
     //     for (let i = 0; i < steps; i++) {
     //         const newFrontier = [];
-    //         for (let p of polygons[polygons.length - 1]) {
-    //             for (let v of p.vertices) {
+    //         for (let polygon of polygons[polygons.length - 1]) {
+    //             for (let v of polygon.vertices) {
     //                 for (let f of oldFrontier) {
     //                     if (v.distance(f) > l / 2) {
     //                         newFrontier.push(v);
@@ -1353,7 +1353,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
     //                 }
     //             }
     //         }
-    //         const newPolygons: HyperPolygon[] = [];
+    //         const newPolygons: HyperbolicPolygon[] = [];
     //         const q = i % 2 == 0 ? k : n;
     //         for (let j = 0; j < newFrontier.length; j++) {
     //             const v1 = newFrontier[j];
@@ -1361,10 +1361,10 @@ export class BilliardsComponent extends ThreeDemoComponent {
     //             // need to check first and last
     //             let already = false;
     //             if (newPolygons.length > 0) {
-    //                 for (let p of [newPolygons[0], newPolygons[newPolygons.length - 1]]) {
+    //                 for (let polygon of [newPolygons[0], newPolygons[newPolygons.length - 1]]) {
     //                     let av1 = false;
     //                     let av2 = false;
-    //                     for (let v of p.vertices) {
+    //                     for (let v of polygon.vertices) {
     //                         if (v.distance(v1) < l / 2) av1 = true;
     //                         if (v.distance(v2) < l / 2) av2 = true;
     //                     }
@@ -1375,7 +1375,7 @@ export class BilliardsComponent extends ThreeDemoComponent {
     //                 }
     //             }
     //             if (already) continue;
-    //             newPolygons.push(HyperPolygon.regular(q, v2, v1));
+    //             newPolygons.push(HyperbolicPolygon.regular(q, v2, v1));
     //         }
     //         oldFrontier = newFrontier;
     //         polygons.push(newPolygons);
