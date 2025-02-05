@@ -144,8 +144,7 @@ export class Polygon {
     selector: 'corridors',
     templateUrl: './corridors.component.html',
     styleUrls: ['./corridors.component.sass'],
-    imports: [PhasePictureComponent, CorridorUnfolderComponent, PolygonPickerComponent],
-    standalone: true,
+    imports: [PhasePictureComponent, CorridorUnfolderComponent, PolygonPickerComponent]
 })
 export class CorridorsComponent implements OnDestroy {
     Restriction = PolygonRestriction;

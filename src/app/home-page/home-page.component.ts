@@ -6,8 +6,7 @@ import {RouterLink} from "@angular/router";
     selector: 'home-page',
     templateUrl: './home-page.component.html',
     styleUrls: ['./home-page.component.sass'],
-    standalone: true,
-    imports: [RouterLink, LinkTileComponent],
+    imports: [RouterLink, LinkTileComponent]
 })
 export class HomePageComponent implements OnInit {
 

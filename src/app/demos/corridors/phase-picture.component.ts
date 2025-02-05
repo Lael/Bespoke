@@ -28,8 +28,7 @@ const CLEAR_COLOR = new Color(0x123456);
     selector: 'phase-picture',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
-    imports: [CommonModule],
-    standalone: true,
+    imports: [CommonModule]
 })
 export class PhasePictureComponent extends ThreeDemoComponent implements OnChanges {
     @Input() polygon: Polygon | undefined = undefined;

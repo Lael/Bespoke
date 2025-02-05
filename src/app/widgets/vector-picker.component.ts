@@ -12,8 +12,7 @@ const POINT_RADIUS = 0.05;
     selector: 'vector-picker',
     templateUrl: './three-demo/three-demo.component.html',
     styleUrls: ['./three-demo/three-demo.component.sass'],
-    imports: [CommonModule],
-    standalone: true,
+    imports: [CommonModule]
 })
 export class VectorPickerComponent extends ThreeDemoComponent implements OnChanges {
 

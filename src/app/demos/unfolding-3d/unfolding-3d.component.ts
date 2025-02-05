@@ -28,8 +28,7 @@ export type UnfoldingData = {
     selector: 'unfolding-3d',
     templateUrl: 'unfolding-3d.component.html',
     styleUrls: ['unfolding-3d.component.sass'],
-    imports: [PolygonPickerComponent, VectorPickerComponent, Unfolder3DComponent],
-    standalone: true,
+    imports: [PolygonPickerComponent, VectorPickerComponent, Unfolder3DComponent]
 })
 export class Unfolding3DComponent implements OnDestroy {
     gui = new dat.GUI();

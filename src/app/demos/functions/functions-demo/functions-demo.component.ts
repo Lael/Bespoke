@@ -6,8 +6,7 @@ import {FunctionViewComponent} from "../function-view/function-view.component";
     selector: 'app-functions-demo',
     templateUrl: './functions-demo.component.html',
     styleUrls: ['./functions-demo.component.sass'],
-    imports: [FunctionViewComponent],
-    standalone: true,
+    imports: [FunctionViewComponent]
 })
 export class FunctionsDemoComponent {
 

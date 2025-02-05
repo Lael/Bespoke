@@ -44,8 +44,7 @@ export enum BirkhoffFunction {
     selector: 'unfolding',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
-    imports: [CommonModule],
-    standalone: true,
+    imports: [CommonModule]
 })
 export class UnfoldingComponent extends ThreeDemoComponent implements OnChanges {
     private dirty = true;

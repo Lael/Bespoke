@@ -44,8 +44,7 @@ const SINGULARITY_COLOR = 0xff7f5e;
     selector: 'ticktock',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
-    imports: [CommonModule],
-    standalone: true,
+    imports: [CommonModule]
 })
 export class TicktockComponent extends ThreeDemoComponent implements OnDestroy, OnInit {
 

@@ -10,8 +10,7 @@ import {CommonModule} from "@angular/common";
     selector: 'function-view',
     templateUrl: '../../../widgets/window-pane/window-pane.component.html',
     styleUrls: ['../../../widgets/window-pane/window-pane.component.sass'],
-    imports: [CommonModule],
-    standalone: true,
+    imports: [CommonModule]
 })
 export class FunctionViewComponent extends WindowPaneComponent {
 

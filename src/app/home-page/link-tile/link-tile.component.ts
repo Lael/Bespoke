@@ -6,8 +6,7 @@ import {CommonModule} from "@angular/common";
     selector: 'link-tile',
     templateUrl: './link-tile.component.html',
     styleUrls: ['./link-tile.component.sass'],
-    imports: [RouterLink, CommonModule],
-    standalone: true,
+    imports: [RouterLink, CommonModule]
 })
 export class LinkTileComponent implements OnInit {
 

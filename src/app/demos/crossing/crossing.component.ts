@@ -113,8 +113,7 @@ class Graph {
     selector: 'crossing',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
-    imports: [CommonModule],
-    standalone: true,
+    imports: [CommonModule]
 })
 export class CrossingComponent extends ThreeDemoComponent implements OnDestroy {
 

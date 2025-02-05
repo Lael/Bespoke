@@ -7,10 +7,9 @@ import {Line2} from "three/examples/jsm/lines/Line2.js";
 
 @Component({
     selector: 'three-demo',
-    standalone: true,
     imports: [CommonModule],
     templateUrl: './three-demo.component.html',
-    styleUrls: ['./three-demo.component.sass'],
+    styleUrls: ['./three-demo.component.sass']
 })
 export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
     perspectiveCamera: THREE.PerspectiveCamera;

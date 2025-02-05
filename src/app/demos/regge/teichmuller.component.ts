@@ -13,8 +13,7 @@ const SPEED = 0.5;
     selector: 'teichmuller',
     templateUrl: './teichmuller.component.html',
     styleUrls: ['./teichmuller.component.sass'],
-    imports: [CommonModule, HalfplaneComponent, TorusComponent],
-    standalone: true,
+    imports: [CommonModule, HalfplaneComponent, TorusComponent]
 })
 export class TeichmullerComponent implements OnDestroy, AfterViewInit {
     params = {

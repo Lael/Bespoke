@@ -25,8 +25,7 @@ export enum PolygonRestriction {
     selector: 'polygon-picker',
     templateUrl: './three-demo/three-demo.component.html',
     styleUrls: ['./three-demo/three-demo.component.sass'],
-    imports: [CommonModule],
-    standalone: true,
+    imports: [CommonModule]
 })
 export class PolygonPickerComponent extends ThreeDemoComponent implements OnChanges {
 

@@ -28,8 +28,7 @@ export type UnfoldingData = {
     selector: 'billiards-unfolding',
     templateUrl: 'billiards-unfolding.component.html',
     styleUrls: ['billiards-unfolding.component.sass'],
-    imports: [PolygonPickerComponent, UnfoldingComponent],
-    standalone: true,
+    imports: [PolygonPickerComponent, UnfoldingComponent]
 })
 export class BilliardsUnfoldingComponent implements OnDestroy {
     gui = new dat.GUI();

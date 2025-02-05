@@ -24,8 +24,7 @@ const START_SPEED: number = 0.1;
     selector: 'tiling-billiards',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
-    imports: [CommonModule],
-    standalone: true,
+    imports: [CommonModule]
 })
 export class TileBilliardsComponent extends ThreeDemoComponent implements OnDestroy {
     orbitControls: OrbitControls;

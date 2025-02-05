@@ -13,8 +13,7 @@ const FINAL_EDGE_WIDTH = 2;
     selector: 'symplectic-table-container',
     templateUrl: './symplectic-table-container.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass', './symplectic-table-container.component.sass'],
-    imports: [CommonModule, AffineNormalizationComponent, SymplecticTableComponent],
-    standalone: true,
+    imports: [CommonModule, AffineNormalizationComponent, SymplecticTableComponent]
 })
 export class SymplecticTableContainerComponent implements OnDestroy {
     params = {

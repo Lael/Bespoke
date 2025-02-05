@@ -17,8 +17,7 @@ const FINAL_EDGE_WIDTH = 2;
     selector: 'symplectic-table',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
-    imports: [CommonModule],
-    standalone: true,
+    imports: [CommonModule]
 })
 export class SymplecticTableComponent extends PolygonPickerComponent implements OnChanges {
 
