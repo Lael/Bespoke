@@ -1,4 +1,4 @@
-import {closeEnough} from "./math-helpers";
+import {closeEnough} from "../math-helpers";
 import {Vector2} from "three";
 
 export class Complex {

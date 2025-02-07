@@ -1,6 +1,6 @@
 import {HyperbolicModel, HyperGeodesic, HyperPoint} from "../../../math/hyperbolic/hyperbolic";
-import {Complex} from "../../../math/complex";
-import {Mobius} from "../../../math/mobius";
+import {Complex} from "../../../math/complex/complex";
+import {Mobius} from "../../../math/complex/mobius";
 import {AffinePolygon} from "./affine-polygon";
 import {HyperbolicRay} from "./hyperbolic-ray";
 import {EPSILON} from "../../../math/math-helpers";

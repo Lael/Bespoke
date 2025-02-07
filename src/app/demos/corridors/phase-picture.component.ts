@@ -17,7 +17,7 @@ import {PhaseTile, Polygon} from "./corridors.component";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {clamp} from "three/src/math/MathUtils.js";
 import {LineSegment} from "../../../math/geometry/line-segment";
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 import {Line} from "../../../math/geometry/line";
 import {closeEnough} from "../../../math/math-helpers";
 import {CommonModule} from "@angular/common";
@@ -28,6 +28,7 @@ const CLEAR_COLOR = new Color(0x123456);
     selector: 'phase-picture',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
+    standalone: true,
     imports: [CommonModule]
 })
 export class PhasePictureComponent extends ThreeDemoComponent implements OnChanges {

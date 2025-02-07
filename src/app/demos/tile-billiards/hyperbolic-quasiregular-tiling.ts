@@ -1,9 +1,9 @@
 import {HyperbolicPolygonalTiling} from "./hyperbolic-polygonal-tiling";
 import {HyperbolicTile} from "./hyperbolic-tile";
-import {Mobius} from "../../../math/mobius";
+import {Mobius} from "../../../math/complex/mobius";
 import {HyperbolicPolygon} from "./hyperbolic-polygon";
 import {Color} from "three";
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 
 export class HyperbolicQuasiregularTiling extends HyperbolicPolygonalTiling {
     centerToCenter: number;

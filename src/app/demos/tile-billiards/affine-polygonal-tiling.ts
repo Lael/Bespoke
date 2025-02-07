@@ -2,7 +2,9 @@ import {PolygonalTiling} from "./polygonal-tiling";
 import {AffineTile} from "./affine-tile";
 import {
     BufferGeometry,
-    InstancedMesh, Line, LineBasicMaterial,
+    InstancedMesh,
+    Line,
+    LineBasicMaterial,
     Matrix4,
     MeshBasicMaterial,
     Scene,
@@ -12,9 +14,8 @@ import {
 } from "three";
 import {AffinePolygon, AffinePolygonRayCollision} from "./affine-polygon";
 import {AffineRay} from "./affine-ray";
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 import {EPSILON} from "../../../math/math-helpers";
-import {LineGeometry} from "three/examples/jsm/lines/LineGeometry.js";
 
 export abstract class AffinePolygonalTiling extends PolygonalTiling<AffineTile, AffinePolygon> {
     meshes: InstancedMesh[] = [];

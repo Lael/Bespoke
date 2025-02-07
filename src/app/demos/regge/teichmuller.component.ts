@@ -4,7 +4,7 @@ import {GUI} from "dat.gui";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import {TorusComponent} from "./torus.component";
 import {HalfplaneComponent} from "./halfplane.component";
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 
 const MAX_TIME = 4;
 const SPEED = 0.5;
@@ -13,6 +13,7 @@ const SPEED = 0.5;
     selector: 'teichmuller',
     templateUrl: './teichmuller.component.html',
     styleUrls: ['./teichmuller.component.sass'],
+    standalone: true,
     imports: [CommonModule, HalfplaneComponent, TorusComponent]
 })
 export class TeichmullerComponent implements OnDestroy, AfterViewInit {

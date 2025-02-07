@@ -29,7 +29,7 @@ import {Duality, Generator, Geometry} from "../../../math/billiards/new-billiard
 import {AffinePolygonTable, AffineRay} from "../../../math/billiards/affine-polygon-table";
 import {HyperbolicPolygonTable} from "../../../math/billiards/hyperbolic-polygon-table"
 import {HyperbolicModel, HyperGeodesic, HyperPoint} from "../../../math/hyperbolic/hyperbolic";
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 import {AffineOuterBilliardTable, fixTime, SphericalOuterBilliardTable} from "../../../math/billiards/tables";
 import {DragControls} from "three/examples/jsm/controls/DragControls.js";
 import {AffineSemidiskTable} from "../../../math/billiards/affine-semidisk-table";
@@ -114,6 +114,7 @@ interface TableParams {
     selector: 'billiards',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
+    standalone: true,
     imports: [CommonModule]
 })
 export class BilliardsComponent extends ThreeDemoComponent {

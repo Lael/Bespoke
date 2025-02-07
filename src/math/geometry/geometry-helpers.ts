@@ -1,4 +1,4 @@
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {Segment} from "./segment";
 import {LineSegment} from "./line-segment";
 import {AffineCircle} from "./affine-circle";

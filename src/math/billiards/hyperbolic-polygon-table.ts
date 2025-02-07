@@ -5,7 +5,7 @@ import {HyperPolygon} from "../hyperbolic/hyper-polygon";
 import {LineSegment} from "../geometry/line-segment";
 import {fixTime} from "./tables";
 import {normalizeAngle} from "../math-helpers";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 
 export type HyperbolicInnerState = {
     time: number;

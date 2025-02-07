@@ -13,7 +13,7 @@ import {GUI} from "dat.gui";
 import {CommonModule} from "@angular/common";
 import {clamp} from "three/src/math/MathUtils.js";
 import {AffineCircle} from "../../../math/geometry/affine-circle";
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 import {Line as GeoLine} from "../../../math/geometry/line";
 
 const SPEED: number = 1.0;

@@ -1,7 +1,7 @@
 import {BufferGeometry, Line as ThreeLine, LineBasicMaterial, Vector2, Vector3} from "three";
 import {closeEnough, includedAngle} from "../math-helpers";
 import {Line} from "./line";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {AffineCircle} from "./affine-circle";
 
 export class Triangle {

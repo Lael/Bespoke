@@ -1,4 +1,4 @@
-import {Complex} from "../../math/complex";
+import {Complex} from "../../math/complex/complex";
 import {Color} from "./color";
 import {Shape} from "./shape";
 import {VertexAttrib} from "../gl/vertex-attrib";

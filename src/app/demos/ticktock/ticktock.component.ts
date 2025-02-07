@@ -16,7 +16,7 @@ import {
     Vector3
 } from 'three';
 import * as dat from 'dat.gui';
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {DragControls} from "three/examples/jsm/controls/DragControls.js";
 import {normalizeAngle} from "../../../math/math-helpers";

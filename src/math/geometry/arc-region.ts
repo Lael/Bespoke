@@ -1,5 +1,5 @@
 import {Segment} from "./segment";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {normalizeAngle} from "../math-helpers";
 import {PlanarGraph} from "./planar-graph";
 
@@ -123,16 +123,16 @@ export class ArcRegion {
 
             const intersections = s.intersect(slice);
             switch (intersections.length) {
-                case 0:
-                    splitSegments.push(s);
-                    break;
-                case 1:
-                case 2:
-                    cutPoints.push(...intersections);
-                    splitSegments.push(...s.split(intersections));
-                    break;
-                default:
-                    throw Error('Unexpected number of intersections');
+            case 0:
+                splitSegments.push(s);
+                break;
+            case 1:
+            case 2:
+                cutPoints.push(...intersections);
+                splitSegments.push(...s.split(intersections));
+                break;
+            default:
+                throw Error('Unexpected number of intersections');
             }
         }
 

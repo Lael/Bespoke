@@ -1,27 +1,13 @@
 import {Component, Input, OnChanges, SimpleChanges} from "@angular/core";
-import {
-    BufferGeometry,
-    CircleGeometry,
-    Color,
-    Line, LineBasicMaterial,
-    LineSegments,
-    Matrix3,
-    Mesh,
-    MeshBasicMaterial,
-    Vector2,
-    Vector3
-} from "three";
+import {Color, Matrix3, Vector2, Vector3} from "three";
 import {CommonModule} from "@angular/common";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js";
 import {LineGeometry} from "three/examples/jsm/lines/LineGeometry.js";
 import {Line2} from "three/examples/jsm/lines/Line2.js";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
-import {LineSegment} from "../../../math/geometry/line-segment";
-import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
 import _default from "chart.js/dist/core/core.interaction";
-import point = _default.modes.point;
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 
 
 const IMAGE_EDGE_WIDTH = 1;
@@ -33,6 +19,7 @@ const FINAL_COLOR = 0x008800;
     selector: 'affine-normalization',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
+    standalone: true,
     imports: [CommonModule]
 })
 export class AffineNormalizationComponent extends ThreeDemoComponent implements OnChanges {

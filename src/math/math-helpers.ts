@@ -1,4 +1,4 @@
-import {Complex} from "./complex";
+import {Complex} from "./complex/complex";
 import {Vector2} from "three";
 
 export function normalizeAngle(theta: number, low: number = -Math.PI) {

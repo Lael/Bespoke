@@ -2,7 +2,7 @@ import {Color, ColorRepresentation, Matrix4, Mesh, MeshBasicMaterial, SphereGeom
 import {closeEnough, normalizeAngle} from "../math-helpers";
 import {ArcSegment} from "./arc-segment";
 import {AffineCircle} from "./affine-circle";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 
 export class SpherePoint {
     mesh: Mesh | undefined;

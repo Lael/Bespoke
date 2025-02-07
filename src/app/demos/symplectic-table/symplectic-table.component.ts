@@ -1,8 +1,8 @@
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
 import {convexHull, PolygonPickerComponent, PolygonRestriction} from "../../widgets/polygon-picker.component";
 import {BufferGeometry, Matrix3, Points, PointsMaterial, Vector2, Vector3, Vector4} from "three";
-import {Line, Line as GeoLine} from "../../../math/geometry/line";
-import {Complex} from "../../../math/complex";
+import {Line as GeoLine} from "../../../math/geometry/line";
+import {Complex} from "../../../math/complex/complex";
 import {CommonModule} from "@angular/common";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js";
 import {LineGeometry} from "three/examples/jsm/lines/LineGeometry.js";

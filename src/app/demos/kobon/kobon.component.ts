@@ -16,7 +16,7 @@ import * as dat from "dat.gui";
 import {CommonModule} from "@angular/common";
 import {Line} from "../../../math/geometry/line";
 import {AffineCircle} from "../../../math/geometry/affine-circle";
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 import {randFloat} from "three/src/math/MathUtils.js";
 
 // Colors

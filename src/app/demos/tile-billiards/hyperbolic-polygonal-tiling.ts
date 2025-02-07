@@ -13,7 +13,7 @@ import {
     Vector2
 } from "three";
 import {HyperbolicPolygon, HyperbolicPolygonRayCollision} from "./hyperbolic-polygon";
-import {Mobius} from "../../../math/mobius";
+import {Mobius} from "../../../math/complex/mobius";
 import {HyperbolicModel, HyperGeodesic, HyperPoint} from "../../../math/hyperbolic/hyperbolic";
 import {LineSegment} from "../../../math/geometry/line-segment";
 import {ArcSegment} from "../../../math/geometry/arc-segment";

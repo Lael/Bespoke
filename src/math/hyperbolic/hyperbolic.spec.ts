@@ -8,7 +8,7 @@ import {
     poincareToHalfPlane,
     poincareToKlein
 } from './hyperbolic';
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {HyperPolygon, IdealArc} from "./hyper-polygon";
 
 describe('Hyperbolic Geometry', () => {

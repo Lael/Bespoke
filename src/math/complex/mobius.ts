@@ -1,8 +1,7 @@
-import {Transformation} from "./transformation";
 import {Complex} from "./complex";
-import {solveQuadratic} from "./math-helpers";
+import {solveQuadratic} from "../math-helpers";
 
-export class Mobius extends Transformation {
+export class Mobius {
     static readonly IDENTITY = new Mobius(Complex.ONE, Complex.ZERO, Complex.ZERO, Complex.ONE);
 
     private readonly a: Complex;
@@ -15,7 +14,6 @@ export class Mobius extends Transformation {
         bv: Complex | number,
         cv: Complex | number,
         dv: Complex | number) {
-        super();
         const a: Complex = (av instanceof Complex) ? av : new Complex(av, 0);
         const b: Complex = (bv instanceof Complex) ? bv : new Complex(bv, 0);
         const c: Complex = (cv instanceof Complex) ? cv : new Complex(cv, 0);
@@ -32,7 +30,7 @@ export class Mobius extends Transformation {
         this.d = d.over(sd);
     }
 
-    override apply(z: Complex): Complex {
+    apply(z: Complex): Complex {
         if (z.isInfinite()) return this.a.over(this.c);
         const n = this.a.times(z).plus(this.b);
         const d = this.c.times(z).plus(this.d);
@@ -126,7 +124,7 @@ export class Mobius extends Transformation {
         return new Mobius(new Complex(1), p.scale(-1), p.conjugate.scale(-1), new Complex(1));
     }
 
-    override toString(): string {
+    toString(): string {
         return `[(${this.a})z + (${this.b})] / [${this.c}z + (${this.d})]`;
     }
 

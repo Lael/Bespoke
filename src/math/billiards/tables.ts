@@ -1,4 +1,4 @@
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {ColorRepresentation, Mesh, Shape, Vector2, Vector3} from "three";
 import {Generator} from "./new-billiard";
 import {LineSegment} from "../geometry/line-segment";

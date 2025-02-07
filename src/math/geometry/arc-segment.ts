@@ -1,5 +1,5 @@
 import {Segment} from "./segment";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {AffineCircle} from "./affine-circle";
 import {closeEnough, normalizeAngle} from "../math-helpers";
 import {LineSegment} from "./line-segment";

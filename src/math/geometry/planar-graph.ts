@@ -1,4 +1,4 @@
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {Segment} from "./segment";
 
 export class PlanarGraph {
@@ -40,7 +40,7 @@ export class PlanarGraph {
         }
     }
 
-    private getVertex(p: Complex): Vertex|null {
+    private getVertex(p: Complex): Vertex | null {
         for (let v of this.vertices) {
             if (v.point.equals(p)) return v;
         }
@@ -62,7 +62,7 @@ export class PlanarGraph {
         do {
             cycle.push(edge);
             edge = v.nextEdge(edge);
-            v = edge.v1 === v ? edge.v2: edge.v1;
+            v = edge.v1 === v ? edge.v2 : edge.v1;
         } while (edge !== e);
         return cycle;
     }
@@ -125,7 +125,8 @@ class Vertex {
 class Edge {
     constructor(readonly segment: Segment,
                 readonly v1: Vertex,
-                readonly v2: Vertex) {}
+                readonly v2: Vertex) {
+    }
 
     heading(v: Vertex): number {
         if (v.point.equals(this.segment.start)) return this.segment.startHeading();

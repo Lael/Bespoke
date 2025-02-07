@@ -1,6 +1,6 @@
 import {AffineOuterBilliardTable, fixTime} from "./tables";
 import {Vector2} from "three";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {AffineCircle} from "../geometry/affine-circle";
 import {Line} from "../geometry/line";
 import {closeEnough, normalizeAngle} from "../math-helpers";

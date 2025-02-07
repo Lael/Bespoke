@@ -1,6 +1,6 @@
 import {BufferGeometry, Line, LineBasicMaterial, Path, Vector2} from "three";
 import {Line as GeoLine} from "../geometry/line";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {AffineCircle} from "../geometry/affine-circle";
 import {normalizeAngle} from "../math-helpers";
 

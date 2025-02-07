@@ -1,6 +1,6 @@
 import {Tile} from "./tile";
-import {Mobius} from "../../../math/mobius";
-import {Complex} from "../../../math/complex";
+import {Mobius} from "../../../math/complex/mobius";
+import {Complex} from "../../../math/complex/complex";
 import {HyperPoint} from "../../../math/hyperbolic/hyperbolic";
 
 export class HyperbolicTile extends Tile {

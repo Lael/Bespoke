@@ -15,7 +15,7 @@ import {
     ShapeGeometry,
     Vector2
 } from "three";
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 
 function inFD(v: Vector2) {
     return Math.abs(v.x) <= 0.5 && v.lengthSq() >= 1;
@@ -25,6 +25,7 @@ function inFD(v: Vector2) {
     selector: 'halfplane',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
+    standalone: true,
     imports: [CommonModule]
 })
 export class HalfplaneComponent extends ThreeDemoComponent implements OnChanges {

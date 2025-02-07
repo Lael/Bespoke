@@ -16,8 +16,8 @@ import {
 import * as dat from 'dat.gui';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {HyperbolicModel, HyperGeodesic, HyperPoint} from "../../../math/hyperbolic/hyperbolic";
-import {Mobius} from "../../../math/mobius";
-import {Complex} from "../../../math/complex";
+import {Mobius} from "../../../math/complex/mobius";
+import {Complex} from "../../../math/complex/complex";
 import {lpCircle} from "../../../math/billiards/affine-oval-table";
 import {CommonModule} from "@angular/common";
 import {DragControls} from "three/examples/jsm/controls/DragControls.js";

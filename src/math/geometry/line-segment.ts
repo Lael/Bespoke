@@ -1,5 +1,5 @@
 import {Segment} from "./segment";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {Line} from "./line";
 import {ArcSegment} from "./arc-segment";
 import {closeEnough, normalizeAngle} from "../math-helpers";

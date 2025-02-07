@@ -1,7 +1,7 @@
 import {Shape2D, Vertex2D} from "./shape2D";
 import {Color} from "./color";
 import {Drawable} from "./drawable";
-import {Complex} from "../../math/complex";
+import {Complex} from "../../math/complex/complex";
 import {ArcRegion} from "../../math/geometry/arc-region";
 import {UniformType} from "../gl/shader";
 import {Path} from "./path";

@@ -1,4 +1,4 @@
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {closeEnough} from "../math-helpers";
 import {Vector2} from "three";
 

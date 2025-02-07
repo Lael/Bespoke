@@ -1,4 +1,4 @@
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {Line} from "./line";
 import {closeEnough} from "../math-helpers";
 import {LineSegment} from "./line-segment";

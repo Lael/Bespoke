@@ -1,5 +1,5 @@
 import {Polygon2D, PolygonSpec} from "../../graphics/shapes/polygon2D";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {Color} from "../../graphics/shapes/color";
 import {HyperbolicModel, HyperGeodesic, HyperIsometry, HyperPoint} from "./hyperbolic";
 import {fromThreePoints} from "../geometry/geometry-helpers";

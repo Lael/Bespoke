@@ -4,7 +4,7 @@ import {Line} from "../geometry/line";
 import {Generator} from "./new-billiard";
 import {AffineRay} from "./affine-polygon-table";
 import {AffineCircle} from "../geometry/affine-circle";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {AffineOuterBilliardTable, fixTime} from "./tables";
 
 const SYMPLECTIC_PREIMAGE_PIECES = 2000;

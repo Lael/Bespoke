@@ -18,7 +18,7 @@ import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {Collision, PhaseTile, Polygon, Ray, SubCorridor} from "./corridors.component";
 import {closeEnough, normalizeAngle} from "../../../math/math-helpers";
 import {LineSegment} from "../../../math/geometry/line-segment";
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 import {Line} from "../../../math/geometry/line";
 import {CommonModule} from "@angular/common";
 

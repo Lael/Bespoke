@@ -4,7 +4,7 @@ import * as dat from "dat.gui";
 import {Vector2} from "three";
 import {Line} from "../../../math/geometry/line";
 import {LineSegment} from "../../../math/geometry/line-segment";
-import {Complex} from "../../../math/complex";
+import {Complex} from "../../../math/complex/complex";
 import {reflectOver} from "../unfolding/unfolding.component";
 import {PhasePictureComponent} from "./phase-picture.component";
 import {CorridorUnfolderComponent} from "./corridor-unfolder.component";

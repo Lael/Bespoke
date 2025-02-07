@@ -1,5 +1,5 @@
-import {Complex} from "../complex";
-import {Mobius} from "../mobius";
+import {Complex} from "../complex/complex";
+import {Mobius} from "../complex/mobius";
 import {Line} from "../geometry/line";
 import {AffineCircle} from "../geometry/affine-circle";
 import {Segment} from "../geometry/segment";

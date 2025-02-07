@@ -3,7 +3,7 @@ import {AffineCircle} from "../geometry/affine-circle";
 import {Line} from "../geometry/line";
 import {closeEnough, normalizeAngle} from "../math-helpers";
 import {AffineOuterBilliardTable, fixTime} from "./tables";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 
 export type Parametrization = (t: number) => Vector2;
 export type ContainmentTest = (v: Vector2) => boolean;

@@ -1,7 +1,7 @@
 import {Shape, Vector2} from "three";
 import {Generator} from "./new-billiard";
 import {LineSegment} from "../geometry/line-segment";
-import {Complex} from "../complex";
+import {Complex} from "../complex/complex";
 import {AffineInnerState, AffineOuterBilliardTable, fixTime} from "./tables";
 import {Line} from "../geometry/line";
 import {closeEnough, normalizeAngle} from "../math-helpers";
