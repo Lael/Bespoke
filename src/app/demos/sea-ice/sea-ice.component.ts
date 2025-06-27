@@ -2,6 +2,7 @@ import {AfterViewInit, Component} from "@angular/core";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import {CommonModule} from "@angular/common";
 import {
+  AmbientLight,
   BufferAttribute,
   BufferGeometry,
   DirectionalLight,
@@ -119,18 +120,18 @@ export class SeaIceComponent extends ThreeDemoComponent implements AfterViewInit
     super();
     this.iceNoise = new IceNoise2D([
       {noises: [new SimplexNoise2D(0.125)], weight: 0.5},
-      {noises: [new SimplexNoise2D(1)], weight: 0.05},
-      // {noises: [new SimplexNoise2D(4)], weight: 0.125},
+      {noises: [new SimplexNoise2D(0.5)], weight: 0.1},
+      {noises: [new SimplexNoise2D(4)], weight: 0.01},
       // {noises: [new SimplexNoise2D(0.5)], weight: 0.2},
       // {noises: [new SimplexNoise2D(1)], weight: 0.1},
       // {noises: [new SimplexNoise2D(5)], weight: 0.01},
       // {noises: [new SimplexNoise2D(25)], weight: 0.001},
       {
         noises: [
-          new RidgeNoise2D(new Matrix3().rotate(Math.random()).multiplyScalar(0.05), 5),
-          new RidgeNoise2D(new Matrix3().rotate(Math.random()).multiplyScalar(0.05), 5),
+          new RidgeNoise2D(new Matrix3().rotate(Math.random()).multiplyScalar(0.1), 5),
+          new RidgeNoise2D(new Matrix3().rotate(Math.random()).multiplyScalar(0.1), 5),
         ],
-        weight: 0.4,
+        weight: 0.5,
         sampleNoise: new Noise2DV(5),
         sampleNoiseWeight: 0.05,
       },
@@ -214,7 +215,7 @@ export class SeaIceComponent extends ThreeDemoComponent implements AfterViewInit
     // pos.needsUpdate = true;
     geometry.computeVertexNormals();
     const material = new MeshPhysicalMaterial({
-      color: 0x77bbff,
+      color: 0x99ccff,
       specularColor: 0xffffff,
       specularIntensity: 10,
       // wireframe: true,
@@ -228,6 +229,7 @@ export class SeaIceComponent extends ThreeDemoComponent implements AfterViewInit
     this.sun = new PointLight(0xffffdd, 5, 0, 0);
     this.sun.position.set(10, 10, 10);
     this.lights.push(this.sun);
+    this.lights.push(new AmbientLight(0xddddff));
 
     this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
     if (this.lights.length > 0) this.scene.add(...this.lights);
@@ -255,9 +257,9 @@ export class SeaIceComponent extends ThreeDemoComponent implements AfterViewInit
     this.waterMesh = new Mesh(
       new PlaneGeometry(MESH_SIZE, MESH_SIZE, 1, 1),
       new MeshPhysicalMaterial({
-        color: 0x2A52BE,
-        specularColor: 0xffffff,
-        sheen: 5,
+        color: 0x01305E,
+        // specularColor: 0xffffff,
+        // specularIntensity: 1,
         transparent: true,
         opacity: 0.75,
       })
@@ -318,16 +320,18 @@ export class SeaIceComponent extends ThreeDemoComponent implements AfterViewInit
         if (maximum) this.maxima.add(ind);
         if (minimum) this.minima.add(ind);
         // TODO: saddles are sometimes missing
-        // else if (nhs[0] > 0 && nhs[2] < 0 && nhs[4] > 0 && nhs[6] < 0) this.saddles.add(ind);
-        // else if (nhs[0] < 0 && nhs[2] > 0 && nhs[4] < 0 && nhs[6] > 0) this.saddles.add(ind);
+        if (nhs[0] > 0 && nhs[2] < 0 && nhs[4] > 0 && nhs[6] < 0) this.saddles.add(ind);
+        else if (nhs[0] < 0 && nhs[2] > 0 && nhs[4] < 0 && nhs[6] > 0) this.saddles.add(ind);
+        else if (nhs[1] > 0 && nhs[3] < 0 && nhs[5] > 0 && nhs[7] < 0) this.saddles.add(ind);
+        else if (nhs[1] < 0 && nhs[3] > 0 && nhs[5] < 0 && nhs[7] > 0) this.saddles.add(ind);
 
-        let sign = Math.sign(nhs[0]);
-        let flips = 0;
-        for (let nh of nhs) {
-          if (Math.sign(nh) !== sign) flips++;
-          sign = Math.sign(nh);
-        }
-        if (flips > 3) this.saddles.add(ind);
+        // let sign = Math.sign(nhs[0]);
+        // let flips = 0;
+        // for (let nh of nhs) {
+        //   if (Math.sign(nh) !== sign) flips++;
+        //   sign = Math.sign(nh);
+        // }
+        // if (flips > 3) this.saddles.add(ind);
       }
     }
     for (let i = 0; i <= MESH_RES; i++) {
@@ -345,7 +349,7 @@ export class SeaIceComponent extends ThreeDemoComponent implements AfterViewInit
     // );
     if (this.keyHeld("Space")) {
       if (this.done) {
-        this.level += dt * MELT_SPEED;
+        this.level += dt * MELT_SPEED * (this.keyHeld("ShiftLeft") ? -1 : 1);
         console.log(this.level);
       } else {
         this.level += MELT_DT;
