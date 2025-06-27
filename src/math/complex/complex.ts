@@ -157,6 +157,10 @@ export class Complex {
         return p.minus(this).argument();
     }
 
+    exp(): Complex {
+        return new Complex(Math.cos(this.y), Math.sin(this.y)).scale(Math.exp(this.x));
+    }
+
     toString(): string {
         if (this.isInfinite()) return 'inf';
         if (this.isZero()) return '0';

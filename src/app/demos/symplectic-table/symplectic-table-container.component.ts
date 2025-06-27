@@ -3,8 +3,9 @@ import {PolygonRestriction} from "../../widgets/polygon-picker.component";
 import {GUI} from "dat.gui";
 import {Vector2} from "three";
 import {CommonModule} from "@angular/common";
-import {AffineNormalizationComponent} from "./affine-normalization.component";
 import {SymplecticTableComponent} from "./symplectic-table.component";
+import {ZSpaceComponent} from "./z-space.component";
+import {AffineNormalizationComponent} from "./affine-normalization.component";
 
 const IMAGE_EDGE_WIDTH = 1;
 const FINAL_EDGE_WIDTH = 2;
@@ -13,12 +14,13 @@ const FINAL_EDGE_WIDTH = 2;
     selector: 'symplectic-table-container',
     templateUrl: './symplectic-table-container.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass', './symplectic-table-container.component.sass'],
-    imports: [CommonModule, AffineNormalizationComponent, SymplecticTableComponent]
+    standalone: true,
+    imports: [CommonModule, SymplecticTableComponent, ZSpaceComponent, AffineNormalizationComponent]
 })
 export class SymplecticTableContainerComponent implements OnDestroy {
     params = {
-        n: 6,
-        iterations: 100,
+        n: 5,
+        iterations: 5,
         everyOther: true,
         showAffine: true,
         rescale: true,

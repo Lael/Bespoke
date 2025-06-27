@@ -1,9 +1,40 @@
 import {AfterViewInit, Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
 import * as THREE from 'three';
-import {Vector2} from 'three';
+import {Color, ColorRepresentation, Vector2} from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import {CommonModule} from "@angular/common";
 import {Line2} from "three/examples/jsm/lines/Line2.js";
+
+// [light, dark]
+declare type ColorPair = [Color, Color];
+
+export class ColorScheme {
+    private map: Map<string, ColorPair> = new Map();
+
+    constructor() {
+    }
+
+    register(key: string, light: ColorRepresentation, dark: ColorRepresentation) {
+        this.map.set(key, [new Color(light), new Color(dark)]);
+    }
+
+    getColor(key: string, alpha: number): Color {
+        const pair = this.map.get(key);
+        if (pair === undefined) throw Error(`Color ${key} not registered in color scheme`);
+        const light = pair[0];
+        const dark = pair[1];
+        if (alpha === 0) return light;
+        if (alpha === 1) return dark;
+        return new Color().lerpColors(light, dark, alpha);
+    }
+}
+
+enum ColorMode {
+    Light,
+    Dark,
+}
+
+const COLOR_MODE_TRANSITION_TIME: number = 0.25;
 
 @Component({
     selector: 'three-demo',
@@ -36,6 +67,11 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
     keysJustPressed = new Set<string>;
     private old: number;
 
+    // Color management
+    private colorModeFraction: number;
+    private colorMode: ColorMode;
+    colorScheme: ColorScheme = new ColorScheme();
+
     protected constructor() {
         this.scene = new THREE.Scene();
         this.renderer = new THREE.WebGLRenderer({
@@ -64,6 +100,11 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
         this.stats = new Stats();
         document.body.appendChild(this.stats.dom);
         this.old = Date.now();
+
+        this.colorMode = systemMode();
+        this.colorModeFraction = this.colorMode;
+        this.colorScheme.register('clear', 0xffffff, 0x000000);
+        this.renderer.setClearColor(this.getColor('clear'));
     }
 
     onResize() {
@@ -171,7 +212,18 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
         }
         this.stats.update();
         const now = Date.now();
-        this.frame((now - this.old) / 1000);
+
+        this.colorMode = systemMode();
+        const dt = (now - this.old) / 1000;
+        switch (this.colorMode) {
+        case ColorMode.Light:
+            this.colorModeFraction = Math.max(0, this.colorModeFraction - dt / COLOR_MODE_TRANSITION_TIME);
+            break;
+        case ColorMode.Dark:
+            this.colorModeFraction = Math.min(1, this.colorModeFraction + dt / COLOR_MODE_TRANSITION_TIME);
+            break;
+        }
+        this.frame(dt);
         this.old = now;
         this.render();
         this.keysJustPressed.clear();
@@ -191,6 +243,7 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
         const h = this.hostElement?.nativeElement.offsetHeight || 0;
 
         const aspect = w / h;
+        this.orthographicCamera.position.z = 100;
         this.orthographicCamera.left = -this.orthographicDiagonal * aspect;
         this.orthographicCamera.right = this.orthographicDiagonal * aspect;
         this.orthographicCamera.top = this.orthographicDiagonal;
@@ -204,4 +257,18 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
     //     this.updateOrthographicCamera()
     //     this.renderer.setSize(window.innerWidth, window.innerHeight);
     // }
+
+    getColor(key: string): Color {
+        return this.colorScheme.getColor(
+            key,
+            (1 - Math.cos(Math.PI * this.colorModeFraction)) / 2
+        );
+    }
+}
+
+function systemMode(): ColorMode {
+    return (
+        window.matchMedia &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches
+    ) ? ColorMode.Dark : ColorMode.Light;
 }

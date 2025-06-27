@@ -8,7 +8,7 @@
                           [rescale]="params.rescale"
                           [convex]="params.convex"
                           [inner]="params.inner"
-                          [vertices]="params.vertices"
+                          [drawVertices]="params.vertices"
                           [edges]="params.edges"
                           [restriction]="restriction"
                           (iterates)="onNewOrbit($event)">
@@ -18,5 +18,8 @@
                               [normalize]="params.normalize"
                               [projective]="params.projective">
         </affine-normalization>
+        <!--        <z-space class="right" [iterates]="iterates">-->
+
+        <!--        </z-space>-->
     </div>
 </div>

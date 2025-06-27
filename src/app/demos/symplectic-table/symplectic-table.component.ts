@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "@angular/core";
 import {convexHull, PolygonPickerComponent, PolygonRestriction} from "../../widgets/polygon-picker.component";
-import {BufferGeometry, Matrix3, Points, PointsMaterial, Vector2, Vector3, Vector4} from "three";
+import {BufferGeometry, Matrix3, Points, PointsMaterial, Vector2, Vector3} from "three";
 import {Line as GeoLine} from "../../../math/geometry/line";
 import {Complex} from "../../../math/complex/complex";
 import {CommonModule} from "@angular/common";
@@ -9,6 +9,7 @@ import {LineGeometry} from "three/examples/jsm/lines/LineGeometry.js";
 import {Line2} from "three/examples/jsm/lines/Line2.js";
 import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
 import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry.js";
+import {closeEnough} from "../../../math/math-helpers";
 
 const IMAGE_EDGE_WIDTH = 1;
 const FINAL_EDGE_WIDTH = 2;
@@ -17,17 +18,18 @@ const FINAL_EDGE_WIDTH = 2;
     selector: 'symplectic-table',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
+    standalone: true,
     imports: [CommonModule]
 })
 export class SymplecticTableComponent extends PolygonPickerComponent implements OnChanges {
 
-    @Input() n = 6;
+    @Input() n = 5;
     @Input() iterations = 10;
     @Input() everyOther = true;
     @Input() rescale = true;
     @Input() convex = true;
     @Input() inner = true;
-    @Input() vertices = true;
+    @Input() drawVertices = true;
     @Input() edges = true;
 
     @Output() iterates = new EventEmitter<Vector2[][]>();
@@ -122,11 +124,9 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
         }
     }
 
-    // override reset() {
-    //
-    // }
 
     iterate() {
+        // console.clear();
         const ls = [];
         let vertices = this.draggables.map((v) => new Vector2(v.position.x, v.position.y));
         let polygon = this.convex ? convexHull(vertices)[0] : vertices;
@@ -135,6 +135,10 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
         let area = convexArea(polygon);
         let q = quantity(polygon);
         let n = polygon.length;
+        // for (let v of polygon) {
+        //     console.log(v.x, v.y);
+        // }
+
         const iterates: Vector2[][] = [];
         for (let i = 0; i < this.iterations; i++) {
             let newPolygon = [];
@@ -149,9 +153,11 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
                     lines.push(GeoLine.srcDir(new Complex(v2.x, v2.y), new Complex(v3.x - v1.x, v3.y - v1.y)));
                 }
                 try {
-                    for (let j = 0 - ((i + 1) % 2); j < n - ((i + 1) % 2); j++) {
+                    let offset = i % 2 == 0 ? 2 : 1
+                    for (let j = 0 - offset; j < n - offset; j++) {
+                        // for (let j = 0; j < n; j++) {
                         let l1 = lines[(j + n) % n];
-                        let l2 = lines[(j + 1) % n];
+                        let l2 = lines[(j + n + 1) % n];
                         newPolygon.push(l1.intersectLine(l2).toVector2())
                     }
                 } catch (e) {
@@ -168,21 +174,70 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
                 if (i % 2 == 1 || !this.everyOther) iVertices.push(...newPolygon);
             } else {
                 try {
-                    for (let j = 0; j < n; j++) {
-                        // What does this do???
-                        let v0 = polygon[(j - 1 + n) % n];
-                        let v1 = polygon[j];
-                        let v2 = polygon[(j + 1) % n];
-                        let v3 = polygon[(j + 2) % n];
-                        let s1 = v1.clone().sub(v0).normalize();
-                        let s2 = v2.clone().sub(v1).normalize();
-                        let s3 = v3.clone().sub(v2).normalize();
-                        let b1 = s1.clone().add(s2);
-                        let b2 = s2.clone().add(s3).multiplyScalar(-1);
-                        let l1 = GeoLine.srcDir(v1, b1);
-                        let l2 = GeoLine.srcDir(v2, b2);
-                        let center = l1.intersectLine(l2);
-                        newPolygon.push(GeoLine.throughTwoPoints(v1, v2).project(center).toVector2());
+                    // Assume n = 5;
+                    let lines: GeoLine[] = [];
+                    for (let i = 0; i < n; i++) {
+                        let v1 = polygon[i].clone();
+                        let v2 = polygon[(i + 1) % n].clone();
+                        lines.push(GeoLine.throughTwoPoints(v1, v2));
+                    }
+
+                    let m = new Matrix3().identity();
+                    let maps: Matrix3[] = [];
+                    if (n % 2 == 1) {
+                        for (let i = 0; i < n; i++) {
+                            let j = (2 * i) % n;
+                            let map = affinity(lines[j], lines[(j + 2) % n], lines[(j + 1) % n]);
+                            maps.push(map);
+                            m = m.premultiply(map);
+                        }
+                        // want fixed point of m along lines[0]. Will fall between polygon[0] and m(polygon[0])
+                        let v0 = polygon[0].clone();
+                        let v1 = polygon[1].clone();
+                        let vp = v0.clone().applyMatrix3(m);
+                        let dv = vp.clone().sub(v0);
+                        let s = v1.clone().sub(v0);
+                        let l = dv.dot(s) / s.dot(s);
+                        // console.log(m);
+                        if (closeEnough(l, -1)) {
+                            console.log("no fixed point- shouldn't happen");
+                        }
+                        let f = l / (1 + l);
+                        let v = v0.clone().addScaledVector(dv, f);
+                        // console.log(f, v);
+                        newPolygon = [v.clone(), new Vector2(), new Vector2(), new Vector2(), new Vector2()];
+                        for (let i = 0; i < n; i++) {
+                            let j = (2 * i) % n;
+                            v = v.applyMatrix3(maps[i]);
+                            // console.log(`j=${j}`, v.x, v.x);
+                            newPolygon[j] = v.clone();
+                        }
+                        // let m3 = mapThree(newPolygon);
+                        // newPolygon.map(v => v.applyMatrix3(m3));
+                        // if (this.rescale) {
+                        //     let lx = Number.POSITIVE_INFINITY;
+                        //     let hx = Number.NEGATIVE_INFINITY;
+                        //     let ly = Number.POSITIVE_INFINITY;
+                        //     let hy = Number.NEGATIVE_INFINITY;
+                        //     for (let v of newPolygon) {
+                        //         if (v.x < lx) lx = v.x;
+                        //         if (v.x > hx) hx = v.x;
+                        //         if (v.y < ly) ly = v.y;
+                        //         if (v.y > hy) hy = v.y;
+                        //     }
+                        //     let mx = hx - lx;
+                        //     let my = hy - ly;
+                        //     let s = mx * my;
+                        //     let factor = Math.sqrt(area / (s * convexArea(newPolygon)));
+                        //     for (let v of newPolygon) {
+                        //         v.x *= mx / s;
+                        //         v.y *= my / s;
+                        //     }
+                        // }
+                    } else {
+                        console.log('even polygon');
+                        err = true;
+                        break;
                     }
                 } catch (e) {
                     console.log(e);
@@ -190,7 +245,6 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
                     break;
                 }
             }
-
 
             if (err) break;
 
@@ -202,11 +256,14 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
                 }
                 finalPolygon = newPolygon;
                 iterates.push(newPolygon);
+                let newQ = quantity(newPolygon);
+                let diff = [];
+                for (let i = 0; i < q.length; i++) {
+                    diff.push(newQ[i] / q[i]);
+                }
+                // console.log(newQ, diff);
+                q = newQ;
             }
-
-            let newQ = quantity(newPolygon);
-            // console.log(newQ, newQ / q);
-            q = newQ;
 
             polygon = newPolygon;
         }
@@ -227,7 +284,7 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
             })
         );
 
-        if (this.vertices) {
+        if (this.drawVertices) {
             this.scene.add(new Points(new BufferGeometry().setFromPoints(iVertices), new PointsMaterial({
                 color: 0xaa44aa,
                 size: 4
@@ -284,30 +341,35 @@ function normalizePolygon(vertices: Vector2[]): Vector2[] {
 function quantity(vertices: Vector2[]) {
     const n = vertices.length;
     if (n === 5) {
-        let nv = normalizePolygon(vertices);
-        let x1 = nv[4].x;
-        let y1 = nv[4].y;
-        let x2 = nv[0].x;
-        let y2 = nv[0].y;
-        const phi = (Math.sqrt(5) + 1) / 2;
-        const q = new Vector4(x1 - phi, y1 - 1, x2 - 1, y2 - phi).length();
-        // console.log(q);
-        return q;
-        // let s = 0;
-        // for (let i = 0; i < n; i++) {
-        //     const v1 = vertices[i];
-        //     const v2 = vertices[(i + 1) % n];
-        //     const v3 = vertices[(i + 2) % n];
-        //     const v4 = vertices[(i + 3) % n];
-        //     s += Math.pow(v3.clone().sub(v2).cross(v1.clone().sub(v4)), 2);
-        // }
-        // return s / Math.pow(convexArea(vertices), 2);
+        // let nv = normalizePolygon(vertices);
+        // let x1 = nv[4].x;
+        // let y1 = nv[4].y;
+        // let x2 = nv[0].x;
+        // let y2 = nv[0].y;
+        // const phi = (Math.sqrt(5) + 1) / 2;
+        // const q = new Vector4(x1 - phi, y1 - 1, x2 - 1, y2 - phi).length();
+        // // console.log(q);
+        // return q;
+        let s = 0;
+        let a = convexArea(vertices);
+        let qs = [];
+        for (let i = 0; i < n; i++) {
+            const v1 = vertices[i];
+            const v2 = vertices[(i + 1) % n];
+            const v3 = vertices[(i + 2) % n];
+            const v4 = vertices[(i + 3) % n];
+            let q = v3.clone().sub(v2).cross(v1.clone().sub(v4)) / a;
+            s += q * q;
+            qs.push(q * q);
+        }
+        qs.push(s);
+        return qs;
     } else if (vertices.length === 6) {
         let a1 = convexArea([vertices[0], vertices[2], vertices[4]]);
         let a2 = convexArea([vertices[1], vertices[3], vertices[5]]);
-        return Math.pow(a1 - a2, 2);
+        return [Math.pow(a1 - a2, 2)];
     }
-    return 1;
+    return [1];
 }
 
 function convexArea(vertices: Vector2[]): number {
@@ -407,4 +469,34 @@ function projectiveTransformation(vertices: Vector2[]): Matrix3 {
     console.log(new Vector3(x, y, 1).applyMatrix3(pm));
 
     return am.multiply(pm);
+}
+
+// Find the affine transformation which sends points on l1 to points on l2 by projecting along rays parallel to l3
+function affinity(l1: GeoLine, l2: GeoLine, l3: GeoLine): Matrix3 {
+    let f = l1.intersectLine(l2).toVector2();
+    let s = l3.intersectLine(l1).toVector2();
+    let d = l3.intersectLine(l2).toVector2();
+    let c = new Matrix3(
+        s.x - f.x, d.x - s.x, 0,
+        s.y - f.y, d.y - s.y, 0,
+        0, 0, 1
+    );
+    let shear = new Matrix3(
+        1, 0, 0,
+        1, 1, 0,
+        0, 0, 1
+    );
+    let t = new Matrix3().identity().makeTranslation(f.clone());
+    let tc = t.clone().multiply(c);
+    let tci = tc.clone().invert();
+    let m = tc.clone().multiply(shear).multiply(tci);
+    let good = closeEnough(f.clone().applyMatrix3(m).distanceTo(f), 0) && closeEnough(s.clone().applyMatrix3(m).distanceTo(d), 0);
+    if (!good) {
+        console.log(f, s, d);
+        console.log(f.clone().applyMatrix3(m));
+        console.log(s.clone().applyMatrix3(tci));
+        console.log(d.clone().applyMatrix3(tci));
+        throw Error('not good');
+    }
+    return m;
 }

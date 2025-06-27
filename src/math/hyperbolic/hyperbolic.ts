@@ -223,7 +223,7 @@ export class HyperGeodesic extends GeodesicLike<HyperPoint> {
     constructor(p1: HyperPoint, p2: HyperPoint) {
         super(p1, p2);
         if (p1.equals(p2)) throw new Error('Trivial geodesic');
-        // This part is easiest is the Klein model, since geodesics are straight lines there.
+        // This part is easiest in the Klein model, since geodesics are straight lines there.
         const kl = Line.throughTwoPoints(p1.klein, p2.klein);
         const ideals = new AffineCircle(Complex.ZERO, 1).intersectLine(kl);
         if (ideals.length != 2) throw new Error('Unexpected number of intersections');

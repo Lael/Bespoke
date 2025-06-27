@@ -250,17 +250,17 @@ export class AffineSemidiskTable extends AffineOuterBilliardTable {
     }
 
     // private regularPreimages(iterations: number) {
-    //     const preimages: AffineRay[] = [];
-    //     let frontier: AffineRay[] = [];
+    //     const preimages: EuclideanRay[] = [];
+    //     let frontier: EuclideanRay[] = [];
     //     for (let i = 0; i < this.n; i++) {
     //         const v1 = this.vertices[i];
     //         const v2 = this.vertices[(i + 1) % this.n];
     //         const diff = v1.clone().sub(v2).normalize();
-    //         frontier.push(new AffineRay(v1, v1.clone().add(diff), true));
+    //         frontier.push(new EuclideanRay(v1, v1.clone().add(diff), true));
     //     }
     //     for (let i = 0; i < iterations; i++) {
     //         preimages.push(...frontier);
-    //         const newFrontier: AffineRay[] = [];
+    //         const newFrontier: EuclideanRay[] = [];
     //         for (let preimage of frontier) {
     //             const pieces = this.slicePreimage(preimage);
     //             for (let piece of pieces) {
@@ -284,7 +284,7 @@ export class AffineSemidiskTable extends AffineOuterBilliardTable {
     //                     continue;
     //                 }
     //                 newFrontier.push(
-    //                     new AffineRay(
+    //                     new EuclideanRay(
     //                         this.reflectRegular(pivot, piece.start),
     //                         this.reflectRegular(pivot, piece.end),
     //                         piece.infinite)
@@ -367,7 +367,7 @@ export class AffineSemidiskTable extends AffineOuterBilliardTable {
                 new Vector2((this.x + i * dl), this.y),
                 new Vector2((this.x + (i + 1) * dl), this.y),
                 false));
-            // frontier.push(new AffineRay(
+            // frontier.push(new EuclideanRay(
             //     v2.clone().sub(diff.clone().multiplyScalar(i * dl)),
             //     v2.clone().sub(diff.clone().multiplyScalar((i + 1) * dl)),
             //     false));
@@ -441,7 +441,7 @@ export class AffineSemidiskTable extends AffineOuterBilliardTable {
                 v1.clone().add(diff.clone().multiplyScalar(i * dl)),
                 v1.clone().add(diff.clone().multiplyScalar((i + 1) * dl)),
                 false));
-            // frontier.push(new AffineRay(
+            // frontier.push(new EuclideanRay(
             //     v2.clone().sub(diff.clone().multiplyScalar(i * dl)),
             //     v2.clone().sub(diff.clone().multiplyScalar((i + 1) * dl)),
             //     false));

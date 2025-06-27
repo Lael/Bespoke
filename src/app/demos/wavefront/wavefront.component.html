@@ -1,0 +1,9 @@
+<div #render_container
+     class="renderer-container"
+     (resize)="onResize()">
+</div>
+
+<div class="lower-left">
+    <polygon-picker (verticesEvent)="onNewVertices($event)">
+    </polygon-picker>
+</div>

@@ -28,6 +28,7 @@ export abstract class PolygonalTiling<
         current.add(first);
         this.addTile(first);
 
+        let full = false;
         for (let i = 0; i < depth; i++) {
             let frontier: Set<T> = new Set<T>();
             for (let tile of current.values()) {
@@ -38,23 +39,23 @@ export abstract class PolygonalTiling<
                     if (!seen.has(id)) {
                         frontier.add(adj);
                         seen.add(id);
-                        this.addTile(adj);
+                        if (!this.addTile(adj)) full = true;
                     }
                 }
             }
             current = frontier;
-
+            if (full) break;
         }
     }
 
-    addTile(t: T): void {
-        if (this.tileIds.has(t.id)) {
-            return;
-        }
+    addTile(t: T): boolean {
+        if (this.tileIds.has(t.id)) return true;
+        if (this.tiles.size > 1e4) return false;
         this.tileIds.add(t.id);
         this.tiles.add(t);
         this.tilesByType[t.tilesetIndex].push(t);
         this.dirty = true;
+        return true;
     }
 
     abstract firstTile(): T;

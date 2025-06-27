@@ -18,13 +18,16 @@ export class HyperbolicQuasiregularTiling extends HyperbolicPolygonalTiling {
     }
 
     adjacentTile(t: HyperbolicTile, sideIndex: number): HyperbolicTile {
-        if (this.tiles.size > 1e4) return t;
+        let adj = t.neighbors.get(sideIndex);
+        if (!!adj) return adj;
         const index = (t.tilesetIndex + 1) % 2;
         const theta = (sideIndex + 0.5) * 2 * Math.PI / this.tileset[t.tilesetIndex].polygon.n;
         const m = t.mobius.compose(
                 Mobius.blaschke(Complex.polar(Math.tanh(this.centerToCenter / 2), theta)).inverse())
             .compose(Mobius.rotation(theta + Math.PI * (1 - 1.0 / this.tileset[index].polygon.n)));
-        return new HyperbolicTile(index, m);
+        adj = new HyperbolicTile(index, m);
+        t.neighbors.set(sideIndex, adj);
+        return adj;
     }
 
     firstTile(): HyperbolicTile {

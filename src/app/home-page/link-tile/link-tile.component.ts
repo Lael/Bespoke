@@ -1,12 +1,15 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {RouterLink} from "@angular/router";
 import {CommonModule} from "@angular/common";
+import {MatCard, MatCardHeader} from "@angular/material/card";
+import {MatRipple} from "@angular/material/core";
 
 @Component({
     selector: 'link-tile',
     templateUrl: './link-tile.component.html',
     styleUrls: ['./link-tile.component.sass'],
-    imports: [RouterLink, CommonModule]
+    standalone: true,
+    imports: [RouterLink, CommonModule, MatCard, MatCardHeader, MatRipple]
 })
 export class LinkTileComponent implements OnInit {
 

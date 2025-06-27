@@ -2,10 +2,12 @@
   display: flex
   width: 300px
   height: 100px
-  border-radius: 16px
-  overflow: hidden
-  color: white
-  text-decoration: none
+  cursor: pointer
+  transition: background .3s ease
+//border-radius: 16px
+//overflow: hidden
+//color: white
+//text-decoration: none
 
 .overlay
   width: 300px
@@ -30,9 +32,8 @@
   transition: font-size, background
   transition-duration: 0.3s
 
-.overlay:hover
-  font-size: x-large
-  background: teal
+.tile-anchor:hover
+  background: var(--mat-sys-surface-dim)
 
 .highlighted:hover
   font-size: x-large

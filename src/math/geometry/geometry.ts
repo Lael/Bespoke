@@ -5,6 +5,7 @@ import {LineSegment} from "./line-segment";
 import {Line} from "./line";
 import {closeEnough} from "../math-helpers";
 import {AffineCircle} from "./affine-circle";
+import {Vector2, Vector2Like} from "three";
 
 export interface PointLike {
     // distanceTo(other: PointLike): number;
@@ -30,6 +31,14 @@ export class AffinePoint implements PointLike {
 
     equals(other: AffinePoint): boolean {
         return this.resolve().equals(other.resolve());
+    }
+
+    rotate(theta: number): AffinePoint {
+        return new AffinePoint(new Complex(0, theta).exp().times(this.complex));
+    }
+
+    translate(z: Vector2Like): AffinePoint {
+        return new AffinePoint(this.complex.plus(new Complex(z.x, z.y)));
     }
 }
 
@@ -157,6 +166,45 @@ export class AffineGeodesic extends GeodesicLike<AffinePoint> {
         const after = this.infForward &&
             closeEnough(p.distance(this.p1) - p.distance(this.p2), this.p1.distance(this.p2));
         return between || before || after;
+    }
+
+    mid(): AffinePoint {
+        return new AffinePoint(
+            this.p1.resolve().plus(this.p2.resolve()).scale(0.5)
+        );
+    }
+
+    translate(v: Vector2Like): AffineGeodesic {
+        return new AffineGeodesic(
+            this.p1.translate(v),
+            this.p2.translate(v),
+            this.infForward,
+            this.infReverse,
+        );
+    }
+
+    endpoints(view: AffineCircle): Vector2[] {
+        let p1 = this.p1.resolve();
+        let p2 = this.p2.resolve();
+        let intersections = view.intersectLine(Line.throughTwoPoints(p1, p2));
+        if (intersections.length < 2) return [];
+        let v = p2.minus(p1);
+        let t0 = intersections[0].minus(p1).dot(v) / v.dot(v);
+        let t1 = intersections[1].minus(p1).dot(v) / v.dot(v);
+        let tm = Math.min(t0, t1);
+        let tM = Math.max(t0, t1);
+        let lo: number;
+        if (tm < 0 && !this.infReverse) lo = 0;
+        else if (tm > 1 && !this.infForward) return [];
+        else lo = tm;
+        let hi: number;
+        if (tM > 1 && !this.infForward) hi = 1;
+        else if (tM < 0 && !this.infReverse) return [];
+        else hi = tM;
+        return [
+            p1.plus(v.scale(lo)).toVector2(),
+            p1.plus(v.scale(hi)).toVector2(),
+        ];
     }
 }
 

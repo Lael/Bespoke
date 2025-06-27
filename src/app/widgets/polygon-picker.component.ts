@@ -2,7 +2,7 @@ import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from "
 import {ThreeDemoComponent} from "./three-demo/three-demo.component";
 import {AxesHelper, Color, Matrix4, Mesh, MeshBasicMaterial, SphereGeometry, Vector2, Vector3} from "three";
 import {DragControls} from "three/examples/jsm/controls/DragControls.js";
-import {normalizeAngle} from "../../math/math-helpers";
+import {normalizeAngle, polar} from "../../math/math-helpers";
 import {reflectOver} from "../demos/unfolding/unfolding.component";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {CommonModule} from "@angular/common";
@@ -10,9 +10,8 @@ import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometr
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js";
 import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
 
-const CLEAR_COLOR = new Color(0xfafafa);
+const CLEAR_COLOR = new Color(0xffffff);
 const POINT_RADIUS = 0.025;
-const EDGE_WIDTH = 2;
 
 export enum PolygonRestriction {
     NONE = 'None',
@@ -25,20 +24,29 @@ export enum PolygonRestriction {
     selector: 'polygon-picker',
     templateUrl: './three-demo/three-demo.component.html',
     styleUrls: ['./three-demo/three-demo.component.sass'],
+    standalone: true,
     imports: [CommonModule]
 })
 export class PolygonPickerComponent extends ThreeDemoComponent implements OnChanges {
+    private oldZoom: number;
 
     @Input() restriction: PolygonRestriction = PolygonRestriction.CONVEX;
     @Input() arrowKeys: boolean = false;
 
     @Output() verticesEvent = new EventEmitter<Vector2[]>();
 
+    readonly EDGE_WIDTH = 2;
+
     draggables: Mesh[] = [];
     dragControls: DragControls;
     orbitControls: OrbitControls;
 
-    private mat = new MeshBasicMaterial({color: 0x283845});
+    private polyMat = new LineMaterial({
+        linewidth: this.EDGE_WIDTH,
+        resolution: this.resolution
+    });
+
+    private mat = new MeshBasicMaterial();
     private geo = new SphereGeometry(POINT_RADIUS);
     private com = new Vector2();
 
@@ -48,6 +56,7 @@ export class PolygonPickerComponent extends ThreeDemoComponent implements OnChan
         super();
         this.useOrthographic = true;
         this.updateOrthographicCamera();
+        this.oldZoom = this.camera.zoom;
         this.renderer.setClearColor(CLEAR_COLOR);
         this.orbitControls = new OrbitControls(this.orthographicCamera, this.renderer.domElement);
         this.orbitControls.enableRotate = false;
@@ -61,13 +70,17 @@ export class PolygonPickerComponent extends ThreeDemoComponent implements OnChan
         this.dragControls.addEventListener('dragend', this.dragEnd.bind(this));
 
         document.addEventListener('pointerdown', this.pointerdown.bind(this), {capture: true});
+
+        this.colorScheme.register('handle', 0xff0000, 0xff0000);
+        this.colorScheme.register('vertex', 0xffffff, 0x000000);
+        this.colorScheme.register('edge', 0xffffff, 0x000000);
     }
 
     ngOnChanges(changes: SimpleChanges) {
         this.reset();
     }
 
-    private drag(event: any) {
+    drag(event: any) {
         switch (this.restriction) {
         case PolygonRestriction.KITE:
             const v0 = new Vector2(this.draggables[0].position.x, this.draggables[0].position.y);
@@ -185,7 +198,7 @@ export class PolygonPickerComponent extends ThreeDemoComponent implements OnChan
 
     pointerdown(event: MouseEvent) {
         if (event.button !== 0) return;
-        if (this.restriction === PolygonRestriction.KITE) return;
+        if (this.restriction === PolygonRestriction.KITE || this.restriction === PolygonRestriction.NONE) return;
         // find location in world
         const screenX = (event.clientX / this.renderer.domElement.clientWidth) * 2 - 1;
         const screenY = 1 - (event.clientY / this.renderer.domElement.clientHeight) * 2;
@@ -276,6 +289,12 @@ export class PolygonPickerComponent extends ThreeDemoComponent implements OnChan
     }
 
     override frame(dt: number) {
+        const f = this.oldZoom / this.camera.zoom;
+        this.geo.scale(f, f, 1)
+        this.oldZoom = this.camera.zoom;
+
+        this.renderer.setClearColor(this.getColor('clear'));
+        this.polyMat.color = this.getColor('edge');
         if (this.arrowKeys) this.processKeyboardInput(dt);
         if (this.dirty) {
             this.dirty = false;
@@ -298,19 +317,16 @@ export class PolygonPickerComponent extends ThreeDemoComponent implements OnChan
             }
 
             const polyGeo = new LineSegmentsGeometry().setPositions(polyPoints.flatMap(v => [v.x, v.y, 0]));
-            const polyMat = new LineMaterial({color: 0x283845, linewidth: EDGE_WIDTH, resolution: this.resolution});
 
-            const poly = new LineSegments2(polyGeo, polyMat);
+            const poly = new LineSegments2(polyGeo, this.polyMat);
             this.scene.add(poly);
         }
     }
-}
 
-function polar(radius: number, theta: number): Vector2 {
-    return new Vector2(
-        radius * Math.cos(theta),
-        radius * Math.sin(theta),
-    );
+    get vertices(): Vector2[] {
+        const objects = this.dragControls.getObjects();
+        return objects.map(o => new Vector2(o.position.x, o.position.y));
+    }
 }
 
 export function convexHull(points: Vector2[]): Vector2[][] {

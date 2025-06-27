@@ -450,7 +450,7 @@ export class AffinePolygonTable extends AffineOuterBilliardTable {
                         //     const dv = piece.end.clone().sub(piece.start).normalize();
                         //     for (let i = 0; i < n; i++) {
                         //         extraPieces.push(
-                        //             new AffineRay(piece.start.clone().addScaledVector(dv, i * dd),
+                        //             new EuclideanRay(piece.start.clone().addScaledVector(dv, i * dd),
                         //                 piece.start.clone().addScaledVector(dv, (i + 1) * dd), false)
                         //         );
                         //     }
@@ -467,7 +467,7 @@ export class AffinePolygonTable extends AffineOuterBilliardTable {
                 // for (let piece of extraPieces) {
                 //     try {
                 //         newFrontier.push(
-                //             new AffineRay(
+                //             new EuclideanRay(
                 //                 this.outerLength(piece.start, true),
                 //                 this.outerLength(piece.end, true), false));
                 //     } catch (e) {

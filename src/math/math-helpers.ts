@@ -1,5 +1,5 @@
 import {Complex} from "./complex/complex";
-import {Vector2} from "three";
+import {Matrix3, Vector2, Vector3} from "three";
 
 export function normalizeAngle(theta: number, low: number = -Math.PI) {
     if (!isFinite(theta)) throw Error('Cannot normalize non-finite number');
@@ -42,4 +42,29 @@ export function includedAngle(p1: Vector2, p2: Vector2, p3: Vector2) {
     return Math.acos(d1.dot(d2) / (d1.length() * d2.length()));
 }
 
-export const EPSILON = 1e-12;
+export function polar(radius: number, theta: number): Vector2 {
+    return new Vector2(
+        radius * Math.cos(theta),
+        radius * Math.sin(theta),
+    );
+}
+
+export function applyAffinity(affinity: Matrix3, v: Vector2): Vector2 {
+    const v3 = new Vector3(v.x, v.y, 1).applyMatrix3(affinity);
+    return new Vector2(v3.x, v3.y);
+}
+
+export function affinity(src: Vector2[], dst: Vector2[]): Matrix3 {
+    return basisToThree(src[0], src[1], src[2]).invert()
+        .premultiply(basisToThree(dst[0], dst[1], dst[2]));
+}
+
+export function basisToThree(v1: Vector2, v2: Vector2, v3: Vector2): Matrix3 {
+    return new Matrix3().set(
+        v3.x - v2.x, v1.x - v2.x, v2.x,
+        v3.y - v2.y, v1.y - v2.y, v2.y,
+        0, 0, 1,
+    );
+}
+
+export const EPSILON: number = 1e-12;

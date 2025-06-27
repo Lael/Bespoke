@@ -8,6 +8,7 @@ import {PolygonalTiling} from "./polygonal-tiling";
 import {closeEnough} from "../../../math/math-helpers";
 import {HyperbolicQuasiregularTiling} from "./hyperbolic-quasiregular-tiling";
 import {Vector2} from "three";
+import {TwoLines} from "./two-lines";
 
 const CLEAR_COLOR = 0x0a2933;
 
@@ -24,6 +25,7 @@ const START_SPEED: number = 0.1;
     selector: 'tiling-billiards',
     templateUrl: '../../widgets/three-demo/three-demo.component.html',
     styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
+    standalone: true,
     imports: [CommonModule]
 })
 export class TileBilliardsComponent extends ThreeDemoComponent implements OnDestroy {
@@ -73,11 +75,14 @@ export class TileBilliardsComponent extends ThreeDemoComponent implements OnDest
             // Hyperbolic
             this.geometry = Geometry.HYPERBOLIC;
             this.tiling = new HyperbolicQuasiregularTiling(this.n, this.m);
-            this.tiling.generate(Math.min(this.depth, 10));
+            this.tiling.generate(Math.min(this.depth, 7));
         } else {
             // Spherical
             this.geometry = Geometry.SPHERICAL;
             // Depth is meaningless here: we will always generate the whole tiling.
+            this.tiling = new TwoLines(Math.PI / 4);
+            this.tiling.generate(2);
+            this.start = new Vector2(0.1, 0.1);
         }
         this.play();
     }
@@ -86,14 +91,13 @@ export class TileBilliardsComponent extends ThreeDemoComponent implements OnDest
         this.processKeyboardInput(dt);
         this.scene.clear();
         this.tiling?.draw(this.scene);
-        // draw the starting point
-        switch (this.geometry) {
-
-        }
     }
 
     processKeyboardInput(dt: number) {
         this.showHelp = !!this.keysPressed.get('KeyH');
+        let mul = 1;
+        if (this.keyHeld('ShiftLeft')) mul *= 0.1;
+        if (this.keyHeld('AltLeft')) mul *= 0.01;
         let dd = 0;
         if (this.keyHeld('BracketLeft')) dd += dt * DIR_SPEED;
         if (this.keyHeld('BracketRight')) dd -= dt * DIR_SPEED;
@@ -105,10 +109,10 @@ export class TileBilliardsComponent extends ThreeDemoComponent implements OnDest
         if (this.keyHeld('KeyW')) ds.y += 1;
         if (ds.length() != 0) ds.normalize().multiplyScalar(dt * START_SPEED)
 
-        this.direction += dd;
-        this.start.x += ds.x;
-        this.start.y += ds.y;
-        this.play();
+        this.direction += dd * mul;
+        this.start.x += ds.x * mul;
+        this.start.y += ds.y * mul;
+        if (dd !== 0 || ds.length() !== 0) this.play();
     }
 
     play() {
@@ -128,7 +132,7 @@ export class TileBilliardsComponent extends ThreeDemoComponent implements OnDest
         tilingFolder.open();
 
         let billiardFolder = this.gui.addFolder('Tiling Billiards');
-        billiardFolder.add(this, 'logIterations', 1, 20, 1)
+        billiardFolder.add(this, 'logIterations', 1, 30, 1)
             .name('log2(iters)')
             .onFinishChange(this.play.bind(this));
         billiardFolder.open();

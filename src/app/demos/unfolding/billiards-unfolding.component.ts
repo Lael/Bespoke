@@ -121,7 +121,7 @@ export class BilliardsUnfoldingComponent implements OnDestroy {
         this.gui.destroy();
         this.gui = new dat.GUI();
 
-        const pickFolder = this.gui.addFolder('AffinePolygon Picker');
+        const pickFolder = this.gui.addFolder('EuclideanPolygon Picker');
         pickFolder.add(this.params, 'pickerRestriction', Object.values(PolygonRestriction)).name('Rules');
 
         const unfoldFolder = this.gui.addFolder('Unfolding');

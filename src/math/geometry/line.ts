@@ -79,4 +79,8 @@ export class Line {
     get slope(): number {
         return -this.a / this.b;
     }
+
+    distanceTo(p: Vector2) {
+        return Math.abs(this.c - new Vector2(this.a, this.b).dot(p));
+    }
 }

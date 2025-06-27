@@ -1,0 +1,254 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+     width="1000" height="1000">
+    <style>
+        #light-icon {
+            display: inline;
+        }
+
+        #dark-icon {
+            display: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            #light-icon {
+                display: none;
+            }
+
+            #dark-icon {
+                display: inline;
+            }
+        }
+    </style>
+    <g id="light-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+             width="1000" height="1000">
+            <g>
+                <g transform="matrix(2.2222222222222223,0,0,2.2222222222222223,0,0)">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+                         width="450px" height="450px">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="25 25 450 450"
+                             preserveAspectRatio="xMidYMid slice" xmlns:bx="https://boxy-svg.com" width="450px"
+                             height="450px">
+                            <defs>
+                                <linearGradient id="color-0" bx:pinned="true" gradientUnits="userSpaceOnUse"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0, 0)"><title>Royal Blue</title>
+                                    <stop style="stop-color: rgb(3, 37, 108);"></stop>
+                                </linearGradient>
+                                <linearGradient id="color-1" bx:pinned="true" gradientUnits="userSpaceOnUse"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0.000439, 0.000205)"><title>Myrtle
+                                    Green</title>
+                                    <stop style="stop-color: rgb(41, 115, 115);"></stop>
+                                </linearGradient>
+                                <linearGradient id="color-2" bx:pinned="true" gradientUnits="userSpaceOnUse"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0.000205, 0.000166)"><title>
+                                    Burgundy</title>
+                                    <stop style="stop-color: rgb(108, 14, 35);"></stop>
+                                </linearGradient>
+                                <linearGradient id="color-3" bx:pinned="true" gradientUnits="userSpaceOnUse"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0, 0)"><title>Safety
+                                    Orange</title>
+                                    <stop style="stop-color: rgb(255, 124, 10);"></stop>
+                                </linearGradient>
+                                <linearGradient id="gradient-1" bx:pinned="true"><title>Blue Gradient</title>
+                                    <stop offset="0" style="stop-color: rgb(2, 37, 108);"></stop>
+                                    <stop offset="1" style="stop-color: rgb(255, 255, 255);"></stop>
+                                    <stop offset="1" style="stop-color: rgb(2, 37, 108);"></stop>
+                                </linearGradient>
+                                <linearGradient id="gradient-0" bx:pinned="true"><title>Red Gradient</title>
+                                    <stop offset="0" style="stop-color: rgb(109, 15, 36);"></stop>
+                                    <stop offset="1" style="stop-color: rgb(255, 255, 255);"></stop>
+                                </linearGradient>
+                                <linearGradient id="gradient-2" bx:pinned="true"><title>Green Gradient</title>
+                                    <stop offset="0" style="stop-color: rgb(42, 116, 115);"></stop>
+                                    <stop offset="1" style="stop-color: rgb(255, 255, 255);"></stop>
+                                </linearGradient>
+                                <linearGradient id="gradient-1-0" href="#gradient-1" gradientUnits="userSpaceOnUse"
+                                                x1="250" y1="100" x2="250" y2="250"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0, 0)"></linearGradient>
+                                <linearGradient id="gradient-1-1" href="#gradient-1" gradientUnits="userSpaceOnUse"
+                                                x1="-250" y1="-400" x2="-250" y2="-250"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0, 0)"></linearGradient>
+                                <linearGradient id="gradient-2-0" href="#gradient-2" gradientUnits="userSpaceOnUse"
+                                                x1="250" y1="100" x2="250" y2="250"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0.000039, -0.000014)"></linearGradient>
+                                <linearGradient id="gradient-2-1" href="#gradient-2" gradientUnits="userSpaceOnUse"
+                                                x1="250" y1="100" x2="250" y2="250"
+                                                gradientTransform="matrix(1, 0, 0, 1, -0.000041, -0.000024)"></linearGradient>
+                                <linearGradient id="gradient-0-0" href="#gradient-0" gradientUnits="userSpaceOnUse"
+                                                x1="250" y1="100" x2="250" y2="250"
+                                                gradientTransform="matrix(1, 0, 0, 1, -0.000014, 0.000039)"></linearGradient>
+                                <linearGradient id="gradient-0-1" href="#gradient-0" gradientUnits="userSpaceOnUse"
+                                                x1="250" y1="100" x2="250" y2="250"
+                                                gradientTransform="matrix(1, 0, 0, 1, -0.000059, -0.000046)"></linearGradient>
+                                <bx:export>
+                                    <bx:file format="svg"></bx:file>
+                                </bx:export>
+                            </defs>
+                            <ellipse
+                                    style="fill: rgba(216, 216, 216, 0); stroke-width: 10px; stroke: url(&quot;#color-3&quot;); transform-box: fill-box; transform-origin: 50% 50%;"
+                                    cx="250" cy="250" rx="150" ry="150"></ellipse>
+                            <rect x="225" y="100" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); fill: url(&quot;#gradient-1-0&quot;); stroke-width: 0px; transform-box: fill-box; transform-origin: 50% 50%;"></rect>
+                            <rect x="225" y="100" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(&quot;#gradient-2-0&quot;); transform-origin: 250px 250px;"
+                                  transform="matrix(0.5, 0.866025, -0.866025, 0.5, -0.000181, -0.000235)"></rect>
+                            <rect x="225" y="100" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(&quot;#gradient-0-1&quot;); transform-origin: 250px 250px;"
+                                  transform="matrix(-0.5, 0.866025, -0.866025, -0.5, -0.000408, 0.000022)"></rect>
+                            <rect x="-275" y="-400" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); fill: url(&quot;#gradient-1-1&quot;); stroke-width: 0px; transform-box: fill-box; transform-origin: 50% 50%;"
+                                  transform="matrix(-1, 0, 0, -1, 500, 650)"></rect>
+                            <rect x="225" y="100" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(&quot;#gradient-2-1&quot;); transform-origin: 250px 250px;"
+                                  transform="matrix(-0.5, -0.866025, 0.866025, -0.5, 0.000162, 0.000042)"></rect>
+                            <rect x="225" y="100" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(&quot;#gradient-0-0&quot;); transform-origin: 250px 250px;"
+                                  transform="matrix(0.5, -0.866025, 0.866025, 0.5, 0.000238, -0.000089)"></rect>
+                            <ellipse
+                                    style="stroke: rgb(0, 0, 0); fill: url(&quot;#color-0&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%;"
+                                    cx="250" cy="100" rx="50" ry="50"></ellipse>
+                            <ellipse
+                                    style="stroke: rgb(0, 0, 0); fill: url(&quot;#color-0&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%;"
+                                    cx="250" cy="400" rx="50" ry="50"></ellipse>
+                            <ellipse
+                                    style="stroke: rgb(0, 0, 0); fill: url(&quot;#color-1&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%;"
+                                    cx="528.6" cy="95.8" rx="50" ry="50"
+                                    transform="matrix(0.5, 0.866025, -0.866025, 0.5, -148.660055, 79.22108)"></ellipse>
+                            <ellipse
+                                    style="stroke: rgb(0, 0, 0); fill: url(&quot;#color-1&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%;"
+                                    cx="528.571" cy="395.833" rx="50" ry="50"
+                                    transform="matrix(0.5, 0.866025, -0.866025, 0.5, -408.481468, -70.820622)"></ellipse>
+                            <ellipse
+                                    style="stroke: rgb(0, 0, 0); paint-order: fill; fill: rgb(255, 255, 255); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%;"
+                                    cx="250" cy="250" rx="50" ry="50"></ellipse>
+                            <ellipse
+                                    style="stroke: rgb(0, 0, 0); fill: url(&quot;#color-2&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%;"
+                                    cx="250" cy="100" rx="50" ry="50"
+                                    transform="matrix(0.5, -0.866025, 0.866025, 0.5, -129.903875, 75.000151)"></ellipse>
+                            <ellipse
+                                    style="stroke: rgb(0, 0, 0); fill: url(&quot;#color-2&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%;"
+                                    cx="250" cy="400" rx="50" ry="50"
+                                    transform="matrix(0.5, -0.866025, 0.866025, 0.5, 129.903451, -74.999941)"></ellipse>
+                        </svg>
+                    </svg>
+                </g>
+            </g>
+        </svg>
+    </g>
+    <g id="dark-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+             width="1000" height="1000">
+            <g>
+                <g transform="matrix(2.2222222222222223,0,0,2.2222222222222223,0,0)">
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+                         width="450px" height="450px">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="25 25 450 450"
+                             preserveAspectRatio="xMidYMid slice" xmlns:bx="https://boxy-svg.com" width="450px"
+                             height="450px">
+                            <defs>
+                                <linearGradient id="color-0" bx:pinned="true" gradientUnits="userSpaceOnUse"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0, 0)"><title>Royal Blue</title>
+                                    <stop style="stop-color: rgb(3, 37, 108);"></stop>
+                                </linearGradient>
+                                <linearGradient id="color-1" bx:pinned="true" gradientUnits="userSpaceOnUse"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0.000439, 0.000205)"><title>Myrtle
+                                    Green</title>
+                                    <stop style="stop-color: rgb(41, 115, 115);"></stop>
+                                </linearGradient>
+                                <linearGradient id="color-2" bx:pinned="true" gradientUnits="userSpaceOnUse"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0.000205, 0.000166)"><title>
+                                    Burgundy</title>
+                                    <stop style="stop-color: rgb(108, 14, 35);"></stop>
+                                </linearGradient>
+                                <linearGradient id="color-3" bx:pinned="true" gradientUnits="userSpaceOnUse"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0, 0)"><title>Safety
+                                    Orange</title>
+                                    <stop style="stop-color: rgb(255, 124, 10);"></stop>
+                                </linearGradient>
+                                <linearGradient id="gradient-1" bx:pinned="true"><title>Blue Gradient</title>
+                                    <stop offset="0" style="stop-color: rgb(2, 37, 108);"></stop>
+                                    <stop offset="1" style="stop-color: rgb(255, 255, 255);"></stop>
+                                    <stop offset="1" style="stop-color: rgb(2, 37, 108);"></stop>
+                                </linearGradient>
+                                <linearGradient id="gradient-0" bx:pinned="true"><title>Red Gradient</title>
+                                    <stop offset="0" style="stop-color: rgb(109, 15, 36);"></stop>
+                                    <stop offset="1" style="stop-color: rgb(255, 255, 255);"></stop>
+                                </linearGradient>
+                                <linearGradient id="gradient-2" bx:pinned="true"><title>Green Gradient</title>
+                                    <stop offset="0" style="stop-color: rgb(42, 116, 115);"></stop>
+                                    <stop offset="1" style="stop-color: rgb(255, 255, 255);"></stop>
+                                </linearGradient>
+                                <linearGradient id="gradient-1-0" href="#gradient-1" gradientUnits="userSpaceOnUse"
+                                                x1="250" y1="100" x2="250" y2="250"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0, 0)"></linearGradient>
+                                <linearGradient id="gradient-1-1" href="#gradient-1" gradientUnits="userSpaceOnUse"
+                                                x1="-250" y1="-400" x2="-250" y2="-250"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0, 0)"></linearGradient>
+                                <linearGradient id="gradient-2-0" href="#gradient-2" gradientUnits="userSpaceOnUse"
+                                                x1="250" y1="100" x2="250" y2="250"
+                                                gradientTransform="matrix(1, 0, 0, 1, 0.000039, -0.000014)"></linearGradient>
+                                <linearGradient id="gradient-2-1" href="#gradient-2" gradientUnits="userSpaceOnUse"
+                                                x1="250" y1="100" x2="250" y2="250"
+                                                gradientTransform="matrix(1, 0, 0, 1, -0.000041, -0.000024)"></linearGradient>
+                                <linearGradient id="gradient-0-0" href="#gradient-0" gradientUnits="userSpaceOnUse"
+                                                x1="250" y1="100" x2="250" y2="250"
+                                                gradientTransform="matrix(1, 0, 0, 1, -0.000014, 0.000039)"></linearGradient>
+                                <linearGradient id="gradient-0-1" href="#gradient-0" gradientUnits="userSpaceOnUse"
+                                                x1="250" y1="100" x2="250" y2="250"
+                                                gradientTransform="matrix(1, 0, 0, 1, -0.000059, -0.000046)"></linearGradient>
+                                <bx:export>
+                                    <bx:file format="svg"></bx:file>
+                                </bx:export>
+                            </defs>
+                            <ellipse
+                                    style="fill: rgba(216, 216, 216, 0); stroke-width: 10px; stroke: url(&quot;#color-3&quot;); transform-box: fill-box; transform-origin: 50% 50%;"
+                                    cx="250" cy="250" rx="150" ry="150"></ellipse>
+                            <rect x="225" y="100" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); fill: url(&quot;#gradient-1-0&quot;); stroke-width: 0px; transform-box: fill-box; transform-origin: 50% 50%;"></rect>
+                            <rect x="225" y="100" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(&quot;#gradient-2-0&quot;); transform-origin: 250px 250px;"
+                                  transform="matrix(0.5, 0.866025, -0.866025, 0.5, -0.000181, -0.000235)"></rect>
+                            <rect x="225" y="100" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(&quot;#gradient-0-1&quot;); transform-origin: 250px 250px;"
+                                  transform="matrix(-0.5, 0.866025, -0.866025, -0.5, -0.000408, 0.000022)"></rect>
+                            <rect x="-275" y="-400" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); fill: url(&quot;#gradient-1-1&quot;); stroke-width: 0px; transform-box: fill-box; transform-origin: 50% 50%;"
+                                  transform="matrix(-1, 0, 0, -1, 500, 650)"></rect>
+                            <rect x="225" y="100" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(&quot;#gradient-2-1&quot;); transform-origin: 250px 250px;"
+                                  transform="matrix(-0.5, -0.866025, 0.866025, -0.5, 0.000162, 0.000042)"></rect>
+                            <rect x="225" y="100" width="50" height="150"
+                                  style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(&quot;#gradient-0-0&quot;); transform-origin: 250px 250px;"
+                                  transform="matrix(0.5, -0.866025, 0.866025, 0.5, 0.000238, -0.000089)"></rect>
+                            <ellipse
+                                    style="fill: url(&quot;#color-0&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%; stroke: rgb(255, 255, 255);"
+                                    cx="250" cy="100" rx="50" ry="50"></ellipse>
+                            <ellipse
+                                    style="fill: url(&quot;#color-0&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%; stroke: rgb(255, 255, 255);"
+                                    cx="250" cy="400" rx="50" ry="50"></ellipse>
+                            <ellipse
+                                    style="fill: url(&quot;#color-1&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%; stroke: rgb(255, 255, 255);"
+                                    cx="528.6" cy="95.8" rx="50" ry="50"
+                                    transform="matrix(0.5, 0.866025, -0.866025, 0.5, -148.660055, 79.22108)"></ellipse>
+                            <ellipse
+                                    style="fill: url(&quot;#color-1&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%; stroke: rgb(255, 255, 255);"
+                                    cx="528.571" cy="395.833" rx="50" ry="50"
+                                    transform="matrix(0.5, 0.866025, -0.866025, 0.5, -408.481468, -70.820622)"></ellipse>
+                            <ellipse
+                                    style="paint-order: fill; stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%; stroke: rgb(255, 255, 255);"
+                                    cx="250" cy="250" rx="50" ry="50"></ellipse>
+                            <ellipse
+                                    style="fill: url(&quot;#color-2&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%; stroke: rgb(255, 255, 255);"
+                                    cx="250" cy="100" rx="50" ry="50"
+                                    transform="matrix(0.5, -0.866025, 0.866025, 0.5, -129.903875, 75.000151)"></ellipse>
+                            <ellipse
+                                    style="fill: url(&quot;#color-2&quot;); stroke-width: 10px; transform-box: fill-box; transform-origin: 50% 50%; stroke: rgb(255, 255, 255);"
+                                    cx="250" cy="400" rx="50" ry="50"
+                                    transform="matrix(0.5, -0.866025, 0.866025, 0.5, 129.903451, -74.999941)"></ellipse>
+                        </svg>
+                    </svg>
+                </g>
+            </g>
+        </svg>
+    </g>
+</svg>

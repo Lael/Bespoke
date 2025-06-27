@@ -20,19 +20,26 @@
     "@angular/platform-browser": "^19.1.5",
     "@angular/platform-browser-dynamic": "^19.1.5",
     "@angular/router": "^19.1.5",
+    "@types/reveal.js": "^5.0.5",
+    "chartjs-plugin-annotation": "^3.1.0",
+    "colormap": "^2.3.2",
     "dat.gui": "^0.7.9",
+    "linear-solve": "^1.2.1",
+    "reveal.js": "^5.1.0",
     "rxjs": "~7.8.0",
+    "simplex-noise": "^4.0.3",
     "three": "^0.163.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.15.0",
-    "linear-solve": "^1.2.1"
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.1.6",
     "@angular/cli": "^19.1.6",
     "@angular/compiler-cli": "^19.1.5",
+    "@types/colormap": "^2.3.4",
     "@types/dat.gui": "^0.7.12",
     "@types/jasmine": "~5.1.0",
+    "@types/reveal.js": "^5.0.5",
     "@types/three": "^0.163.0",
     "chart.js": "^4.4.2",
     "jasmine-core": "~5.1.0",
@@ -41,6 +48,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "reveal.js": "^5.1.0",
     "typescript": "~5.7.3"
   }
 }

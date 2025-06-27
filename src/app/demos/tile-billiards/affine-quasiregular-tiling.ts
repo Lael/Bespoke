@@ -1,6 +1,6 @@
 import {AffineTile} from "./affine-tile";
 import {Color, Vector2} from "three";
-import {AffinePolygon} from "./affine-polygon";
+import {EuclideanPolygon} from "../../../math/geometry/euclidean-polygon";
 import {AffinePolygonalTiling} from "./affine-polygonal-tiling";
 
 export class AffineQuasiregularTiling extends AffinePolygonalTiling {
@@ -8,8 +8,8 @@ export class AffineQuasiregularTiling extends AffinePolygonalTiling {
 
     constructor(n: number, m: number) {
         super([
-            {polygon: AffinePolygon.regular(n, 1), color: new Color(0x444444)},
-            {polygon: AffinePolygon.regular(m, 1), color: new Color(0x999999)},
+            {polygon: EuclideanPolygon.regular(n, 1), color: new Color(0x444444)},
+            {polygon: EuclideanPolygon.regular(m, 1), color: new Color(0x999999)},
         ]);
         this.centerToCenter =
             0.5 / Math.tan(Math.PI / n) +

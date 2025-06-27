@@ -1,5 +1,8 @@
-<a routerLink="{{path}}" class="tile-anchor">
-    <div [class.overlay]="!highlight" [class.highlighted]="highlight">
-        <span class="tile-title">{{title}}</span>
-    </div>
-</a>
+<mat-card routerLink="{{path}}" matRipple class="tile-anchor">
+    <mat-card-header>
+        {{ title }}
+    </mat-card-header>
+    <!--    <div [class.overlay]="!highlight" [class.highlighted]="highlight">-->
+    <!--        <span class="tile-title">{{ title }}</span>-->
+    <!--    </div>-->
+</mat-card>
