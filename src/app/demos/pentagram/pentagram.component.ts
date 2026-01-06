@@ -3,26 +3,26 @@ import {CommonModule} from "@angular/common";
 import {GUI} from "dat.gui";
 import * as THREE from "three";
 import {
-    BufferGeometry,
-    Color,
-    Float32BufferAttribute,
-    LineBasicMaterial,
-    LineSegments,
-    Matrix3,
-    Mesh,
-    MeshBasicMaterial,
-    OrthographicCamera,
-    Points,
-    PointsMaterial,
-    SphereGeometry,
-    Vector2,
-    Vector3
+  BufferGeometry,
+  Color,
+  Float32BufferAttribute,
+  LineBasicMaterial,
+  LineSegments,
+  Matrix3,
+  Mesh,
+  MeshBasicMaterial,
+  OrthographicCamera,
+  Points,
+  PointsMaterial,
+  SphereGeometry,
+  Vector2,
+  Vector3
 } from "three";
 import {Line} from "../../../math/geometry/line";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
-import {DragControls} from "three/examples/jsm/controls/DragControls";
+import {DragControls} from "three/examples/jsm/controls/DragControls.js";
 import {polar} from "../../../math/math-helpers";
 import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
@@ -125,8 +125,7 @@ export class PentagramComponent extends ThreeDemoComponent implements AfterViewI
   twisted: boolean = false;
   n: number = 7;
   nVertices: number = 10;
-  iters: number = 5;
-
+  iters: number = 0;
 
   rescale: boolean = false;
   fixCenter: boolean = false;
@@ -203,7 +202,7 @@ export class PentagramComponent extends ThreeDemoComponent implements AfterViewI
     this.coordOrbit.zoomToCursor = true;
 
     this.colorScheme.register('handle', 0xff0000, 0xff0000);
-    this.colorScheme.register('vertex', 0x000000, 0xffffff);
+    this.colorScheme.register('vertex', 0x990044, 0x990044);
     this.colorScheme.register('edge', 0x000000, 0xffffff);
   }
 

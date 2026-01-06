@@ -2,18 +2,18 @@ import {Component} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import {
-    ArrowHelper,
-    BufferGeometry,
-    Color,
-    InstancedMesh,
-    LineBasicMaterial,
-    LineSegments,
-    Matrix4,
-    Mesh,
-    MeshBasicMaterial,
-    PlaneGeometry,
-    Vector2,
-    Vector3
+  ArrowHelper,
+  BufferGeometry,
+  Color,
+  InstancedMesh,
+  LineBasicMaterial,
+  LineSegments,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  PlaneGeometry,
+  Vector2,
+  Vector3
 } from "three";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import tileData from './tiling.json';
@@ -142,6 +142,8 @@ export class SquareTilingComponent extends ThreeDemoComponent {
           let k = mx / mn + 3 * Math.log2(mn / g);
           if (!boring) console.log(`Real: ${t.l}, Kenyon: ${k}`);
           if (t.l > k) console.log('  C too low');
+
+          boring = false;
 
           for (let st of tiling) {
             let scale = st.k - 0.1;

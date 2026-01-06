@@ -4,91 +4,90 @@ import {GUI} from "dat.gui";
 import {Vector2} from "three";
 import {CommonModule} from "@angular/common";
 import {SymplecticTableComponent} from "./symplectic-table.component";
-import {ZSpaceComponent} from "./z-space.component";
 import {AffineNormalizationComponent} from "./affine-normalization.component";
 
 const IMAGE_EDGE_WIDTH = 1;
 const FINAL_EDGE_WIDTH = 2;
 
 @Component({
-    selector: 'symplectic-table-container',
-    templateUrl: './symplectic-table-container.component.html',
-    styleUrls: ['../../widgets/three-demo/three-demo.component.sass', './symplectic-table-container.component.sass'],
-    standalone: true,
-    imports: [CommonModule, SymplecticTableComponent, ZSpaceComponent, AffineNormalizationComponent]
+  selector: 'symplectic-table-container',
+  templateUrl: './symplectic-table-container.component.html',
+  styleUrls: ['../../widgets/three-demo/three-demo.component.sass', './symplectic-table-container.component.sass'],
+  standalone: true,
+  imports: [CommonModule, SymplecticTableComponent, /* ZSpaceComponent, */ AffineNormalizationComponent]
 })
 export class SymplecticTableContainerComponent implements OnDestroy {
-    params = {
-        n: 5,
-        iterations: 5,
-        everyOther: true,
-        showAffine: true,
-        rescale: true,
-        convex: true,
-        inner: true,
-        vertices: true,
-        edges: true,
-        normalize: true,
-        projective: false,
-    }
+  params = {
+    n: 5,
+    iterations: 5,
+    everyOther: true,
+    showAffine: true,
+    rescale: true,
+    convex: true,
+    inner: true,
+    vertices: true,
+    edges: true,
+    normalize: true,
+    projective: false,
+  }
 
-    iterates?: Vector2[][] = [];
-    restriction: PolygonRestriction = this.params.convex ? PolygonRestriction.CONVEX : PolygonRestriction.NONE;
+  iterates?: Vector2[][] = [];
+  restriction: PolygonRestriction = this.params.convex ? PolygonRestriction.CONVEX : PolygonRestriction.NONE;
 
-    @ViewChild('tableComponent') tableComponent?: SymplecticTableComponent;
+  @ViewChild('tableComponent') tableComponent?: SymplecticTableComponent;
 
-    gui: GUI;
+  gui: GUI;
 
-    constructor() {
-        this.gui = new GUI();
-        this.updateGUI();
-    }
+  constructor() {
+    this.gui = new GUI();
+    this.updateGUI();
+  }
 
-    updateGUI() {
-        this.gui.destroy();
-        this.gui = new GUI();
+  updateGUI() {
+    this.gui.destroy();
+    this.gui = new GUI();
 
-        this.gui.add(this.params, 'n').min(3).max(24).step(1).onChange(() => {
-            this.tableComponent?.reset(this.params.n, 0, 0);
-            this.tableComponent?.markDirty();
-        })
-        this.gui.add(this.params, 'iterations').name('Iterations').min(0).max(1000).step(1).onFinishChange(() => {
-            this.tableComponent?.markDirty();
-        });
-        this.gui.add(this.params, 'everyOther').name('Hide every other').onFinishChange(() => {
-            this.tableComponent?.markDirty();
-        });
-        this.gui.add(this.params, 'rescale').name('Rescale').onFinishChange(() => {
-            this.tableComponent?.markDirty();
-        });
-        this.gui.add(this.params, 'convex').name('Convex').onFinishChange(() => {
-            this.restriction = this.params.convex ? PolygonRestriction.CONVEX : PolygonRestriction.NONE;
-            this.tableComponent?.markDirty();
-        });
-        this.gui.add(this.params, 'vertices').name('Vertices').onFinishChange(() => {
-            this.tableComponent?.markDirty();
-        });
-        this.gui.add(this.params, 'edges').name('Edges').onFinishChange(() => {
-            this.tableComponent?.markDirty();
-        });
-        this.gui.add(this.params, 'projective').name('Projective').onFinishChange(() => {
-            this.tableComponent?.markDirty();
-        });
-        this.gui.add(this.params, 'normalize').name('Normalize image').onFinishChange(() => {
-            this.tableComponent?.markDirty();
-        });
-        // this.gui.add(this.params, 'inner').name('Inner').onFinishChange(() => {
-        //     this.params.showAffine = this.params.inner;
-        //     this.markDirty();
-        // });
-        this.gui.open();
-    }
+    this.gui.add(this.params, 'n').min(3).max(24).step(1).onChange(() => {
+      this.tableComponent?.reset(this.params.n, 0, 0);
+      this.tableComponent?.markDirty();
+    })
+    this.gui.add(this.params, 'iterations').name('Iterations').min(0).max(1000).step(1).onFinishChange(() => {
+      this.tableComponent?.markDirty();
+    });
+    this.gui.add(this.params, 'everyOther').name('Hide every other').onFinishChange(() => {
+      this.tableComponent?.markDirty();
+    });
+    this.gui.add(this.params, 'rescale').name('Rescale').onFinishChange(() => {
+      this.tableComponent?.markDirty();
+    });
+    this.gui.add(this.params, 'convex').name('Convex').onFinishChange(() => {
+      this.restriction = this.params.convex ? PolygonRestriction.CONVEX : PolygonRestriction.NONE;
+      this.tableComponent?.markDirty();
+    });
+    this.gui.add(this.params, 'vertices').name('Vertices').onFinishChange(() => {
+      this.tableComponent?.markDirty();
+    });
+    this.gui.add(this.params, 'edges').name('Edges').onFinishChange(() => {
+      this.tableComponent?.markDirty();
+    });
+    this.gui.add(this.params, 'projective').name('Projective').onFinishChange(() => {
+      this.tableComponent?.markDirty();
+    });
+    this.gui.add(this.params, 'normalize').name('Normalize image').onFinishChange(() => {
+      this.tableComponent?.markDirty();
+    });
+    // this.gui.add(this.params, 'inner').name('Inner').onFinishChange(() => {
+    //     this.params.showAffine = this.params.inner;
+    //     this.markDirty();
+    // });
+    this.gui.open();
+  }
 
-    ngOnDestroy() {
-        this.gui.destroy();
-    }
+  ngOnDestroy() {
+    this.gui.destroy();
+  }
 
-    onNewOrbit(orbit: Vector2[][]) {
-        this.iterates = orbit;
-    }
+  onNewOrbit(orbit: Vector2[][]) {
+    this.iterates = orbit;
+  }
 }

@@ -1,27 +1,29 @@
 import {Complex} from "../complex/complex";
 
 export abstract class Segment {
-    abstract get start(): Complex;
+  abstract get start(): Complex;
 
-    abstract get mid(): Complex;
+  abstract get mid(): Complex;
 
-    abstract get end(): Complex;
+  abstract get end(): Complex;
 
-    abstract intersect(other: Segment): Complex[];
+  abstract get length(): number;
 
-    abstract containsPoint(p: Complex): boolean;
+  abstract intersect(other: Segment): Complex[];
 
-    abstract wind(p: Complex): number;
+  abstract containsPoint(p: Complex): boolean;
 
-    abstract interpolate(direction: number): Complex[];
+  abstract wind(p: Complex): number;
 
-    abstract split(points: Complex[]): Segment[];
+  abstract interpolate(direction: number): Complex[];
 
-    abstract startHeading(): number;
+  abstract split(points: Complex[]): Segment[];
 
-    abstract endHeading(): number;
+  abstract startHeading(): number;
 
-    abstract startCurvature(): number;
+  abstract endHeading(): number;
 
-    abstract endCurvature(): number;
+  abstract startCurvature(): number;
+
+  abstract endCurvature(): number;
 }

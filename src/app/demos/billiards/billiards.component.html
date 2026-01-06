@@ -1,0 +1,12 @@
+<div #render_container
+     class="renderer-container"
+     (resize)="onResize()">
+</div>
+
+<div class="coordinate-corner" [class.invisible]="!drawParams.phase || billiardTypeParams.duality !== Duality.INNER">
+    <div #coordinate_container class="coordinate-container"></div>
+</div>
+
+<!--<div class="chart-container" [class.invisible]="!showChart">-->
+<!--    <canvas id="chart"></canvas>-->
+<!--</div>-->

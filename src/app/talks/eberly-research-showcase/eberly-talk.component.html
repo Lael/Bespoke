@@ -1,0 +1,245 @@
+<div class="reveal">
+    <div class="slides">
+        <section class="center">
+            <h3 class="talk-title">A Friendly Introduction to Mathematical Billiards</h3>
+            <h5>Lael Edwards-Costa</h5>
+            <h5>Eberly Research Showcase</h5>
+            <h5>November 14, 2025</h5>
+        </section>
+        <section>
+            <h3 class="slide-title">References</h3>
+            <ol class="references">
+                <li>R. Schwartz. <em>Unbounded orbits for outer billiards</em>. Journal of Modern Dynamics, 2009.</li>
+                <li>S. Tabachnikov. <em>Geometry and Billiards</em>. AMS, 2012.</li>
+                <li>
+                    P. Albers, A. C. Caliz, and S. Tabachnikov.
+                    <em>Outer symplectic billiard map at infinity</em>.
+                    2025. <a href="https://arxiv.org/abs/2508.15142">arXiv</a>.
+                </li>
+                <li>
+                    L. Edwards-Costa,
+                    <em>Outer length billiards on polygons</em>.
+                    2025. <a href="https://arxiv.org/abs/2510.11869">arXiv</a>.
+                </li>
+                <li>
+                    P. Albers, L. Edwards-Costa, and S. Tabachnikov.
+                    <em>Outer length billiards on a large scale</em>.
+                    2025. <a href="https://arxiv.org/abs/2510.08370">arXiv</a>.
+                </li>
+                <li><a href="https://lael.dev/billiards">https://lael.dev/billiards</a></li>
+            </ol>
+        </section>
+        <section>
+            <h3 class="slide-title">Dynamical Systems</h3>
+            <div class="math-block">
+                <span>
+                    <span>A <em>dynamical system</em> is a collection of measurable quantities which evolve in time
+                    according to a set of rules. Examples include:</span>
+                </span>
+                <ul>
+                    <li class="fragment">the weather</li>
+                    <li class="fragment">iterated function systems</li>
+                    <li class="fragment">geodesic flow</li>
+                    <li class="fragment">billiards</li>
+                </ul>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Four Flavors of Billiards</h3>
+            <div class="r-stack">
+                <img class="large-image fragment"
+                     data-fragment-index="1"
+                     ngSrc="assets/images/eberly-talk/inner_length.png" width="600" height="480"
+                     alt="Inner length billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="2"
+                     ngSrc="assets/images/eberly-talk/outer_area.png" width="600" height="480"
+                     alt="Outer area billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="3"
+                     ngSrc="assets/images/eberly-talk/inner_area.png" width="600" height="480"
+                     alt="Inner area billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="4"
+                     ngSrc="assets/images/eberly-talk/outer_length.png" width="600" height="480"
+                     alt="Outer length billiards">
+            </div>
+            <div class="r-stack">
+                <span class="fragment fade-in-then-out" data-fragment-index="1">Original</span>
+                <span class="fragment fade-in-then-out" data-fragment-index="2">Outer </span>
+                <span class="fragment fade-in-then-out" data-fragment-index="3">Symplectic</span>
+                <span class="fragment fade-in-then-out" data-fragment-index="4">Fourth</span>
+            </div>
+        </section>
+        <section class="center">
+            <div class="grid-2x2">
+                <div class="grid-cell" style="grid-area: 1 / 2 / 2 / 3">
+                    <span>Length</span>
+                </div>
+                <div class="grid-cell" style="grid-area: 1 / 3 / 2 / 4">
+                    <span>Area</span>
+                </div>
+                <div class="grid-cell" style="grid-area: 2 / 1 / 3 / 2;">
+                    <span style="transform: rotate(-90deg);">Inner</span>
+                </div>
+                <div class="grid-cell" style="grid-area: 3 / 1 / 4 / 2;">
+                    <span style="transform: rotate(-90deg);">Outer</span>
+                </div>
+
+                <img style="grid-area: 2 / 2 / 3 / 3"
+                     class="cell grid-cell"
+                     ngSrc="assets/images/eberly-talk/inner_length.png" width="1500" height="1204"
+                     alt="Inner length billiards">
+                <img style="grid-area: 2 / 3 / 3 / 4"
+                     class="cell grid-cell"
+                     ngSrc="assets/images/eberly-talk/inner_area.png" width="1500" height="1204"
+                     alt="Inner area billiards">
+                <img style="grid-area: 3 / 3 / 4 / 4"
+                     class="cell grid-cell fragment fade-out"
+                     data-fragment-index="0"
+                     ngSrc="assets/images/eberly-talk/outer_area.png" width="1500" height="1204"
+                     alt="Outer area billiards">
+                <img style="grid-area: 3 / 2 / 4 / 3"
+                     class="cell grid-cell fragment fade-out"
+                     data-fragment-index="0"
+                     ngSrc="assets/images/eberly-talk/outer_length.png" width="1500" height="1204"
+                     alt="Outer length billiards">
+                <img style="grid-area: 3 / 3 / 4 / 4"
+                     class="r-frame grid-cell fragment"
+                     data-fragment-index="0"
+                     ngSrc="assets/images/eberly-talk/outer_area.png" width="1500" height="1204"
+                     alt="Outer area billiards">
+                <img style="grid-area: 3 / 2 / 4 / 3"
+                     class="r-frame grid-cell fragment"
+                     data-fragment-index="0"
+                     ngSrc="assets/images/eberly-talk/outer_length.png" width="1500" height="1204"
+                     alt="Outer length billiards">
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Polygonal Outer Billiards</h3>
+            <div class="r-stack">
+                <img class="large-image fragment"
+                     data-fragment-index="1"
+                     ngSrc="assets/images/eberly-talk/discontinuity_1.png" width="600" height="480"
+                     alt="Side extension">
+                <img class="large-image fragment"
+                     data-fragment-index="2"
+                     ngSrc="assets/images/eberly-talk/discontinuity_2.png" width="600" height="480"
+                     alt="Side extension">
+            </div>
+        </section>
+        <section>
+            <section data-background-iframe="/billiards"
+                     data-preload
+                     data-background-interactive>
+            </section>
+            <section>
+                <h3 class="slide-title">Outer Billiard Fractals</h3>
+                <img ngSrc="assets/images/eberly-talk/pentagon.png" width="600" height="500"
+                     alt="Pentagon fractal">
+            </section>
+            <section>
+                <h3 class="slide-title">Other Geometries</h3>
+                <img ngSrc="assets/images/eberly-talk/sphere.png" width="600" height="500"
+                     alt="Pentagon fractal">
+            </section>
+        </section>
+        <section>
+            <h3 class="slide-title">Selected Results</h3>
+            <div class="math-block">
+                <span>For the usual outer billiard,</span>
+                <ul>
+                    <li class="fragment">certain polygons result in beautiful tilings</li>
+                    <li class="fragment">far-away orbits follow predictable curves</li>
+                    <li class="fragment">the regular pentagon has fractal singularity set</li>
+                    <li class="fragment">unbounded orbits exist around some polygons(!)</li>
+                </ul>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Recent Progress</h3>
+            <div class="math-block">
+                <span>In a recent paper, I proved:</span>
+                <span class="math-heading fragment"
+                      data-fragment-index="1">Theorem 1</span>
+                <span class="fragment"
+                      data-fragment-index="1">In the outer length billiard, far away orbits become circles.</span>
+                <span></span>
+                <span class="math-heading fragment"
+                      data-fragment-index="2">Theorem 2</span>
+                <span class="fragment" data-fragment-index="2">
+                    The centers of the auxiliary circles trace out almost the same curves as those followed by far-away
+                    orbits of the usual outer billiard.</span>
+            </div>
+        </section>
+        <section>
+            <section data-background-iframe="/billiards"
+                     data-preload
+                     data-background-interactive>
+            </section>
+            <section>
+                <h3 class="slide-title">Theorem 1</h3>
+                <img class=""
+                     ngSrc="assets/images/eberly-talk/thm1.png" width="500" height="495"
+                     alt="Theorem 1">
+            </section>
+            <section>
+                <h3 class="slide-title">Theorem 2</h3>
+                <img class=""
+                     ngSrc="assets/images/eberly-talk/thm2.png" width="500" height="495"
+                     alt="Theorem 2">
+            </section>
+        </section>
+        <section class="center">
+            <h3 class="slide-title">Methods</h3>
+            <ol>
+                <li class="fragment">Write visualisation software (~1 week)</li>
+                <li class="fragment">Build intuition and form conjectures (~1 month)</li>
+                <li class="fragment">Prove using classical analysis methods (as long as it takes)</li>
+            </ol>
+        </section>
+        <section class="center">
+            <h3 class="slide-title">Experimental Results</h3>
+            <div class="math-block">
+                <span class="math-heading fragment"
+                      data-fragment-index="1">Conjecture 1</span>
+                <span class="fragment" data-fragment-index="1">Every polygon admits a fractal singularity set.</span>
+                <span></span>
+                <span class="math-heading fragment" data-fragment-index="2">Conjecture 2</span>
+                <span class="fragment" data-fragment-index="2">
+                    Every polygon admits an escaping orbit.
+                </span>
+            </div>
+        </section>
+        <section>
+            <section data-background-iframe="/billiards"
+                     data-preload
+                     data-background-interactive>
+            </section>
+            <section>
+                <h3 class="slide-title">Conjecture 1</h3>
+                <img class=""
+                     ngSrc="assets/images/eberly-talk/conj1.png" width="600" height="500"
+                     alt="Conjecture 1">
+            </section>
+            <section>
+                <h3 class="slide-title">Conjecture 2</h3>
+                <img class=""
+                     ngSrc="assets/images/eberly-talk/conj2.png" width="600" height="500"
+                     alt="Conjecture 2">
+            </section>
+        </section>
+        <section class="center">
+            <h3 class="slide-title">Why Billiards?</h3>
+            <ul>
+                <li class="fragment">connections to other areas of math & physics</li>
+                <li class="fragment">many deceptively simple open questions</li>
+                <li class="fragment">it's beautiful!</li>
+            </ul>
+        </section>
+        <section class="center">
+            <h2>Thank you!</h2>
+        </section>
+    </div>
+</div>

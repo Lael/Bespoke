@@ -1,0 +1,10 @@
+<div #render_container
+     class="renderer-container"
+     (resize)="onResize()">
+</div>
+
+<div class="coordinate-corner" [class.hidden]="!showAffine">
+    <div #affine_container
+         class="coordinate-container">
+    </div>
+</div>

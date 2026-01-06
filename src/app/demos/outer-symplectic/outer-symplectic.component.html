@@ -1,0 +1,16 @@
+<div #render_container
+     class="renderer-container"
+     (resize)="onResize()">
+</div>
+
+<div class="left-corner" [class.invisible]="!project2D">
+    <div #xy_container class="coordinate-container"></div>
+</div>
+
+<div class="right-corner" [class.invisible]="!project2D">
+    <div #zw_container class="coordinate-container"></div>
+</div>
+
+<div class="chart-container" [class.invisible]="!showChart">
+    <canvas id="chart"></canvas>
+</div>

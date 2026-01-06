@@ -1,15 +1,16 @@
 import {EuclideanShape, NormalPair, ShapeRayCollision} from "./euclidean-shape";
 import {EuclideanRay} from "./euclidean-ray";
 import {
-    BufferGeometry,
-    CircleGeometry,
-    Group,
-    Line,
-    LineBasicMaterial,
-    Mesh,
-    MeshBasicMaterial,
-    Path,
-    Vector2
+  BufferGeometry,
+  CircleGeometry,
+  ColorRepresentation,
+  Group,
+  Line,
+  LineBasicMaterial,
+  Mesh,
+  MeshBasicMaterial,
+  Path,
+  Vector2
 } from "three";
 import {Line as GeoLine} from './line';
 import {AffineCircle} from "./affine-circle";
@@ -32,7 +33,7 @@ export class EuclideanEllipse implements EuclideanShape {
     this.b = this.a * Math.sqrt(1 - this.eccentricity * this.eccentricity);
   }
 
-  drawable(color: number): Group {
+  drawable(color: ColorRepresentation): Group {
     let g = new Group();
     let path = new Path();
     path.absellipse(this.center.x, this.center.y,
@@ -130,5 +131,9 @@ export class EuclideanEllipse implements EuclideanShape {
       .normalize()
       .rotateAround(new Vector2(), this.rotation - Math.PI / 2);
     return {point, normal};
+  }
+
+  corners(): number[] {
+    return [];
   }
 }

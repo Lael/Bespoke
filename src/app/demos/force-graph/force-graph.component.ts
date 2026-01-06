@@ -2,17 +2,16 @@ import {Component} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import {
-    Color,
-    CylinderGeometry,
-    InstancedMesh,
-    Matrix4,
-    MeshBasicMaterial,
-    SphereGeometry,
-    Vector2,
-    Vector3
+  Color,
+  CylinderGeometry,
+  InstancedMesh,
+  Matrix4,
+  MeshBasicMaterial,
+  SphereGeometry,
+  Vector2,
+  Vector3
 } from "three";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
-import {clamp} from "three/src/math/MathUtils";
 
 const CLEAR_COLOR = 0x0a2933;
 const Z_EPSILON = 0.01;
@@ -212,7 +211,7 @@ export function cylinderMatrix(p1: Vector3, p2: Vector3): Matrix4 {
 }
 
 function cylinderColor(fraction: number): Color {
-  let lf = clamp(Math.log(fraction), -MAX_LOG, MAX_LOG);
+  let lf = Math.min(Math.max(Math.log(fraction), -MAX_LOG), MAX_LOG);
   const a = Math.pow(Math.abs(lf) / MAX_LOG, 0.5);
   if (lf < 0) return new Color().lerpColors(REST_COLOR, COMPRESSION_COLOR, a);
   else return new Color().lerpColors(REST_COLOR, TENSION_COLOR, a);

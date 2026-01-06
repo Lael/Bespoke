@@ -1,0 +1,183 @@
+<div class="reveal">
+    <div class="slides">
+        <section class="center">
+            <h2 class="talk-title">The Symplectic Table Map</h2>
+            <h5>Lael Costa (Penn State University)</h5>
+            <h6>Joint with S. Tabachnikov</h6>
+            <h5>Universität Heidelberg, July 15<sup>th</sup> 2025</h5>
+            <h5>Billiards and quantitative symplectic geometry</h5>
+        </section>
+        <section>
+            <h3 class="slide-title">Four Billiards</h3>
+            <div class="r-stack">
+                <img class="large-image fragment"
+                     data-fragment-index="1"
+                     ngSrc="assets/images/heidelberg-2025/inner_length.png" width="600" height="480"
+                     alt="Inner length billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="2"
+                     ngSrc="assets/images/heidelberg-2025/outer_area.png" width="600" height="480"
+                     alt="Outer area billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="3"
+                     ngSrc="assets/images/heidelberg-2025/inner_area.png" width="600" height="480"
+                     alt="Inner area billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="4"
+                     ngSrc="assets/images/heidelberg-2025/outer_length.png" width="600" height="480"
+                     alt="Outer length billiards">
+            </div>
+            <div class="r-stack">
+                <span class="fragment fade-in-then-out" data-fragment-index="1">Inner length (Birkhoff)</span>
+                <span class="fragment fade-in-then-out" data-fragment-index="2">Outer area (Dual) </span>
+                <span class="fragment fade-in-then-out" data-fragment-index="3">Inner area (Symplectic)</span>
+                <span class="fragment fade-in-then-out" data-fragment-index="4">Outer length (Fourth)</span>
+            </div>
+        </section>
+        <section class="center">
+            <div class="grid-2x2">
+                <div class="grid-cell" style="grid-area: 1 / 2 / 2 / 3">
+                    <span>Length</span>
+                </div>
+                <div class="grid-cell" style="grid-area: 1 / 3 / 2 / 4">
+                    <span>Area</span>
+                </div>
+                <div class="grid-cell" style="grid-area: 2 / 1 / 3 / 2;">
+                    <span style="transform: rotate(-90deg);">Inner</span>
+                </div>
+                <div class="grid-cell" style="grid-area: 3 / 1 / 4 / 2;">
+                    <span style="transform: rotate(-90deg);">Outer</span>
+                </div>
+
+                <img style="grid-area: 2 / 2 / 3 / 3"
+                     class="cell grid-cell"
+                     ngSrc="assets/images/heidelberg-2025/inner_length.png" width="1500" height="1204"
+                     alt="Inner length billiards">
+                <img style="grid-area: 2 / 3 / 3 / 4"
+                     class="cell grid-cell"
+                     ngSrc="assets/images/heidelberg-2025/inner_area.png" width="1500" height="1204"
+                     alt="Inner area billiards">
+                <img style="grid-area: 3 / 3 / 4 / 4"
+                     class="cell grid-cell"
+                     ngSrc="assets/images/heidelberg-2025/outer_area.png" width="1500" height="1204"
+                     alt="Outer area billiards">
+                <img style="grid-area: 3 / 2 / 4 / 3"
+                     class="cell grid-cell"
+                     ngSrc="assets/images/heidelberg-2025/outer_length.png" width="1500" height="1204"
+                     alt="Outer length billiards">
+            </div>
+        </section>
+        <section data-background-iframe="/billiards"
+                 data-preload
+                 data-background-interactive>
+        </section>
+        <section>
+            <h3 class="slide-title">Symplectic Billiard Table Map</h3>
+            <div class="math-block">
+                <div class="fragment">
+                    <span class="math-heading">Question:</span>
+                    given a convex $n$-gon $P$, can we construct $Q$
+                    circumscribed s.t. $P$ is a
+                    closed symplectic billiard trajectory in $Q$?
+                </div>
+                <div class="fragment">
+                    <span class="math-heading">Answer:</span> yes!
+                </div>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Symplectic Billiard Table Map</h3>
+            <div class="r-stack">
+                <img ngSrc="assets/images/heidelberg-2025/table_1.png" width="750" height="602"
+                     alt="Symplectic table map, step 1">
+                <img class="fragment" data-fragment-index="1"
+                     ngSrc="assets/images/heidelberg-2025/table_2.png" width="750" height="602"
+                     alt="Symplectic table map, step 2">
+                <img class="fragment" data-fragment-index="2"
+                     ngSrc="assets/images/heidelberg-2025/table_3.png" width="750" height="602"
+                     alt="Symplectic table map, step 3">
+                <img class="fragment" data-fragment-index="3"
+                     ngSrc="assets/images/heidelberg-2025/table_4.png" width="750" height="602"
+                     alt="Symplectic table map, step 4">
+                <img class="fragment" data-fragment-index="4"
+                     ngSrc="assets/images/heidelberg-2025/table_5.png" width="750" height="602"
+                     alt="Symplectic table map, step 5">
+                <span class="fragment fade-in-then-out" data-fragment-index="4">$T(P)=Q$</span>
+                <span class="fragment" data-fragment-index="5">$T([P])=[Q]$</span>
+            </div>
+        </section>
+        <section data-background-iframe="/symplectic-table"
+                 data-background-interactive>
+        </section>
+        <section>
+            <h3 class="slide-title">Experimental Results</h3>
+            <div class="math-block">
+                <span>In general, an $n$-gon tends towards...</span>
+                <ul>
+                    <li class="fragment">$n=5$: regularity</li>
+                    <li class="fragment">$n=6$: 3-fold rotational symmetry</li>
+                    <li class="fragment">
+                        $n\geq 7$: degeneracy ($k$-gon with {{ '$k\\leq\\left\\lfloor\\frac{n-1}{2}\\right\\rfloor$' }})
+                    </li>
+                </ul>
+                <span class="fragment" style="margin-top: 50px">Hard to prove: {{ '$\\{n$-gons$\\}/\\mathrm{Aff}$' }}
+                    lacks natural coordinates.
+                </span>
+            </div>
+        </section>
+        <section data-background-iframe="/pentagram"
+                 data-background-interactive>
+        </section>
+        <section>
+            <h3 class="slide-title">Twisted Polygons</h3>
+            <div class="math-block">
+                <div>
+                    <span class="math-heading">Definition:</span>
+                </div>
+                <p>An (affine) twisted $n$-gon is a sequence of vertices </p>
+                <p class="display-math">{{ '$(\\{\\dots,v_{-1},v_0,v_1\\dots\\},M)$' }}</p>
+                <p>where {{ '$M\\in\\mathrm{Aff}$' }} and {{ '$v_{n+i}=Mv_i$.' }}</p>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Twisted Polygons</h3>
+            <div class="math-block">
+                <div>
+                    <span class="math-heading">Remark:</span>
+                </div>
+                <ul>
+                    <li class="fragment">{{ '$\\dim(\\{n$-gons$\\}/\\mathrm{Aff}) = 2n-6$.' }}</li>
+                    <li class="fragment">{{ '$\\dim(\\{$twisted $n$-gons$\\}) = 2n + 6$.' }}</li>
+                    <li class="fragment">{{ '$\\dim(\\{$twisted $n$-gons$\\}/\\mathrm{Aff}) = 2n$.' }}</li>
+                    <li class="fragment">Larger space but no pesky relations!</li>
+                </ul>
+
+            </div>
+        </section>
+        <section data-background-iframe="/twist"
+                 data-background-interactive>
+        </section>
+        <section>
+            <h3 class="slide-title">Coordinates</h3>
+            <img style="margin-top: -25px"
+                 ngSrc="assets/images/heidelberg-2025/coords.png" width="750" height="602"
+                 alt="Twisted polygon coordinates">
+        </section>
+        <section>
+            <h3 class="slide-title">Result for 2-gons</h3>
+            <div class="math-block">
+                <span class="math-heading">Theorem (C.–Tabachnikov):</span>
+                <span>When $n=2$, the map is super-integrable: there is an invariant Poisson bracket with
+                    three Poisson-commuting integrals:</span>
+                <ol>
+                    <li class="fragment">det($M$)</li>
+                    <li class="fragment">tr($M$)</li>
+                    <li class="fragment">a mysterious third one</li>
+                </ol>
+            </div>
+        </section>
+        <section class="center">
+            <h2>Vielen Dank für Ihre Aufmerksamkeit!</h2>
+        </section>
+    </div>
+</div>

@@ -3,17 +3,18 @@ import {LinkTileComponent} from "./link-tile/link-tile.component";
 import {RouterLink} from "@angular/router";
 
 @Component({
-    selector: 'home-page',
-    templateUrl: './home-page.component.html',
-    styleUrls: ['./home-page.component.sass'],
-    imports: [RouterLink, LinkTileComponent]
+  selector: 'home-page',
+  templateUrl: './home-page.component.html',
+  styleUrls: ['./home-page.component.sass'],
+  standalone: true,
+  imports: [RouterLink, LinkTileComponent]
 })
 export class HomePageComponent implements OnInit {
 
-    constructor() {
-    }
+  constructor() {
+  }
 
-    ngOnInit(): void {
-    }
+  ngOnInit(): void {
+  }
 
 }

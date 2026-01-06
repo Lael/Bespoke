@@ -22,13 +22,19 @@
             "assets": [
               "src/favicon.svg",
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "src/assets/images",
+              "src/assets/audio",
+              "src/assets/files/zine.pdf"
             ],
             "styles": [
               "src/styles.scss",
-              "node_modules/reveal.js/dist/reveal.css"
+              "node_modules/reveal.js/dist/reveal.css",
+              "node_modules/reveal.js/dist/theme/serif.css"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/reveal.js/dist/reveal.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -41,7 +47,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumError": "12kb"
                 }
               ],
               "outputHashing": "all"
@@ -83,7 +89,8 @@
             "assets": [
               "src/favicon.svg",
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              "src/assets/images"
             ],
             "styles": [
               "src/styles.scss"

@@ -135,6 +135,15 @@ export class SeaIceComponent extends ThreeDemoComponent implements AfterViewInit
         sampleNoise: new Noise2DV(5),
         sampleNoiseWeight: 0.05,
       },
+      {
+        noises: [
+          new RidgeNoise2D(new Matrix3().rotate(Math.random()).multiplyScalar(0.1), 5),
+          new RidgeNoise2D(new Matrix3().rotate(Math.random()).multiplyScalar(0.1), 5),
+        ],
+        weight: -0.5,
+        sampleNoise: new Noise2DV(5),
+        sampleNoiseWeight: 0.05,
+      },
       // {
       //   noises: [
       //     new RidgeNoise2D(new Matrix3().rotate(Math.random()).multiplyScalar(0.05), 5),

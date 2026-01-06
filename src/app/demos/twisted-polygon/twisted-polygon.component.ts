@@ -5,19 +5,19 @@ import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {GUI} from "dat.gui";
 import * as THREE from "three";
 import {
-    BufferGeometry,
-    CircleGeometry,
-    Color,
-    Float32BufferAttribute,
-    LineDashedMaterial,
-    LineSegments,
-    Matrix3,
-    Mesh,
-    MeshBasicMaterial,
-    OrthographicCamera,
-    Points,
-    PointsMaterial,
-    Vector2
+  BufferGeometry,
+  CircleGeometry,
+  Color,
+  Float32BufferAttribute,
+  LineDashedMaterial,
+  LineSegments,
+  Matrix3,
+  Mesh,
+  MeshBasicMaterial,
+  OrthographicCamera,
+  Points,
+  PointsMaterial,
+  Vector2
 } from "three";
 import {DragControls} from "three/examples/jsm/controls/DragControls.js";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js";
@@ -181,7 +181,7 @@ export class TwistedPolygonComponent extends ThreeDemoComponent implements After
 
     this.updateGUI();
 
-    this.colorScheme.register('handle', 0xff0000, 0xff0000);
+    this.colorScheme.register('handle', 0x990044, 0x990044);
     this.colorScheme.register('vertex', 0x000000, 0xffffff);
     this.colorScheme.register('edge', 0x000000, 0xffffff);
 
