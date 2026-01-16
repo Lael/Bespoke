@@ -64,6 +64,7 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
 
   constructor() {
     super();
+    this.registerColor('clear', 0xffffff, 0x0a2933)
     this.restriction = this.convex ? PolygonRestriction.CONVEX : PolygonRestriction.NONE;
     this.useOrthographic = true;
     this.reset(this.n, 0, 0);

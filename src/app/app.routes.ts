@@ -38,6 +38,7 @@ import {SymplecticTableComponent} from "./demos/symplectic-table/symplectic-tabl
 import {OuterSymplecticComponent} from "./demos/outer-symplectic/outer-symplectic.component";
 import {EberlyTalkComponent} from "./talks/eberly-research-showcase/eberly-talk.component";
 import {DilationSurfaceComponent} from "./demos/dilation-surface/dilation-surface.component";
+import {BachmanComponent} from "./demos/bachman/bachman.component";
 
 export const routes: Routes = [
   {path: '', component: HomePageComponent, title: 'Bespoke'},
@@ -84,6 +85,7 @@ export const routes: Routes = [
   {path: 'sea-ice', component: SeaIceComponent, title: 'Sea Ice'},
   {path: 'outer-symplectic', component: OuterSymplecticComponent, title: 'Outer Symplectic Billiards'},
   {path: 'dilation-surfaces', component: DilationSurfaceComponent, title: 'Dilation Surfaces'},
+  {path: 'bachman-fractal', component: BachmanComponent, title: 'Bachman Fractal'},
 
   // Talks
   {path: 'talks/heidelberg-2025', component: Heidelberg2025Component, title: 'Talk: Heidelberg 2025'},

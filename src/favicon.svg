@@ -1,5 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
-     width="1000" height="1000">
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">
     <style>
         #light-icon {
             display: inline;
@@ -23,7 +22,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
              width="1000" height="1000">
             <g>
-                <g transform="matrix(2.2222222222222223,0,0,2.2222222222222223,0,0)">
+                <g transform="matrix(2.2755555556,0,0,2.2755555556,0,0)">
                     <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
                          width="450px" height="450px">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="25 25 450 450"
@@ -88,9 +87,9 @@
                                     style="fill: rgba(216, 216, 216, 0); stroke-width: 10px; stroke: url(&quot;#color-3&quot;); transform-box: fill-box; transform-origin: 50% 50%;"
                                     cx="250" cy="250" rx="150" ry="150"></ellipse>
                             <rect x="225" y="100" width="50" height="150"
-                                  style="stroke: rgb(0, 0, 0); fill: url(&quot;#gradient-1-0&quot;); stroke-width: 0px; transform-box: fill-box; transform-origin: 50% 50%;"></rect>
+                                  style="stroke: rgb(0, 0, 0); fill: url(#gradient-1-0); stroke-width: 0px; transform-box: fill-box; transform-origin: 50% 50%;"></rect>
                             <rect x="225" y="100" width="50" height="150"
-                                  style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(&quot;#gradient-2-0&quot;); transform-origin: 250px 250px;"
+                                  style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(#gradient-2-0); transform-origin: 250px 250px;"
                                   transform="matrix(0.5, 0.866025, -0.866025, 0.5, -0.000181, -0.000235)"></rect>
                             <rect x="225" y="100" width="50" height="150"
                                   style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: url(&quot;#gradient-0-1&quot;); transform-origin: 250px 250px;"
@@ -139,7 +138,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
              width="1000" height="1000">
             <g>
-                <g transform="matrix(2.2222222222222223,0,0,2.2222222222222223,0,0)">
+                <g transform="matrix(2.2755555556,0,0,2.2755555556,0,0)">
                     <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
                          width="450px" height="450px">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="25 25 450 450"

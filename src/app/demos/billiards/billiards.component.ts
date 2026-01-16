@@ -300,7 +300,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     this.dragControls.addEventListener('dragend', this.affineVertexDragEnd.bind(this));
 
     // Color scheme
-    this.colorScheme.register('clear', 0xF0F1EB, 0x000000);
+    this.colorScheme.register('clear', 0xF0F1EB, 0x0a2933);
     this.colorScheme.register('disk', 0x000000, 0xffffff);
     this.colorScheme.register('outer_table_fill', 0x123456, 0xabcdef);
     // this.colorScheme.register('outer_table_fill', 0x000000, 0xffffff);
@@ -1461,7 +1461,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
         this.centers = [new THREE.Points(
           new BufferGeometry().setFromPoints(centers),
           new PointsMaterial({
-            color: CIRCLE_CENTER_COLOR,
+            color: 0xffaa00,
             size: this.drawParams.orbitSize,
           })
         )];
@@ -1491,7 +1491,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
         for (let i = 0; i < cseqs.length; i++) {
           const lineGeometry = new THREE.BufferGeometry().setFromPoints(cseqs[i]);
           const lineMaterial = new LineBasicMaterial({
-            color: CIRCLE_CENTER_COLOR,
+            color: 0xffaa00,
             linewidth: this.drawParams.orbitSize
           });
           this.centers.push(new THREE.Line(lineGeometry, lineMaterial));

@@ -13,6 +13,7 @@ import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
 import {Line} from "../../../math/geometry/line";
 import {LineSegment} from "../../../math/geometry/line-segment";
 import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry.js";
+import {GUI} from "dat.gui";
 
 interface Intersection {
   pt: Vector2;
@@ -34,7 +35,7 @@ export class DilationSurfaceComponent extends ThreeDemoComponent {
   orbitControls: OrbitControls;
 
   orbitDirty = true;
-  iters: number = 10000;
+  iters: number = 1;
   startX: number = 0.54;
 
   ratioA: number = 0.5;
@@ -63,13 +64,15 @@ export class DilationSurfaceComponent extends ThreeDemoComponent {
   polygon: Line2;
   orbit: LineSegments2[] = [];
 
+  gui: GUI = new GUI();
+
   constructor() {
     super();
     this.useOrthographic = true;
 
-    this.registerColor('sliderA', 0xffaa00, 0xffff00);
-    this.registerColor('sliderB', 0xff0000, 0xff0000);
-    this.registerColor('sliderC', 0x00ff00, 0x00ff00);
+    this.registerColor('sliderA', 0xffaa00, 0xffaa00);
+    this.registerColor('sliderB', 0xaa0000, 0xff0000);
+    this.registerColor('sliderC', 0x00aa00, 0x00ff00);
     this.registerColor('vertex', 0x000000, 0xffffff);
     this.registerColor('edge', 0x444444, 0xbbbbbb);
     this.registerColor('up', 0x880088, 0x880088);
@@ -107,6 +110,9 @@ export class DilationSurfaceComponent extends ThreeDemoComponent {
     this.orbitControls.enableRotate = false;
     this.orbitControls.enablePan = true;
     this.orbitControls.zoomToCursor = true;
+
+    this.gui.add(this, 'iters', 0, 14, 1).name('log2(iters)').onChange(() => this.orbitDirty = true);
+    this.gui.open();
   }
 
   dragVertex() {
@@ -212,7 +218,7 @@ export class DilationSurfaceComponent extends ThreeDemoComponent {
     let x = this.startX;
     let ups = [];
     let downs = [];
-    for (let i = 0; i < this.iters; i++) {
+    for (let i = 0; i < Math.pow(2, this.iters); i++) {
       let pts = this.intersect(new Line(1, 0, -x));
       console.log(pts);
       if (pts.length > 2) {
