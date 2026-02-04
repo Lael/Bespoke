@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import {HyperbolicPolygonTable} from "../../../math/billiards/hyperbolic-polygon-table";
+import {OldHyperbolicPolygonTable} from "../../../math/billiards/old-hyperbolic-polygon-table";
 
 import {HyperGeodesic, HyperPoint} from "../../../math/hyperbolic/hyperbolic";
 import {Complex} from "../../../math/complex/complex";
@@ -8,7 +8,7 @@ import {Complex} from "../../../math/complex/complex";
 addEventListener('message', ({data}) => {
   const iterations = data.iterations;
   const id = data.id;
-  const table = new HyperbolicPolygonTable(data.vertices.map((v: number[]) => HyperPoint.fromPoincare(new Complex(v[0], v[1]))));
+  const table = new OldHyperbolicPolygonTable(data.vertices.map((v: number[]) => HyperPoint.fromPoincare(new Complex(v[0], v[1]))));
   let frontier = data.frontier.map((f: number[]) =>
     new HyperGeodesic(
       HyperPoint.fromPoincare(new Complex(

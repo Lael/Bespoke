@@ -24,9 +24,6 @@ import {affinity as affinityHelper, closeEnough} from "../../../math/math-helper
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {GUI} from "dat.gui";
 
-const IMAGE_EDGE_WIDTH = 1;
-const FINAL_EDGE_WIDTH = 2;
-
 @Component({
   selector: 'symplectic-table',
   templateUrl: 'symplectic-table.component.html',
@@ -54,17 +51,23 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
   drawEdges: boolean = true;
   showAffine: boolean = false;
 
+  width: number = 1;
+
   images: LineSegments2 = new LineSegments2();
+  initial: Line2 = new Line2();
   finalImage: Line2 = new Line2();
   affineFinal: Line2 = new Line2();
 
   edgeMat: LineMaterial;
+  initialEdgeMat: LineMaterial;
+  finalMat: LineMaterial;
 
   gui: GUI;
 
   constructor() {
     super();
-    this.registerColor('clear', 0xffffff, 0x0a2933)
+    this.registerColor('clear', 0xffffff, 0x0a2933);
+    this.registerColor('final', 0x880088, 0x880088);
     this.restriction = this.convex ? PolygonRestriction.CONVEX : PolygonRestriction.NONE;
     this.useOrthographic = true;
     this.reset(this.n, 0, 0);
@@ -87,7 +90,17 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
 
     this.edgeMat = new LineMaterial({
       color: this.getColor('edge'),
-      linewidth: IMAGE_EDGE_WIDTH,
+      linewidth: this.width,
+      resolution: this.resolution
+    });
+    this.initialEdgeMat = new LineMaterial({
+      color: this.getColor('edge'),
+      linewidth: this.width + 1,
+      resolution: this.resolution
+    });
+    this.finalMat = new LineMaterial({
+      color: this.getColor('final'),
+      linewidth: this.width + 1,
       resolution: this.resolution
     });
   }
@@ -121,6 +134,7 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
     this.gui.add(this, 'drawEdges').name('Edges').onFinishChange(() => {
       this.markDirty();
     });
+    this.gui.add(this, 'width').name('Width').min(1).max(4).step(1);
     this.gui.open();
   }
 
@@ -169,8 +183,14 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
     this.oldZoom = this.camera.zoom;
 
     this.mat.color.set(this.getColor('handle'));
+    this.initialEdgeMat.color.set(this.getColor('edge'));
+    this.initialEdgeMat.linewidth = this.width * 2;
+    this.initialEdgeMat.resolution = this.resolution;
     this.edgeMat.color.set(this.getColor('edge'));
-    // this.polyMat.color.set(this.getColor('edge'));
+    this.edgeMat.linewidth = this.width;
+    this.edgeMat.resolution = this.resolution;
+    this.finalMat.color.set(this.getColor('final'));
+    this.finalMat.linewidth = this.width + 1;
 
     // this.processKeyboardInput(dt)
     const recompute = this.dirty;
@@ -180,6 +200,7 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
 
     if (recompute) {
       this.iterate();
+      this.scene.add(this.initial);
       if (this.drawEdges) this.scene.add(this.images);
       this.scene.add(this.finalImage);
     }
@@ -201,6 +222,7 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
       ls.push(vertices[(i + 1) % vertices.length]);
     }
     let polygon = this.convex ? convexHull(vertices)[0] : vertices;
+    const initial: Vector2[] = [...polygon, polygon[0]];
     let iVertices = [];
     let finalPolygon = polygon;
     let area = convexArea(polygon);
@@ -339,22 +361,17 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
       polygon = newPolygon;
     }
 
+    this.initial = new Line2(
+      new LineGeometry().setPositions(initial.flatMap(v => [v.x, v.y, 0])), this.initialEdgeMat
+    );
     if (this.drawEdges) {
       this.images = new LineSegments2(
         new LineSegmentsGeometry().setPositions(ls.flatMap(v => [v.x, v.y, 0])),
-        new LineMaterial({
-          color: this.getColor('edge'),
-          linewidth: IMAGE_EDGE_WIDTH,
-          resolution: this.resolution
-        }));
+        this.edgeMat);
     }
     this.finalImage = new Line2(
       new LineGeometry().setPositions(finalPolygon.concat([finalPolygon[0]]).flatMap((v) => [v.x, v.y, 0])),
-      new LineMaterial({
-        color: 0x880088,
-        linewidth: FINAL_EDGE_WIDTH,
-        resolution: this.resolution
-      })
+      this.finalMat
     );
 
     if (this.drawVertices) {
@@ -399,11 +416,7 @@ export class SymplecticTableComponent extends PolygonPickerComponent implements 
 
       this.affineFinal = new Line2(
         new LineGeometry().setPositions(aps),
-        new LineMaterial({
-          color: 0x000000, linewidth: FINAL_EDGE_WIDTH,
-          resolution: new Vector2(400, 400),
-        })
-      );
+        this.finalMat);
       this.affineFinal.translateX(-apc.x);
       this.affineFinal.translateY(-apc.y);
     }

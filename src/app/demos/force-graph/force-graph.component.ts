@@ -287,7 +287,7 @@ function icosahedronGraph() {
   vertices.push(new Vertex(new Vector3(Math.cos(4 * dt + offset), Math.sin(4 * dt + offset), -midEps).multiplyScalar(midRadius)));
   vertices.push(new Vertex(new Vector3(Math.cos(5 * dt + offset), Math.sin(5 * dt + offset), midEps).multiplyScalar(midRadius)));
 
-  // outer
+  // outerArea
   vertices.push(new Vertex(new Vector3(Math.cos(-offset), Math.sin(-offset), outerEps).multiplyScalar(outerRadius)));
   vertices.push(new Vertex(new Vector3(Math.cos(2 * dt - offset), Math.sin(2 * dt - offset), outerEps).multiplyScalar(outerRadius)));
   vertices.push(new Vertex(new Vector3(Math.cos(4 * dt - offset), Math.sin(4 * dt - offset), outerEps).multiplyScalar(outerRadius)));
@@ -317,7 +317,7 @@ function icosahedronGraph() {
   edges.push(new Edge(7, 8, restLength));
   edges.push(new Edge(8, 3, restLength));
 
-  // inner - outer
+  // inner - outerArea
   edges.push(new Edge(9, 5, restLength));
   edges.push(new Edge(9, 6, restLength));
   edges.push(new Edge(9, 7, restLength));
@@ -328,7 +328,7 @@ function icosahedronGraph() {
   edges.push(new Edge(11, 4, restLength));
   edges.push(new Edge(11, 5, restLength));
 
-  // outer - outer
+  // outerArea - outerArea
   edges.push(new Edge(9, 10, restLength));
   edges.push(new Edge(10, 11, restLength));
   edges.push(new Edge(11, 9, restLength));

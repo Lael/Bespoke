@@ -1,11 +1,10 @@
 import {Shape, Vector2} from "three";
 import {closeEnough, EPSILON, normalizeAngle, polar} from "../math-helpers";
 import {Line} from "../geometry/line";
-import {Straight} from "./affine-polygon-table";
+import {AffineOuterBilliardTable, Straight} from "./affine-billiard-table";
 import {AffineCircle} from "../geometry/affine-circle";
 import {Complex} from "../complex/complex";
 import {fixTime} from "./tables";
-import {AffineOuterBilliardTable} from "./affine-billiard-table";
 import {EuclideanRay} from "../geometry/euclidean-ray";
 
 const SYMPLECTIC_PREIMAGE_PIECES = 2000;
@@ -178,7 +177,7 @@ export class AffineSemidiskTable extends AffineOuterBilliardTable {
   //     }
   //     // otherwise:
   //     else {
-  //       // want shared outer tangent
+  //       // want shared outerArea tangent
   //       tl = circle.rightTangentLineSegment(UNIT_CIRCLE).line;
   //     }
   //   } else {
@@ -199,7 +198,7 @@ export class AffineSemidiskTable extends AffineOuterBilliardTable {
   //     }
   //     // otherwise:
   //     else {
-  //       // want shared outer tangent
+  //       // want shared outerArea tangent
   //       tl = circle.rightTangentLineSegment(UNIT_CIRCLE).line;
   //     }
   //   }
@@ -407,8 +406,8 @@ export class AffineSemidiskTable extends AffineOuterBilliardTable {
   //           }
   //           newFrontier.push(
   //             new Straight(
-  //               this.outer(piece.start, Generator.AREA, true),
-  //               this.outer(piece.end, Generator.AREA, true), false)
+  //               this.outerArea(piece.start, Generator.AREA, true),
+  //               this.outerArea(piece.end, Generator.AREA, true), false)
   //           );
   //         } catch (e) {
   //           console.log(e);
@@ -418,8 +417,8 @@ export class AffineSemidiskTable extends AffineOuterBilliardTable {
   //         try {
   //           newFrontier.push(
   //             new Straight(
-  //               this.outer(piece.start, Generator.AREA, true),
-  //               this.outer(piece.end, Generator.AREA, true), false));
+  //               this.outerArea(piece.start, Generator.AREA, true),
+  //               this.outerArea(piece.end, Generator.AREA, true), false));
   //         } catch (e) {
   //         }
   //       }

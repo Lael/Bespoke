@@ -5,9 +5,8 @@ import {AffineCircle} from "../geometry/affine-circle";
 import {Line} from "../geometry/line";
 import {closeEnough, EPSILON, normalizeAngle, polar} from "../math-helpers";
 import {ArcSegment} from "../geometry/arc-segment";
-import {AffineOuterBilliardTable} from "./affine-billiard-table";
+import {AffineOuterBilliardTable, Straight} from "./affine-billiard-table";
 import {EuclideanRay} from "../geometry/euclidean-ray";
-import {Straight} from "./affine-polygon-table";
 import {LineSegment} from "../geometry/line-segment";
 
 export class AffineFlexigonTable extends AffineOuterBilliardTable {

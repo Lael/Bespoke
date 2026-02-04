@@ -26,6 +26,8 @@ import {Line} from "../../../math/geometry/line";
 import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
 import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 import colormap from "colormap";
+import {LineGeometry} from "three/examples/jsm/lines/LineGeometry.js";
+import {Line2} from "three/examples/jsm/lines/Line2.js";
 
 const DASH_SCALE: number = 50;
 
@@ -123,8 +125,13 @@ export class TwistedPolygonComponent extends ThreeDemoComponent implements After
 
   private handleMat = new MeshBasicMaterial();
   private vertexMat = new MeshBasicMaterial();
-  private edgeMat = new LineMaterial({
+  private initialEdgeMat = new LineMaterial({
     linewidth: 2,
+    resolution: this.resolution,
+    color: 0x000000,
+  });
+  private edgeMat = new LineMaterial({
+    linewidth: 1,
     resolution: this.resolution,
     color: 0x000000,
   });
@@ -136,12 +143,13 @@ export class TwistedPolygonComponent extends ThreeDemoComponent implements After
     scale: DASH_SCALE,
   })
   private dotGeo = new CircleGeometry(0.01);
-  private pointMat = new PointsMaterial({size: 1});
+  private pointMat = new PointsMaterial({size: 2});
 
   n: number = 2; // we need n+3 handles
   nVertices: number = 0;
   handles: Mesh[] = [];
   iterations: number = 1;
+  initialEdges: Line2 = new Line2();
   edges: LineSegments2 = new LineSegments2();
   diagonals: LineSegments = new LineSegments();
 
@@ -300,6 +308,8 @@ export class TwistedPolygonComponent extends ThreeDemoComponent implements After
 
     this.handleMat.color = new Color(this.getColor('handle'));
     this.vertexMat.color = new Color(this.getColor('vertex'));
+    this.initialEdgeMat.color = new Color(this.getColor('edge'));
+    this.initialEdgeMat.resolution = this.resolution;
     this.edgeMat.color = new Color(this.getColor('edge'));
     this.edgeMat.resolution = this.resolution;
     this.diagMat.color = new Color(this.getColor('edge'));
@@ -361,17 +371,21 @@ export class TwistedPolygonComponent extends ThreeDemoComponent implements After
       geo.computeBoundingSphere();
       const points = new Points(
         geo,
-        new PointsMaterial({size: 1, vertexColors: true})
+        new PointsMaterial({size: 2, vertexColors: true})
       );
       this.scene.add(points);
     }
 
+    this.initialEdges = new Line2(new LineGeometry().setPositions(
+      this.vertices.flatMap(v => [v.x, v.y, 0])
+    ), this.initialEdgeMat);
     if (this.drawEdges) {
       this.edges = new LineSegments2(new LineSegmentsGeometry().setPositions(
         points.flatMap((p => [p.x, p.y, 0]))
       ), this.edgeMat);
       this.scene.add(this.edges);
     }
+    this.scene.add(this.initialEdges);
     this.scene.add(...this.handles);
 
     this.coordScene.clear();

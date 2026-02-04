@@ -30,7 +30,8 @@
             "styles": [
               "src/styles.scss",
               "node_modules/reveal.js/dist/reveal.css",
-              "node_modules/reveal.js/dist/theme/serif.css"
+              "node_modules/reveal.js/css/theme/source/serif.scss",
+              "src/app/talks/theme.scss"
             ],
             "scripts": [
               "node_modules/reveal.js/dist/reveal.js"

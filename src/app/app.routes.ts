@@ -38,7 +38,10 @@ import {SymplecticTableComponent} from "./demos/symplectic-table/symplectic-tabl
 import {OuterSymplecticComponent} from "./demos/outer-symplectic/outer-symplectic.component";
 import {EberlyTalkComponent} from "./talks/eberly-research-showcase/eberly-talk.component";
 import {DilationSurfaceComponent} from "./demos/dilation-surface/dilation-surface.component";
+import {HamiltonianTalkComponent} from "./talks/hamiltonian-talk/hamiltonian-talk.component";
 import {BachmanComponent} from "./demos/bachman/bachman.component";
+import {SummerComponent} from "./demos/summer/summer.component";
+import {IhpBabySeminar} from "./talks/ihp-baby-seminar/ihp-baby-seminar";
 
 export const routes: Routes = [
   {path: '', component: HomePageComponent, title: 'Bespoke'},
@@ -83,11 +86,14 @@ export const routes: Routes = [
   {path: 'bespoke', component: BespokeComponent, title: 'Bespoke'},
   {path: 'twist', component: TwistedPolygonComponent, title: 'Symplectic Table Map (Twisted)'},
   {path: 'sea-ice', component: SeaIceComponent, title: 'Sea Ice'},
-  {path: 'outer-symplectic', component: OuterSymplecticComponent, title: 'Outer Symplectic Billiards'},
+  {path: 'outerArea-symplectic', component: OuterSymplecticComponent, title: 'Outer Symplectic Billiards'},
   {path: 'dilation-surfaces', component: DilationSurfaceComponent, title: 'Dilation Surfaces'},
   {path: 'bachman-fractal', component: BachmanComponent, title: 'Bachman Fractal'},
+  {path: 'summer', component: SummerComponent, title: "Summer's Circles"},
 
   // Talks
   {path: 'talks/heidelberg-2025', component: Heidelberg2025Component, title: 'Talk: Heidelberg 2025'},
   {path: 'talks/eberly-research-showcase', component: EberlyTalkComponent, title: 'Talk: Eberly Research Showcase'},
+  {path: 'talks/hamiltonian', component: HamiltonianTalkComponent, title: 'Talk: Hamiltonian Systems Seminar'},
+  {path: 'talks/ihp-baby-seminar', component: IhpBabySeminar, title: 'IHP 👶 Seminar'},
 ];

@@ -5,18 +5,67 @@ import {closeEnough, normalizeAngle, polar} from "../math-helpers";
 import {Line} from "../geometry/line";
 import {LineSegment} from "../geometry/line-segment";
 import {AffineCircle} from "../geometry/affine-circle";
-import {AffineChord, AffinePolygonTable, Straight} from "./affine-polygon-table";
+import {AffinePolygonTable} from "./affine-polygon-table";
 import {Generator} from "./new-billiard";
-
+import {Complex} from "../complex/complex";
 
 export type AffineInnerState = {
   time: number;
   angle: number;
 }
 
+export type AffineChord = {
+  startTime: number;
+  startAngle: number;
+  endTime: number;
+  endAngle: number;
+
+  p1: Vector2;
+  p2: Vector2;
+}
+
+export class Straight {
+  line: Line;
+
+  constructor(readonly start: Vector2,
+              readonly end: Vector2,
+              readonly infinite: boolean,
+              line?: Line,
+  ) {
+    if (line) this.line = line;
+    else this.line = Line.throughTwoPoints(Complex.fromVector2(start), Complex.fromVector2(end));
+  }
+
+  intersect(other: Straight): Vector2 | null {
+    let intersection: Vector2;
+    if (!other.infinite) {
+      // if both points are on same side of line, return null without having to intersect lines
+      const s = this.line.a * other.start.x + this.line.b * other.start.y + this.line.c;
+      const e = this.line.a * other.end.x + this.line.b * other.end.y + this.line.c;
+      if (s * e > 0.000_01) return null;
+    }
+    try {
+      intersection = this.line.intersectLine(other.line).toVector2();
+    } catch (e) {
+      return null;
+    }
+    const valid = this.containsPoint(intersection) && other.containsPoint(intersection);
+    return valid ? intersection : null;
+  }
+
+  containsPoint(point: Vector2): boolean {
+    if (!this.line.containsPoint(Complex.fromVector2(point))) return false;
+    const d1 = point.distanceTo(this.start);
+    const d2 = point.distanceTo(this.end);
+    // Between start and end
+    if (closeEnough(d1 + d2, this.start.distanceTo(this.end))) return true;
+    return this.infinite && d1 > d2;
+  }
+}
+
 export interface AffineInner {
-  innerLength(state: AffineInnerState): AffineInnerState;
-  innerArea(state: AffineInnerState): AffineInnerState;
+  innerArea(start: AffineInnerState): AffineInnerState;
+  innerLength(start: AffineInnerState): AffineInnerState;
   iterateInner(start: AffineInnerState, generator: Generator, iterations: number): AffineChord[];
 }
 
@@ -145,6 +194,7 @@ export abstract class AffineOuterBilliardTable extends AffineInnerBilliardTable 
   }
 
   outerLength(start: Vector2, reverse: boolean = false): AffineOuterLengthResult {
+    console.clear();
     const towardsPoint = this.point(this.tangentTowardsPoint(start));
     const fromPoint = this.point(this.tangentFromPoint(start));
     const tp = reverse ? fromPoint : towardsPoint;

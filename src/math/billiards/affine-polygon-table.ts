@@ -5,51 +5,13 @@ import {fixTime} from "./tables";
 import {Line} from "../geometry/line";
 import {closeEnough, normalizeAngle} from "../math-helpers";
 import {AffineCircle} from "../geometry/affine-circle";
-import {AffineOuterBilliardTable} from "./affine-billiard-table";
+import {AffineOuterBilliardTable, Straight} from "./affine-billiard-table";
 import {EuclideanRay} from "../geometry/euclidean-ray";
 
-const LENGTH_PREIMAGE_PIECES = 10000;
-const LENGTH_PREIMAGE_LENGTH = 30;
-
-export type AffineChord = {
-  startTime: number;
-  startAngle: number;
-  endTime: number;
-  endAngle: number;
-
-  p1: Vector2;
-  p2: Vector2;
-}
-
-export class Straight {
-  line: Line;
-
-  constructor(readonly start: Vector2,
-              readonly end: Vector2,
-              readonly infinite: boolean) {
-    this.line = Line.throughTwoPoints(Complex.fromVector2(start), Complex.fromVector2(end));
-  }
-
-  intersect(other: Straight): Vector2 | null {
-    let intersection: Vector2;
-    try {
-      intersection = this.line.intersectLine(other.line).toVector2();
-    } catch (e) {
-      return null;
-    }
-    const valid = this.containsPoint(intersection) && other.containsPoint(intersection);
-    return valid ? intersection : null;
-  }
-
-  containsPoint(point: Vector2): boolean {
-    if (!this.line.containsPoint(Complex.fromVector2(point))) return false;
-    const d1 = point.distanceTo(this.start);
-    const d2 = point.distanceTo(this.end);
-    // Between start and end
-    if (closeEnough(d1 + d2, this.start.distanceTo(this.end))) return true;
-    return this.infinite && d1 > d2;
-  }
-}
+const LENGTH_PREIMAGE_PIECES: number = 3000;
+const LENGTH_PREIMAGE_LENGTH: number = 20;
+const DL = LENGTH_PREIMAGE_LENGTH / LENGTH_PREIMAGE_PIECES;
+const DLI = LENGTH_PREIMAGE_PIECES / LENGTH_PREIMAGE_LENGTH;
 
 export class AffinePolygonTable extends AffineOuterBilliardTable {
   readonly n: number;
@@ -227,7 +189,7 @@ export class AffinePolygonTable extends AffineOuterBilliardTable {
     }
     for (let i = 0; i < iterations; i++) {
       console.clear();
-      console.log(frontier);
+      // console.log(frontier);
       preimages.push(...frontier);
       const newFrontier: Straight[] = [];
       for (let preimage of frontier) {
@@ -308,24 +270,35 @@ export class AffinePolygonTable extends AffineOuterBilliardTable {
   }
 
   outerLengthPreimages(iterations: number): Straight[] {
+    console.clear();
+    const start = Date.now();
+
     const preimages: Straight[] = [];
     let frontier: Straight[] = [];
-    const dl = LENGTH_PREIMAGE_LENGTH / LENGTH_PREIMAGE_PIECES;
+    // console.log(DL);
     for (let i = 0; i < this.n; i++) {
       const v1 = this.vertices[i];
       const v2 = this.vertices[(i + 1) % this.n];
+      const line = Line.throughTwoPoints(v1, v2);
       const diff = v1.clone().sub(v2).normalize();
-      for (let j = 0.001; j < LENGTH_PREIMAGE_PIECES; j++) {
+      for (let j = 0.000_001; j < LENGTH_PREIMAGE_PIECES; j++) {
         frontier.push(new Straight(
-          v1.clone().add(diff.clone().multiplyScalar(j * dl)),
-          v1.clone().add(diff.clone().multiplyScalar((j + 1) * dl)),
-          false));
-        preimages.push(new Straight(
-          v2.clone().sub(diff.clone().multiplyScalar(j * dl)),
-          v2.clone().sub(diff.clone().multiplyScalar((j + 1) * dl)),
-          false));
+          v1.clone().add(diff.clone().multiplyScalar(j * DL)),
+          v1.clone().add(diff.clone().multiplyScalar((j + 1) * DL)),
+          false,
+          line));
+        // preimages.push(new Straight(
+        //   v2.clone().sub(diff.clone().multiplyScalar(j * dl)),
+        //   v2.clone().sub(diff.clone().multiplyScalar((j + 1) * dl)),
+        //   false));
       }
     }
+    // console.log(`Set up initial frontier: ${Date.now() - start}ms`);
+
+    let total = 0;
+    let tiny = 0;
+    let split = 0;
+    let pieceCount = 0;
 
     for (let i = 0; i < iterations; i++) {
       for (let f of frontier) {
@@ -333,6 +306,7 @@ export class AffinePolygonTable extends AffineOuterBilliardTable {
       }
       const newFrontier: Straight[] = [];
       for (let segment of frontier) {
+        total++;
         let pieces: Straight[];
         try {
           pieces = this.slicePreimage(segment, true);
@@ -341,24 +315,29 @@ export class AffinePolygonTable extends AffineOuterBilliardTable {
           continue;
         }
         const extraPieces = [];
+        pieceCount += pieces.length;
         for (let piece of pieces) {
           try {
-            const mid = piece.start.clone().add(piece.end).multiplyScalar(0.5);
+            // const mid = piece.start.clone().add(piece.end).multiplyScalar(0.5);
             // If far away, skip
             // if (mid.lengthSq() > LENGTH_PREIMAGE_LENGTH * LENGTH_PREIMAGE_LENGTH) continue;
             // If tiny, skip
-            const l = piece.start.distanceTo(piece.end);
+            const l = piece.start.distanceToSquared(piece.end);
             // If tiny, skip
-            if (l < dl / 50) continue;
+            if (l < 0.000_000_1) {
+              tiny++;
+              continue;
+            }
             // if giant, break apart
-            if (l > 5 * dl) {
-              const n = Math.ceil(l / dl);
+            if (l > 0.05) {
+              split++;
+              const n = Math.ceil(l * DLI);
               const dd = l / n;
               const dv = piece.end.clone().sub(piece.start).normalize();
-              for (let i = 0; i < n; i++) {
+              for (let q = 0; q < n; q++) {
                 extraPieces.push(
-                  new Straight(piece.start.clone().addScaledVector(dv, i * dd),
-                    piece.start.clone().addScaledVector(dv, (i + 1) * dd), false)
+                  new Straight(piece.start.clone().addScaledVector(dv, q * dd),
+                    piece.start.clone().addScaledVector(dv, (q + 1) * dd), false)
                 );
               }
               continue;
@@ -383,6 +362,11 @@ export class AffinePolygonTable extends AffineOuterBilliardTable {
       }
       frontier = newFrontier;
     }
+    // console.log(`Iterations: ${iterations}`);
+    // console.log(`Preimage segments: ${preimages.length}`);
+    // console.log(`Time: ${Date.now() - start}ms`);
+    // console.log(`Tiny: ${tiny}/${pieceCount}`);
+    // console.log(`Split: ${split}/${pieceCount}`);
     return preimages;
   }
 

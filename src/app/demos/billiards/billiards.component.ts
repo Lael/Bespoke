@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild} from "@angular/core";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import * as THREE from 'three';
 import {
@@ -16,18 +16,23 @@ import {
   OrthographicCamera,
   Points,
   PointsMaterial,
-  Shape,
   SphereGeometry,
   Vector2,
   Vector3
 } from 'three';
-import * as dat from 'dat.gui';
 import {Duality, Generator, Geometry} from "../../../math/billiards/new-billiard";
-import {AffinePolygonTable, Straight} from "../../../math/billiards/affine-polygon-table";
-import {HyperbolicPolygonTable} from "../../../math/billiards/hyperbolic-polygon-table"
-import {HyperbolicModel, HyperGeodesic, HyperPoint} from "../../../math/hyperbolic/hyperbolic";
+import {AffinePolygonTable} from "../../../math/billiards/affine-polygon-table";
+import {
+  HyperbolicModel,
+  HyperGeodesic,
+  HyperPoint,
+  kleinToTrueDistance,
+  poincareToKleinDistance,
+  trueToPoincareDistance
+} from "../../../math/hyperbolic/hyperbolic";
 import {Complex} from "../../../math/complex/complex";
-import {fixTime, SphericalOuterBilliardTable} from "../../../math/billiards/tables";
+import {fixTime} from "../../../math/billiards/tables";
+import {SphericalOuterBilliardTable} from "../../../math/billiards/spherical-billiard-table";
 import {DragControls} from "three/examples/jsm/controls/DragControls.js";
 import {CommonModule} from "@angular/common";
 import {SphericalPolygonTable} from "../../../math/billiards/spherical-polygon-table";
@@ -36,7 +41,11 @@ import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {ChartConfiguration, ChartDataset} from "chart.js";
 import {Chart} from "chart.js/auto";
 import {normalizeAngle} from "../../../math/math-helpers";
-import {AffineInnerBilliardTable, AffineOuterBilliardTable} from "../../../math/billiards/affine-billiard-table";
+import {
+  AffineInnerBilliardTable,
+  AffineOuterBilliardTable,
+  Straight
+} from "../../../math/billiards/affine-billiard-table";
 import {ellipse, lpCircle} from "../../../math/billiards/affine-oval-table";
 import {AffineFlexigonTable} from "../../../math/billiards/affine-flexigon-table";
 import {Line2} from "three/examples/jsm/lines/Line2.js";
@@ -45,12 +54,19 @@ import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js";
 import {AffinePiecewiseTable} from "../../../math/billiards/affine-piecewise-table";
 import {LineSegmentsGeometry} from "three/examples/jsm/lines/LineSegmentsGeometry.js";
 import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
+
+import {GUI} from 'lil-gui';
+
 import JSZip from "jszip";
 import {saveAs} from "file-saver";
+import {ActivatedRoute} from "@angular/router";
+import {AffineEllipseTable} from "../../../math/billiards/affine-ellipse-table";
+import {emptyGrid, gridToMesh, paintVoxelLine, VoxelGrid} from "./voxel";
+import {HyperbolicPolygonTable} from "../../../math/billiards/hyperbolic-polygon-table";
 
 const SPHERE_COLOR: ColorRepresentation = 0xffffff;
 const SPHERE_TABLE_COLOR: ColorRepresentation = 0x123456;
-const SPHERE_SING_COLOR: ColorRepresentation = 0xff0000;
+const SPHERE_SING_COLOR: ColorRepresentation = 0xbb0000;
 const CHORDS_COLOR: ColorRepresentation = 0xffffff;
 const OUTER_ORBIT_COLOR: ColorRepresentation = 0x000000;
 const SPHERE_OUTER_ORBIT_COLOR: ColorRepresentation = 0x000000;
@@ -131,7 +147,12 @@ const CHART_CONFIG: ChartConfiguration = {
   },
 }
 
-const ANIMATION_FRAME_COUNT: number = 360;
+const ANIMATION_FRAME_COUNT: number = 200;
+const ANIMATION_FRAME_RATE: number = 60;
+// const ANIMATION_MIN_R: number = hyperbolicTilingRadius(5, 5);
+// const ANIMATION_MAX_R: number = hyperbolicTilingRadius(5, 4);
+const ANIMATION_MIN_R: number = 1.0;
+const ANIMATION_MAX_R: number = 0.8;
 
 function ding() {
   const audio = new Audio('assets/audio/ding.mp3');
@@ -145,8 +166,11 @@ function ding() {
   standalone: true,
   imports: [CommonModule]
 })
-export class BilliardsComponent extends ThreeDemoComponent implements AfterViewInit {
-  chartCanvas: HTMLCanvasElement | null = null;
+export class BilliardsComponent extends ThreeDemoComponent implements OnInit, AfterViewInit {
+  // chartCanvas: HTMLCanvasElement | null = null;
+
+  @Input('embedded')
+  embedded: boolean = false;
 
   orbitControls: OrbitControls;
   dragControls: DragControls;
@@ -158,7 +182,9 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
   animationRunning = false;
   animationFrame = 0;
   frameReady = true;
-  blobs: Blob[] = [];
+  grid: VoxelGrid | null = null;
+  mc: Mesh | null = null;
+  // blobs: Blob[] = [];
   // mediaRecorder: MediaRecorder | null = null;
   // stream: MediaStream | null = null;
   // recordedChunks: BlobPart[] = [];
@@ -167,7 +193,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
   billiardTypeParams = {
     duality: Duality.OUTER,
     generator: Generator.AREA,
-    geometry: Geometry.HYPERBOLIC,
+    geometry: Geometry.SPHERICAL,
   }
 
   tableParams: TableParams = {
@@ -199,7 +225,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
   drawParams = {
     model: 'Poincaré',
     singularities: true,
-    singularityIterations: 50,
+    singularityIterations: 25,
     singInterval: 0,
     orbit: false,
     start: false,
@@ -224,7 +250,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
   orbitDirty = true;
   drawDirty = true;
 
-  gui: dat.GUI;
+  gui: GUI | null = null;
 
   // Stuff on the screen
   // planarPlane: THREE.Mesh;
@@ -250,6 +276,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
   sphericalTable!: SphericalOuterBilliardTable
   affineOuterStart: Vector2 = new Vector2(4.444406348720879, 0.1280422279354999);
   hyperOuterStart: HyperPoint = HyperPoint.fromPoincare(new Vector2(0.5, 0.5));
+  sphereOuterStart: Vector2 = new Vector2(1, 1);
 
   lights: Light[] = [];
 
@@ -270,7 +297,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
   sphereSingularityMaterial: LineMaterial;
   outerOrbitPointMaterial: PointsMaterial;
   outerOrbitLineMaterial: LineMaterial;
-  chordMaterial: LineBasicMaterial;
+  chordMaterial: LineMaterial;
+  scaffoldMaterial: LineMaterial;
 
   // coordinate view
   coordScene: THREE.Scene;
@@ -284,8 +312,12 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
   phaseDots: Points = new Points();
   phaseMaterial: PointsMaterial;
 
-  constructor() {
+  constructor(private route: ActivatedRoute) {
     super();
+
+    if (this.embedded) {
+      this.showStats = false;
+    }
 
     this.useOrthographic = true;
     this.camera.zoom = 0.5;
@@ -300,21 +332,25 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     this.dragControls.addEventListener('dragend', this.affineVertexDragEnd.bind(this));
 
     // Color scheme
-    this.colorScheme.register('clear', 0xF0F1EB, 0x0a2933);
-    this.colorScheme.register('disk', 0x000000, 0xffffff);
-    this.colorScheme.register('outer_table_fill', 0x123456, 0xabcdef);
+    // this.colorScheme.register('clear', 0xF0F1EB, 0x0a2933);
     // this.colorScheme.register('outer_table_fill', 0x000000, 0xffffff);
-    this.colorScheme.register('outer_orbit', 0x000000, 0xffffff);
-    this.colorScheme.register('handle', 0x990044, 0x990044);
-    this.colorScheme.register('outer_singularity', 0xff0000, 0xff0000);
-    this.colorScheme.register('sphere', 0xffffff, 0xffffff);
-    this.colorScheme.register('sphere_singularity', SPHERE_SING_COLOR, SPHERE_SING_COLOR);
+    this.registerColor('clear', 0xffffff, 0x0a2933);
+    this.registerColor('disk', 0x000000, 0xffffff);
+    // this.registerColor('outer_table_fill', 0x123456, 0xabcdef);
+    this.registerColor('outer_table_fill', 0x0, 0xabcdef);
+    this.registerColor('outer_orbit', 0x000000, 0xffffff);
+    this.registerColor('handle', 0x990044, 0x990044);
+    this.registerColor('outer_singularity', 0x000000, 0xff4444);
+    // this.registerColor('outer_singularity', 0xbb0000, 0xff4444);
+    this.registerColor('sphere', 0xffffff, 0xffffff);
+    this.registerColor('sphere_singularity', SPHERE_SING_COLOR, SPHERE_SING_COLOR);
     this.registerColor('chord', 0xffffff, 0x000000);
+    this.registerColor('scaffold', 0x440044, 0xaa44aa);
 
     const path = new THREE.Path();
     path.absellipse(0, 0, 1, 1, 0, 2 * Math.PI, true, 0);
     const points = path.getPoints(128);
-    const diskGeometry = new LineGeometry().setPositions(points.flatMap(v => [v.x, v.y, 0]));
+    const diskGeometry = new LineGeometry().setPositions(points.flatMap(v => [v.x, v.y, 0.1]));
 
     this.diskMaterial = new LineMaterial({
       color: this.getColor('disk'),
@@ -350,12 +386,14 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     this.phaseMaterial = new PointsMaterial({
       color: this.getColor('outer_orbit')
     });
-    this.chordMaterial = new LineBasicMaterial();
+    this.chordMaterial = new LineMaterial();
     this.registerMaterial(this.chordMaterial, 'chord');
+    this.scaffoldMaterial = new LineMaterial();
+    this.registerMaterial(this.scaffoldMaterial, 'scaffold');
 
     this.hyperbolicDisk = new Line2(diskGeometry, this.diskMaterial);
     this.sphericalSphere = new Mesh(
-      new SphereGeometry(1, 180, 180),
+      new SphereGeometry(0.999, 180, 180),
       new MeshPhongMaterial({
         color: SPHERE_COLOR,
         opacity: 0.8,
@@ -372,8 +410,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
 
     this.resetAffineVertices();
 
-    this.gui = new dat.GUI();
-    this.updateGUI();
+    // this.gui = new lil.GUI();
+    // this.updateGUI();
 
     const al = new THREE.AmbientLight(0xffffff, 1);
     const dl = new THREE.DirectionalLight(0xffffff, 2);
@@ -397,7 +435,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     this.coordOrbit.zoomToCursor = true;
   }
 
-  async encodeVideoFromFrames(frames: Blob[], fps = 30) {
+  async encodeVideoFromFrames(frames: Blob[]) {
+    const offset = ANIMATION_FRAME_RATE * Math.floor(this.animationFrame / ANIMATION_FRAME_RATE);
     // await ffmpeg.load();
 
     // 1. Write each frame into ffmpeg's virtual FS
@@ -407,13 +446,100 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     // Save the generated zip file (browser-specific)
 
     for (let i = 0; i < frames.length; i++) {
-      const name = `frame-${String(i).padStart(3, '0')}.png`;
+      const name = `frame-${String(offset + i).padStart(3, '0')}.png`;
       zip.file(name, frames[i]);
     }
 
     // Generate the zip file as a blob
     const content = await zip.generateAsync({type: "blob"});
     saveAs(content, "frames.zip");
+  }
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      // Enums
+      if (params.hasOwnProperty('duality')) this.billiardTypeParams.duality = this.readDuality(params['duality']);
+      if (params.hasOwnProperty('generator')) this.billiardTypeParams.generator = this.readGenerator(params['generator']);
+      if (params.hasOwnProperty('geometry')) this.billiardTypeParams.geometry = this.readGeometry(params['geometry']);
+      if (params.hasOwnProperty('tableType')) this.tableParams.tableType = this.readTableType(params['tableType']);
+
+      // Integers
+      if (params.hasOwnProperty('n')) this.tableParams.polygonParams.n = parseInt(params['n']);
+      if (params.hasOwnProperty('iterations')) this.gameParams.iterations = parseInt(params['iterations']);
+      if (params.hasOwnProperty('singularityIterations')) this.drawParams.singularityIterations = parseInt(params['singularityIterations']);
+      if (params.hasOwnProperty('connectEvery')) this.drawParams.connectEvery = parseInt(params['connectEvery']);
+
+      // Floats
+      if (params.hasOwnProperty('r')) this.tableParams.polygonParams.r = parseFloat(params['r']);
+      if (params.hasOwnProperty('startX')) this.affineOuterStart.x = parseFloat(params['startX']);
+      if (params.hasOwnProperty('startY')) this.affineOuterStart.y = parseFloat(params['startY']);
+      if (params.hasOwnProperty('eccentricity')) this.tableParams.ellipseParams.eccentricity = parseFloat(params['eccentricity']);
+
+      // Booleans
+      if (params.hasOwnProperty('singularities')) this.drawParams.singularities = params['singularities'].toLowerCase() === 'true';
+      if (params.hasOwnProperty('centers')) this.drawParams.centers = params['centers'].toLowerCase() === 'true';
+      if (params.hasOwnProperty('orbit')) this.drawParams.orbit = params['orbit'].toLowerCase() === 'true';
+      if (params.hasOwnProperty('start')) this.drawParams.start = params['start'].toLowerCase() === 'true';
+      if (params.hasOwnProperty('scaffold')) this.drawParams.scaffold = params['scaffold'].toLowerCase() === 'true';
+
+      // Lock in changes
+      this.updateTableParams();
+      this.gui?.close();
+    });
+  }
+
+  private readGeometry(geo: string): Geometry {
+    switch (geo.toLowerCase()) {
+    case 'euclidean':
+      return Geometry.EUCLIDEAN;
+    case 'hyperbolic':
+      return Geometry.HYPERBOLIC;
+    case 'spherical':
+      return Geometry.SPHERICAL;
+    default:
+      return this.billiardTypeParams.geometry;
+    }
+  }
+
+  private readDuality(duality: string): Duality {
+    switch (duality.toLowerCase()) {
+    case 'inner':
+      return Duality.INNER;
+    case 'outer':
+      return Duality.OUTER;
+    default:
+      return this.billiardTypeParams.duality;
+    }
+  }
+
+  private readGenerator(gen: string): Generator {
+    switch (gen.toLowerCase()) {
+    case 'area':
+      return Generator.AREA;
+    case 'length':
+      return Generator.LENGTH;
+    default:
+      return this.billiardTypeParams.generator;
+    }
+  }
+
+  private readTableType(tt: string): TableType {
+    switch (tt.toLowerCase()) {
+    case 'polygon':
+      return TableType.POLYGON;
+    case 'ellipse':
+      return TableType.ELLIPSE;
+    case 'superellipse':
+      return TableType.SUPERELLIPSE;
+    case 'semidisk':
+      return TableType.SEMIDISK;
+    case 'lens':
+      return TableType.LENS;
+    case 'flexigon':
+      return TableType.FLEXIGON;
+    default:
+      return this.tableParams.tableType;
+    }
   }
 
   // private pickSupportedMimeType(): string {
@@ -433,9 +559,11 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
   // }
 
   private startRecording() {
+    this.scene.clear();
     this.animationRunning = true;
     this.animationFrame = 0;
     this.frameReady = true;
+    this.grid = emptyGrid();
     console.log('start');
     // this.stream = this.renderer.domElement.captureStream(0);
     // if (!this.stream) {
@@ -464,6 +592,13 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     // this.mediaRecorder.start();
   }
 
+  private cancelRecording() {
+    console.log('cancel');
+    this.animationRunning = false;
+    this.animationFrame = 0;
+    // this.blobs = [];
+  }
+
   private stopRecording() {
     // if (this.mediaRecorder !== null) {
     //   this.mediaRecorder.stop();
@@ -473,15 +608,36 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     console.log('stop');
     this.animationRunning = false;
     this.animationFrame = 0;
-    this.encodeVideoFromFrames(this.blobs).then(() => {
-      console.log('done processing');
-      ding();
-    });
-    this.blobs = [];
+
+    if (this.grid) {
+      const mesh = gridToMesh(this.grid);
+      console.log(mesh);
+      this.mc = mesh;
+      this.mc.material = this.sphereMaterial;
+    }
+
+
+    console.log('updated');
+    this.drawDirty = true;
+
+    this.grid = null;
+    // this.encodeVideoFromFrames(this.blobs).then(() => {
+    //   console.log('done processing');
+    //   ding();
+    // });
+    // this.blobs = [];
   }
 
   private processKeyboardInput(dt: number): void {
+    if (this.keyJustPressed('KeyT')) {
+      console.log(JSON.stringify(this.billiardTypeParams));
+      console.log(JSON.stringify(this.tableParams));
+      console.log(JSON.stringify(this.drawParams));
+    }
     if (this.animationRunning) {
+      if (this.keyJustPressed('Escape')) {
+        this.cancelRecording();
+      }
       if (this.keyJustPressed('KeyS')) {
         this.stopRecording();
       }
@@ -564,18 +720,18 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
       this.camera.position.x = 0;
       this.camera.position.y = 0;
       this.camera.zoom = 0.05;
-      this.orthographicDiagonal = 0.6;
+      this.orthographicDiagonal = 0.51;
       this.updateOrthographicCamera();
       this.orbitControls.reset();
     }
     if (this.keyJustPressed('KeyP')) {
       this.printScreen(800, 800);
     }
-    if (this.geometry === Geometry.EUCLIDEAN &&
-      this.duality === Duality.OUTER &&
-      this.keyJustPressed('KeyK')) {
-      this.setKite();
-    }
+    // if (this.geometry === Geometry.EUCLIDEAN &&
+    //   this.duality === Duality.OUTER &&
+    //   this.keyJustPressed('KeyK')) {
+    //   this.setKite();
+    // }
     // Test point
     const pointDiff = new Vector2();
     if (this.keysPressed.get('ArrowLeft')) pointDiff.x -= 1;
@@ -588,16 +744,22 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     if (this.keysPressed.get('AltLeft')) pointDiff.multiplyScalar(0.01);
     if (this.duality === Duality.OUTER) {
       const startPointDiff = pointDiff.multiplyScalar(0.5 * dt / this.camera.zoom);
-      if (this.geometry === Geometry.EUCLIDEAN || this.geometry === Geometry.SPHERICAL) {
+      switch (this.geometry) {
+      case Geometry.EUCLIDEAN:
         this.affineOuterStart.add(startPointDiff);
         this.orbitDirty = true;
-      } else {
+        break;
+      case Geometry.HYPERBOLIC:
         const current = this.hyperOuterStart.resolve(this.model);
         const diff = startPointDiff.multiplyScalar(1 / (1 + current.modulusSquared()));
         const newPoint = current.plus(Complex.fromVector2(diff));
         if (newPoint.modulusSquared() > 0.999) return;
         this.hyperOuterStart = new HyperPoint(newPoint, this.model);
         this.orbitDirty = true;
+        break;
+      case Geometry.SPHERICAL:
+        this.sphereOuterStart.add(startPointDiff);
+        break;
       }
     } else {
       this.gameParams.startTime += pointDiff.x * 0.05 * dt;
@@ -610,25 +772,30 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
   }
 
   override render() {
-    if (this.animationRunning && this.frameReady) {
-      this.frameReady = false;
+    // if (this.animationRunning && this.frameReady) {
+    if (this.animationRunning) {
+      // this.frameReady = false;
       // let size = new Vector2();
       // this.renderer.getSize(size);
       // this.renderer.setSize(3840, 2160);
       this.renderer.render(this.scene, this.camera);
-      const start = Date.now();
+      // const start = Date.now();
       // this.updateOrthographicCamera(3840, 2160);
-      this.renderer.domElement.toBlob((blob) => {
-        if (blob) this.blobs.push(blob);
-        const end = Date.now();
-        console.log(`pushing blob took ${end - start} ms`);
-        this.frameReady = true;
-        this.animationFrame++;
-        console.log(`${this.animationFrame}/${ANIMATION_FRAME_COUNT}`);
-        if (this.animationFrame >= ANIMATION_FRAME_COUNT) {
-          this.stopRecording();
-        }
-      });
+      // this.renderer.domElement.toBlob((blob) => {
+      //   if (blob) this.blobs.push(blob);
+      //   if (this.blobs.length === 60) {
+      //     this.encodeVideoFromFrames(this.blobs).then(() => console.log('tranche downloaded'));
+      //     this.blobs = [];
+      //   }
+      //   const end = Date.now();
+      //   console.log(`pushing ${this.renderer.domElement.width}x${this.renderer.domElement.height} blob took ${end - start} ms`);
+      //   this.frameReady = true;
+      this.animationFrame++;
+      //   console.log(`${this.animationFrame}/${ANIMATION_FRAME_COUNT}`);
+      if (this.animationFrame > ANIMATION_FRAME_COUNT) {
+        this.stopRecording();
+      }
+      // });
       // this.renderer.setSize(size.x, size.y);
       // this.updateOrthographicCamera();
       // const tracks = this.stream?.getVideoTracks();
@@ -641,32 +808,37 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     }
   }
 
-  // override ngAfterViewInit() {
-  //   super.ngAfterViewInit();
-  //
-  //   this.chartCanvas = document.getElementById("chart") as HTMLCanvasElement;
-  //
-  //   if (this.chartCanvas === null) console.error("Could not initialize chart");
-  //   Chart.defaults.color = '#ffffff';
-  //   this.chart = new Chart((this.chartCanvas as HTMLCanvasElement),
-  //     CHART_CONFIG,
-  //   );
-  //
-  //   if (!this.coordHostElement) {
-  //     console.error('Missing container for coordinate renderer');
-  //     return;
-  //   }
-  //   this.coordRenderer.setSize(400, 400);
-  //   this.coordOrbit = new OrbitControls(this.coordCamera, this.coordRenderer.domElement);
-  //   this.coordOrbit.enableRotate = false;
-  //   this.coordOrbit.zoomToCursor = true;
-  //   this.coordHostElement.nativeElement.appendChild(this.coordRenderer.domElement);
-  //   super.ngAfterViewInit();
-  // }
+  override ngAfterViewInit() {
+    if (this.embedded) {
+      this.showStats = false;
+    } else {
+      this.updateGUI();
+    }
+    super.ngAfterViewInit();
+
+    // this.chartCanvas = document.getElementById("chart") as HTMLCanvasElement;
+    //
+    // if (this.chartCanvas === null) console.error("Could not initialize chart");
+    // Chart.defaults.color = '#ffffff';
+    // this.chart = new Chart((this.chartCanvas as HTMLCanvasElement),
+    //   CHART_CONFIG,
+    // );
+    //
+    // if (!this.coordHostElement) {
+    //   console.error('Missing container for coordinate renderer');
+    //   return;
+    // }
+    // this.coordRenderer.setSize(400, 400);
+    // this.coordOrbit = new OrbitControls(this.coordCamera, this.coordRenderer.domElement);
+    // this.coordOrbit.enableRotate = false;
+    // this.coordOrbit.zoomToCursor = true;
+    // this.coordHostElement.nativeElement.appendChild(this.coordRenderer.domElement);
+    // super.ngAfterViewInit();
+  }
 
   override ngOnDestroy() {
     super.ngOnDestroy();
-    this.gui.destroy();
+    if (this.gui) this.gui.destroy();
     this.coordHostElement?.nativeElement.removeChild(this.renderer.domElement);
     this.coordRenderer.dispose();
   }
@@ -675,7 +847,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     this.renderer.setClearColor(this.getColor('clear'));
     this.coordRenderer.setClearColor(this.getColor('clear'));
     this.diskMaterial.color.set(this.getColor('disk'));
-    this.diskMaterial.linewidth = this.drawParams.orbitSize;
+    this.diskMaterial.linewidth = this.drawParams.orbitSize + 2;
     this.diskMaterial.resolution.set(this.resolution.x, this.resolution.y);
     this.handleMaterial.color.set(this.getColor('handle'));
     this.tableFillMaterial.color.set(this.getColor('outer_table_fill'));
@@ -694,6 +866,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     this.outerOrbitLineMaterial.linewidth = this.drawParams.orbitSize;
     this.outerOrbitLineMaterial.resolution.set(this.resolution.x, this.resolution.y);
     this.phaseMaterial.color.set(this.getColor('outer_orbit'));
+    this.scaffoldMaterial.linewidth = this.drawParams.orbitSize;
+    this.scaffoldMaterial.resolution.set(this.resolution.x, this.resolution.y);
 
     if (this.drawParams.phase && this.duality === Duality.INNER) {
       this.coordRenderer.clear();
@@ -721,7 +895,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     this.processKeyboardInput(dt);
 
     if (this.animationRunning) {
-      this.tableParams.polygonParams.r = 1.2 - (1.1 * this.animationFrame) / ANIMATION_FRAME_COUNT;
+      this.tableParams.polygonParams.r = ANIMATION_MIN_R + (ANIMATION_MAX_R - ANIMATION_MIN_R)
+        * this.animationFrame / ANIMATION_FRAME_COUNT;
       this.tableDirty = true;
     }
 
@@ -761,17 +936,19 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
 
     if (this.tableDirty) this.updateTable();
     if (this.singularityDirty && this.drawParams.singularities && this.duality === Duality.OUTER) this.updateSingularities();
-    if (this.geometry === Geometry.HYPERBOLIC && this.duality === Duality.OUTER && this.hyperbolicTable.fresh) {
-      this.drawHyperbolicPreimages(this.hyperbolicTable.singularities);
-      this.hyperbolicTable.fresh = false;
-    }
+    // if (this.geometry === Geometry.HYPERBOLIC && this.duality === Duality.OUTER && this.hyperbolicTable.fresh) {
+    // this.drawHyperbolicPreimages(this.hyperbolicTable.singularities);
+    // this.hyperbolicTable.fresh = false;
+    // }
     if (this.orbitDirty) this.updateOrbit();
     if (this.drawDirty) this.updateDraw();
   }
 
   updateGUI() {
-    this.gui.destroy();
-    this.gui = new dat.GUI();
+    if (this.embedded) return;
+
+    if (this.gui) this.gui.destroy();
+    this.gui = new GUI();
 
     const billiardFolder = this.gui.addFolder('Billiard Type');
     billiardFolder.add(this.billiardTypeParams, 'duality').options(Object.values(Duality))
@@ -784,15 +961,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
       .name('Geometry')
       .onFinishChange(() => {
         this.cameraSwitch = true;
-        if (this.geometry === Geometry.HYPERBOLIC) {
-          switch (this.duality) {
-          case Duality.INNER:
-            this.billiardTypeParams.generator = Generator.LENGTH;
-            break;
-          case Duality.OUTER:
-            this.billiardTypeParams.generator = Generator.AREA;
-            break;
-          }
+        if (this.geometry !== Geometry.EUCLIDEAN) {
           this.tableParams.tableType = TableType.POLYGON;
         }
         this.updateBilliardTypeParams();
@@ -876,13 +1045,12 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
       drawFolder.add(this.drawParams, 'phase').name('Phase').onFinishChange(
         this.markDrawDirty.bind(this));
     }
-    if (this.geometry === Geometry.EUCLIDEAN &&
-      ((this.duality === Duality.OUTER && this.generator === Generator.LENGTH) ||
-        this.duality === Duality.INNER && this.generator === Generator.AREA)) {
+    if ((this.duality === Duality.OUTER && this.generator === Generator.LENGTH) ||
+      this.duality === Duality.INNER && this.generator === Generator.AREA) {
       drawFolder.add(this.drawParams, 'scaffold').name('Scaffold').onFinishChange(
         this.markOrbitDirty.bind(this));
     }
-    if (this.geometry === Geometry.EUCLIDEAN && this.duality === Duality.OUTER && this.generator === Generator.LENGTH) {
+    if (this.duality === Duality.OUTER && this.generator === Generator.LENGTH) {
       drawFolder.add(this.drawParams, 'centers').name('Centers').onFinishChange(
         this.markOrbitDirty.bind(this));
     }
@@ -919,8 +1087,6 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
         .min(3).max(20).step(1).name('Tiling').onFinishChange(this.makeTiling.bind(this));
     }
     gameFolder.open();
-
-    this.gui.open();
   }
 
   makeTiling() {
@@ -953,10 +1119,10 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     case Geometry.EUCLIDEAN:
       return;
     case Geometry.HYPERBOLIC:
-      r = this.hyperbolicTilingRadius();
+      r = hyperbolicTilingRadius(this.tableParams.polygonParams.n, this.gameParams.tilingPolygon);
       break;
     case Geometry.SPHERICAL:
-      r = this.sphericalTilingRadius();
+      r = sphericalTilingRadius(this.tableParams.polygonParams.n, this.gameParams.tilingPolygon);
       break;
     }
     if (r === undefined) return;
@@ -965,47 +1131,6 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     this.updateBilliardTypeParams();
   }
 
-  hyperbolicTilingRadius(): number | undefined {
-    const n = this.tableParams.polygonParams.n;
-    const k = this.gameParams.tilingPolygon;
-    const nint = (n - 2) * Math.PI / n;
-    const kint = (k - 2) * Math.PI / k;
-    if (2 * nint + 2 * kint <= 2 * Math.PI) return undefined;
-
-    const kext = 2 * n * Math.PI / k;
-
-    const t = Math.tan(Math.PI / n) * Math.tan(kext / (2 * n));
-    const po = Math.sqrt((1 - t) / (1 + t));
-    const ko = HyperPoint.poincareToKlein(po);
-    const kl = ko * Math.cos(Math.PI / n);
-    return HyperPoint.kleinToTrue(kl);
-  }
-
-  sphericalTilingRadius(): number | undefined {
-    const n = this.tableParams.polygonParams.n;
-    const k = this.gameParams.tilingPolygon;
-    if (1 / n + 1 / k <= 1 / 2) return undefined;
-    let m = Math.max(n, k);
-    let l;
-    switch (m) {
-    case 3:
-      l = Math.PI / 2;
-      break;
-    case 4:
-      l = Math.PI / 3;
-      break;
-    case 5:
-      l = Math.PI / 5;
-      break;
-    default:
-      console.log('nonsense');
-      return undefined;
-    }
-    // need radius of n-gon with side length l
-    let a = Math.cos(l);
-    let b = Math.cos(2 * Math.PI / n);
-    return Math.acos(Math.abs(Math.sqrt((b - a) / (b - 1))));
-  }
 
   setKite() {
     this.tableParams.polygonParams.n = 4;
@@ -1154,8 +1279,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
         shape = this.affineOuterTable.shape(90);
         break;
       case TableType.ELLIPSE:
-        this.affineOuterTable = ellipse(this.tableParams.ellipseParams.eccentricity);
-        this.affineInnerTable = ellipse(this.tableParams.ellipseParams.eccentricity);
+        this.affineOuterTable = new AffineEllipseTable(this.tableParams.ellipseParams.eccentricity);
+        this.affineInnerTable = new AffineEllipseTable(this.tableParams.ellipseParams.eccentricity);
         shape = this.affineOuterTable.shape(360);
         break;
       case TableType.SUPERELLIPSE:
@@ -1187,8 +1312,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     case Geometry.HYPERBOLIC:
       const hyperPoints = this.hyperbolicPoints();
       this.hyperbolicTable = new HyperbolicPolygonTable(hyperPoints);
-      let points = this.hyperbolicTable.interpolateVertices(this.model);
-      shape = new Shape(points);
+      shape = this.hyperbolicTable.shape(this.model);
       break;
     default:
       throw Error('Unknown geometry type:' + this.billiardTypeParams.geometry);
@@ -1217,21 +1341,30 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
   }
 
   updateSingularities() {
+    this.scene.remove(this.singularities);
     this.singularities = new THREE.Object3D();
     // if (this.duality !== Duality.OUTER || this.generator === Generator.AREA || !this.drawParams.singularities) return;
     this.singularityDirty = false;
     let preimages: Straight[];
     let points: Vector2[];
-    const geometry = new LineGeometry();
     const si = this.dragging ? Math.min(this.drawParams.singularityIterations, 1) : this.drawParams.singularityIterations;
     switch (this.geometry) {
     case Geometry.SPHERICAL:
       const lsp: Vector3[] = [];
       const spherePreimages = this.sphericalTable.preimages(this.generator, si);
       for (let sp of spherePreimages) {
-        const spp = sp.points(36, this.drawParams.stereograph);
+        const spp = sp.points(720, this.drawParams.stereograph);
         for (let i = 0; i < spp.length - 1; i++) {
           lsp.push(spp[i], spp[i + 1]);
+        }
+        if (this.animationRunning && this.grid !== null) {
+          const f: number = 1.0 - (1.0 - this.animationFrame / ANIMATION_FRAME_COUNT) * 0.2;
+          for (let i = 0; i < spp.length - 1; i++) {
+            paintVoxelLine(this.grid,
+              spp[i].clone().multiplyScalar(f),
+              spp[i + 1].clone().multiplyScalar(f)
+            );
+          }
         }
       }
       const buffer = new Float32Array(lsp.length * 3);
@@ -1282,7 +1415,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
       break;
     case Geometry.HYPERBOLIC:
       this.drawHyperbolicPreimages(
-        this.hyperbolicTable.preimages(this.generator, this.drawParams.singularityIterations, this.drawParams.singInterval)
+        this.hyperbolicTable.preimages(this.generator, this.drawParams.singularityIterations)
       );
       break;
     default:
@@ -1321,7 +1454,6 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     let nextPointPosition: Vector2;
     let geometry;
     let material;
-    const scaffoldmat = new LineBasicMaterial({color: SCAFFOLD_COLOR});
     const it = this.dragging ? Math.min(this.iterations, 2) : this.iterations;
     switch (this.duality) {
     case Duality.INNER:
@@ -1342,10 +1474,10 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
         const h2 = this.affineInnerTable.heading(chords[0].endTime);
         const diff = new Vector2(Math.cos(h2), Math.sin(h2)).multiplyScalar(10);
         const p3 = this.affineInnerTable.point(chords[1].endTime);
-        const sc = new THREE.Line(new BufferGeometry(), scaffoldmat);
-        sc.geometry.setFromPoints([p1, p3]);
-        const tl = new THREE.Line(new BufferGeometry(), scaffoldmat);
-        tl.geometry.setFromPoints([p2.clone().add(diff), p2.clone().sub(diff)]);
+        const sc = new Line2(new LineGeometry(), this.scaffoldMaterial);
+        populateLineGeometry(sc.geometry, [p1, p3]);
+        const tl = new Line2(new LineGeometry(), this.scaffoldMaterial);
+        populateLineGeometry(tl.geometry, [p2.clone().add(diff), p2.clone().sub(diff)]);
         this.scaffold.push(sc, tl);
       }
       const points = chords.map(chord => chord.p1);
@@ -1379,10 +1511,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
         ac = records.firstCircle;
         const fr = [];
         if (this.tableParams.tableType === TableType.POLYGON && this.tableParams.polygonParams.n === 4) {
-          console.clear();
           for (let o of orbit) {
             if (o.x > 1 && Math.abs(o.y) < 1) {
-              console.log(o.x, o.y);
               this.runawayPoints.push(o.clone());
               fr.push(o.clone());
             }
@@ -1399,18 +1529,19 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
         path.absellipse(ac.center.x, ac.center.y, ac.radius, ac.radius, 0, 2 * Math.PI, true, 0);
         const diskPoints = path.getPoints(Math.max(360));
 
-        const diskGeometry = new THREE.BufferGeometry().setFromPoints(diskPoints.concat([diskPoints[0]]));
-        this.scaffold.push(new THREE.Line(diskGeometry, scaffoldmat));
+        const lg = new LineGeometry();
+        populateLineGeometry(lg, diskPoints.concat([diskPoints[0]]));
+        this.scaffold.push(new Line2(lg, this.scaffoldMaterial));
 
         const rp = table.point(table.tangentTowardsPoint(orbit[0]));
         const fp = table.point(table.tangentFromPoint(orbit[0]));
         // const tp = table.rightTangentPoint(ac);
         const dr = orbit[0].clone().sub(rp).normalize().multiplyScalar(100);
         const df = orbit[0].clone().sub(fp).normalize().multiplyScalar(100);
-        const rtl = new THREE.Line(new BufferGeometry(), scaffoldmat);
-        const ftl = new THREE.Line(new BufferGeometry(), scaffoldmat);
-        rtl.geometry.setFromPoints([orbit[0].clone().add(dr), rp.clone().sub(dr)]);
-        ftl.geometry.setFromPoints([orbit[0].clone().add(df), fp.clone().sub(df)]);
+        const rtl = new Line2(new LineGeometry(), this.scaffoldMaterial);
+        const ftl = new Line2(new LineGeometry(), this.scaffoldMaterial);
+        populateLineGeometry(rtl.geometry, [orbit[0].clone().add(dr), rp.clone().sub(dr)]);
+        populateLineGeometry(ftl.geometry, [orbit[0].clone().add(df), fp.clone().sub(df)]);
         this.scaffold.push(
           rtl,
           ftl
@@ -1422,8 +1553,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
           const tp = table.point(table.tangentFromPoint(orbit[1]));
           // const df = orbit[0].clone().sub(orbit[1]).normalize().multiplyScalar(100);
           const dt = orbit[1].clone().sub(tp).normalize().multiplyScalar(100);
-          const ttl = new THREE.Line(new BufferGeometry(), scaffoldmat);
-          ttl.geometry.setFromPoints([orbit[1].clone().add(dt), tp.clone().sub(dt)]);
+          const ttl = new Line2(new LineGeometry(), this.scaffoldMaterial);
+          populateLineGeometry(ttl.geometry, [orbit[1].clone().add(dt), tp.clone().sub(dt)]);
           this.scaffold.push(ttl);
         }
       }
@@ -1491,19 +1622,19 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
         for (let i = 0; i < cseqs.length; i++) {
           const lineGeometry = new THREE.BufferGeometry().setFromPoints(cseqs[i]);
           const lineMaterial = new LineBasicMaterial({
-            color: 0xffaa00,
+            color: 0x00aa44,
             linewidth: this.drawParams.orbitSize
           });
           this.centers.push(new THREE.Line(lineGeometry, lineMaterial));
 
-          const midpoints = [];
-          for (let j = 0; j < centers.length - 1; j++) {
-            midpoints.push(centers[j].clone().add(centers[j + 1]).multiplyScalar(0.5));
-          }
-          this.centers.push(new Points(
-            new BufferGeometry().setFromPoints(midpoints),
-            new PointsMaterial({color: 0xaa00aa, size: 3})
-          ));
+          // const midpoints = [];
+          // for (let j = 0; j < centers.length - 1; j++) {
+          //   midpoints.push(centers[j].clone().add(centers[j + 1]).multiplyScalar(0.5));
+          // }
+          // this.centers.push(new Points(
+          //   new BufferGeometry().setFromPoints(midpoints),
+          //   new PointsMaterial({color: 0xaa00aa, size: 3})
+          // ));
         }
       }
       break;
@@ -1511,6 +1642,196 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     this.startPoint.position.set(startPointPosition.x, startPointPosition.y, 0.001);
     this.nextPoint.position.set(nextPointPosition.x, nextPointPosition.y, 0.001);
     this.nextPoint.visible = true;
+  }
+
+  hyperbolicOrbit() {
+    let startPointPosition: Vector2;
+    let nextPointPosition: Vector2;
+    let geometry;
+    let material;
+
+    let points: Vector2[];
+    switch (this.duality) {
+    case Duality.INNER:
+      const start = {time: this.gameParams.startTime, angle: this.gameParams.angle * Math.PI};
+
+      if (this.drawParams.scaffold && this.generator === Generator.AREA) {
+        const result = this.hyperbolicTable.innerArea(start, true);
+        console.log('hypercycle:', result.hyperCycle);
+        const cyclePoints = result.hyperCycle.interpolate(this.model);
+        this.scaffold.push(
+          new Line2(
+            populateLineGeometry(new LineGeometry(), cyclePoints), this.scaffoldMaterial
+          )
+        );
+      }
+
+      const chords = this.hyperbolicTable.iterateInner(
+        start,
+        this.generator,
+        this.iterations);
+      points = [];
+      for (let chord of chords) {
+        if (chord.geodesic) points.push(...chord.geodesic.interpolate(this.model, chord.start).map(c => c.toVector2()));
+      }
+
+      if (chords.length === 0) {
+        this.orbit = [];
+        this.nextPoint = new THREE.Mesh();
+        return;
+      }
+      geometry = new THREE.BufferGeometry().setFromPoints(points);
+      material = new THREE.LineBasicMaterial({color: CHORDS_COLOR});
+      this.orbit = [new THREE.Line(geometry, material)];
+      startPointPosition = chords[0].start.resolve(this.model).toVector2();
+      nextPointPosition = chords[0].end.resolve(this.model).toVector2();
+      this.startPoint.position.set(startPointPosition.x, startPointPosition.y, 0.001);
+      this.nextPoint.position.set(nextPointPosition.x, nextPointPosition.y, 0.001);
+      this.nextPoint.visible = true;
+      break;
+    case Duality.OUTER:
+      let orbit;
+      switch (this.generator) {
+      case Generator.LENGTH:
+        const records = this.hyperbolicTable.iterateOuterLength(this.hyperOuterStart, this.iterations);
+        orbit = records.orbit;
+        const circle = records.firstCircle;
+        if (this.drawParams.scaffold && circle) {
+          const circlePoints = circle.interpolate(this.model);
+          this.scaffold.push(
+            new Line2(
+              populateLineGeometry(new LineGeometry(), circlePoints), this.scaffoldMaterial
+            )
+          );
+        }
+        break;
+      case Generator.AREA:
+        orbit = this.hyperbolicTable.iterateOuterArea(this.hyperOuterStart, this.iterations);
+        break;
+      }
+      startPointPosition = this.hyperOuterStart.resolve(this.model).toVector2();
+      this.startPoint.position.set(startPointPosition.x, startPointPosition.y, 0.001);
+      if (orbit.length > 1) {
+        nextPointPosition = orbit[1].resolve(this.model).toVector2();
+        this.nextPoint.visible = true;
+        this.nextPoint.position.set(nextPointPosition.x, nextPointPosition.y, 0.001);
+      } else {
+        this.nextPoint.visible = false;
+      }
+      // else nextPointPosition = orbit[0].resolve(this.model).toVector2();
+
+
+      if (this.drawParams.connectEvery == 0) {
+        // geometry = new THREE.CircleGeometry(0.005, 16);
+        // material = new THREE.MeshBasicMaterial({color: OUTER_ORBIT_COLOR});
+        // this.orbit = [new THREE.InstancedMesh(geometry, material, orbit.length)];
+        // for (let i = 0; i < orbit.length; i++) {
+        //     (this.orbit[0] as THREE.InstancedMesh)
+        //         .setMatrixAt(i, new Matrix4().makeTranslation(
+        //             orbit[i].resolve(this.model).x,
+        //             orbit[i].resolve(this.model).y,
+        //             0));
+        // }
+        // (this.orbit[0] as THREE.InstancedMesh).instanceMatrix.needsUpdate = true;
+        this.orbit = [new THREE.Points(
+          new BufferGeometry().setFromPoints(orbit.map(pt => pt.resolve(this.model).toVector2())),
+          this.outerOrbitPointMaterial
+        )];
+        break;
+      }
+      if (orbit.length < 2) {
+        this.orbit = [];
+        break;
+      }
+      // connectEvery > 0
+      points = [];
+      for (let i = 0; i < orbit.length - 1; i++) {
+        const o1 = orbit[i];
+        const o2 = orbit[i + 1];
+        const g = new HyperGeodesic(o1, o2);
+        points.push(...g.interpolate(
+          this.model,
+          g.start,
+          true).map(c => c.toVector2()));
+      }
+      geometry = new LineGeometry().setPositions(points.flatMap(p => [p.x, p.y, 0]));
+      // material = new THREE.LineBasicMaterial({color: });
+      this.orbit = [new Line2(geometry, this.outerOrbitLineMaterial)];
+      break;
+    default:
+      throw Error('Unknown duality');
+    }
+  }
+
+  sphericalOrbit() {
+    switch (this.duality) {
+    case Duality.INNER:
+      break;
+    case Duality.OUTER:
+      if (this.generator === Generator.LENGTH) return;
+      let theta = this.affineOuterStart.x;
+      let phi = this.affineOuterStart.y;
+      let orbit = this.sphericalTable.iterateOuter(new SpherePoint(
+        new Vector3(
+          Math.sin(phi) * Math.cos(theta),
+          Math.sin(phi) * Math.sin(theta),
+          Math.cos(phi),
+        )
+      ), this.iterations);
+
+      const ce = this.drawParams.connectEvery;
+      if (ce === 0) {
+        let vectors;
+        if (this.drawParams.stereograph) {
+          vectors = orbit[0].map(sp => sp.stereographic);
+        } else {
+          vectors = orbit[0].map(sp => sp.coords.clone().multiplyScalar(1.001));
+        }
+        this.orbit = [
+          new Points(
+            new BufferGeometry().setFromPoints(vectors),
+            new PointsMaterial({color: SPHERE_OUTER_ORBIT_COLOR})
+          )
+        ];
+      } else if (ce === 1) {
+        const line = [];
+        for (let i = 0; i < orbit[0].length - 1; i++) {
+          line.push(...new SphericalArc(orbit[0][i], orbit[1][i]).points(36, this.drawParams.stereograph));
+          line.push(...new SphericalArc(orbit[1][i], orbit[0][i + 1]).points(36, this.drawParams.stereograph));
+        }
+        this.orbit = [
+          new Line(
+            new BufferGeometry().setFromPoints(line),
+            new LineBasicMaterial({color: SPHERE_OUTER_ORBIT_COLOR}),
+          )
+        ];
+      } else {
+        let paths: Vector3[][] = [];
+        for (let i = 0; i < ce; i++) {
+          paths.push([]);
+        }
+        for (let i = 0; i < orbit[0].length - 1; i++) {
+          paths[i % ce].push(...new SphericalArc(orbit[0][i], orbit[0][i + 1]).points(36, this.drawParams.stereograph));
+        }
+        this.orbit = paths.map(path => new Line(
+          new BufferGeometry().setFromPoints(path),
+          new LineBasicMaterial({color: SPHERE_OUTER_ORBIT_COLOR}),
+        ));
+      }
+
+      if (orbit.length === 0) return;
+      let start = this.drawParams.stereograph ? orbit[0][0].stereographic : orbit[0][0].coords;
+      this.startPoint.position.set(start.x, start.y, start.z);
+      if (orbit[0].length > 1) {
+        let end = this.drawParams.stereograph ? orbit[0][1].stereographic : orbit[0][1].coords;
+        this.nextPoint.visible = true;
+        this.nextPoint.position.set(end.x, end.y, end.z);
+      } else {
+        this.nextPoint.visible = false;
+      }
+      break;
+    }
+    return;
   }
 
   updateOrbit() {
@@ -1521,151 +1842,15 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     this.scaffold = [];
     this.centers = [];
 
-    let startPointPosition: Vector2;
-    let nextPointPosition: Vector2;
-    let geometry;
-    let material;
     switch (this.geometry) {
     case Geometry.SPHERICAL:
-      switch (this.duality) {
-      case Duality.INNER:
-        break;
-      case Duality.OUTER:
-        if (this.generator === Generator.LENGTH) return;
-        let theta = this.affineOuterStart.x;
-        let phi = this.affineOuterStart.y;
-        let orbit = this.sphericalTable.iterateOuter(new SpherePoint(
-          new Vector3(
-            Math.sin(phi) * Math.cos(theta),
-            Math.sin(phi) * Math.sin(theta),
-            Math.cos(phi),
-          )
-        ), this.iterations);
-
-        const ce = this.drawParams.connectEvery;
-        if (ce === 0) {
-          let vectors;
-          if (this.drawParams.stereograph) {
-            vectors = orbit[0].map(sp => sp.stereographic);
-          } else {
-            vectors = orbit[0].map(sp => sp.coords.clone().multiplyScalar(1.001));
-          }
-          this.orbit = [
-            new Points(
-              new BufferGeometry().setFromPoints(vectors),
-              new PointsMaterial({color: SPHERE_OUTER_ORBIT_COLOR})
-            )
-          ];
-        } else if (ce === 1) {
-          const line = [];
-          for (let i = 0; i < orbit[0].length - 1; i++) {
-            line.push(...new SphericalArc(orbit[0][i], orbit[1][i]).points(36, this.drawParams.stereograph));
-            line.push(...new SphericalArc(orbit[1][i], orbit[0][i + 1]).points(36, this.drawParams.stereograph));
-          }
-          this.orbit = [
-            new Line(
-              new BufferGeometry().setFromPoints(line),
-              new LineBasicMaterial({color: SPHERE_OUTER_ORBIT_COLOR}),
-            )
-          ];
-        } else {
-          let paths: Vector3[][] = [];
-          for (let i = 0; i < ce; i++) {
-            paths.push([]);
-          }
-          for (let i = 0; i < orbit[0].length - 1; i++) {
-            paths[i % ce].push(...new SphericalArc(orbit[0][i], orbit[0][i + 1]).points(36, this.drawParams.stereograph));
-          }
-          this.orbit = paths.map(path => new Line(
-            new BufferGeometry().setFromPoints(path),
-            new LineBasicMaterial({color: SPHERE_OUTER_ORBIT_COLOR}),
-          ));
-        }
-
-        if (orbit.length === 0) return;
-        let start = this.drawParams.stereograph ? orbit[0][0].stereographic : orbit[0][0].coords;
-        this.startPoint.position.set(start.x, start.y, start.z);
-        if (orbit[0].length > 1) {
-          let end = this.drawParams.stereograph ? orbit[0][1].stereographic : orbit[0][1].coords;
-          this.nextPoint.visible = true;
-          this.nextPoint.position.set(end.x, end.y, end.z);
-        } else {
-          this.nextPoint.visible = false;
-        }
-        break;
-      }
-      return;
+      this.sphericalOrbit();
+      break;
     case Geometry.EUCLIDEAN:
       this.euclideanOrbit();
       break;
     case Geometry.HYPERBOLIC:
-      let points: Vector2[];
-      switch (this.duality) {
-      case Duality.INNER:
-        const chords = this.hyperbolicTable.iterateInner(
-          {time: this.gameParams.startTime, angle: this.gameParams.angle * Math.PI},
-          this.generator,
-          this.iterations);
-        points = [];
-        for (let chord of chords) {
-          points.push(...chord.interpolate(this.model, chord.start).map(c => c.toVector2()));
-        }
-        if (chords.length === 0) {
-          this.orbit = [];
-          this.nextPoint = new THREE.Mesh();
-          return;
-        }
-        geometry = new THREE.BufferGeometry().setFromPoints(points);
-        material = new THREE.LineBasicMaterial({color: CHORDS_COLOR});
-        this.orbit = [new THREE.Line(geometry, material)];
-        startPointPosition = chords[0].start.resolve(this.model).toVector2();
-        nextPointPosition = chords[0].end.resolve(this.model).toVector2();
-        this.startPoint.position.set(startPointPosition.x, startPointPosition.y, 0.001);
-        this.nextPoint.position.set(nextPointPosition.x, nextPointPosition.y, 0.001);
-        this.nextPoint.visible = true;
-        break;
-      case Duality.OUTER:
-        const orbit = this.hyperbolicTable.iterateOuter(this.hyperOuterStart, this.generator, this.iterations);
-        startPointPosition = this.hyperOuterStart.resolve(this.model).toVector2();
-        if (orbit.length > 1) nextPointPosition = orbit[1].resolve(this.model).toVector2();
-        else nextPointPosition = orbit[0].resolve(this.model).toVector2();
-
-        if (this.drawParams.connectEvery == 0) {
-          // geometry = new THREE.CircleGeometry(0.005, 16);
-          // material = new THREE.MeshBasicMaterial({color: OUTER_ORBIT_COLOR});
-          // this.orbit = [new THREE.InstancedMesh(geometry, material, orbit.length)];
-          // for (let i = 0; i < orbit.length; i++) {
-          //     (this.orbit[0] as THREE.InstancedMesh)
-          //         .setMatrixAt(i, new Matrix4().makeTranslation(
-          //             orbit[i].resolve(this.model).x,
-          //             orbit[i].resolve(this.model).y,
-          //             0));
-          // }
-          // (this.orbit[0] as THREE.InstancedMesh).instanceMatrix.needsUpdate = true;
-          this.orbit = [new THREE.Points(
-            new BufferGeometry().setFromPoints(orbit.map(pt => pt.resolve(this.model).toVector2())),
-            new PointsMaterial({color: OUTER_ORBIT_COLOR})
-          )];
-          break;
-        }
-        // connectEvery > 0
-        points = [];
-        for (let i = 0; i < orbit.length - 1; i++) {
-          const o1 = orbit[i];
-          const o2 = orbit[i + 1];
-          const g = new HyperGeodesic(o1, o2);
-          points.push(...g.interpolate(
-            this.model,
-            g.start,
-            true).map(c => c.toVector2()));
-        }
-        geometry = new THREE.BufferGeometry().setFromPoints(points);
-        material = new THREE.LineBasicMaterial({color: OUTER_ORBIT_COLOR});
-        this.orbit = [new THREE.Line(geometry, material)];
-        break;
-      default:
-        throw Error('Unknown duality');
-      }
+      this.hyperbolicOrbit();
       break;
     default:
       throw Error('Unknown geometry');
@@ -1676,13 +1861,18 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
 
   updateDraw() {
     this.drawDirty = false;
-    if (!this.keyHeld('KeyA')) this.scene.clear();
+    this.scene.clear();
+    if (this.mc) {
+      console.log('you should see it now');
+      this.scene.add(this.mc);
+      this.scene.add(...this.lights);
+      return;
+    }
     if (this.tableBoundary) {
       this.scene.add(this.tableBoundary);
     } else {
       this.scene.add(this.tableMesh);
     }
-    // this.scene.add(this.strip);
 
     if (this.tableParams.tableType === TableType.POLYGON) {
       if (this.draggables.length > 0) this.scene.add(...this.draggables);
@@ -1690,10 +1880,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
 
     switch (this.geometry) {
     case Geometry.EUCLIDEAN:
-      // this.scene.add(this.planarPlane);
       break;
     case Geometry.HYPERBOLIC:
-      // this.scene.add(this.hyperbolicPlane);
       this.scene.add(this.hyperbolicDisk);
       break;
     case Geometry.SPHERICAL:
@@ -1704,12 +1892,11 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
       }
       break;
     }
-
     if (this.duality === Duality.OUTER && this.drawParams.singularities) this.scene.add(this.singularities);
 
     if (this.drawParams.scaffold && this.scaffold.length > 0) this.scene.add(...this.scaffold);
 
-    if (this.drawParams.orbit) {
+    if (this.drawParams.orbit && this.orbit.length > 0) {
       this.scene.add(...this.orbit);
     }
     if (this.drawParams.start) {
@@ -1747,59 +1934,58 @@ export class BilliardsComponent extends ThreeDemoComponent implements AfterViewI
     const offset = Math.PI / n - Math.PI / 2;
     for (let i = 0; i < n; i++) {
       const theta = i * dtheta + offset;
-      const c = Complex.polar(HyperPoint.trueToPoincare(r), theta);
+      const c = Complex.polar(trueToPoincareDistance(r), theta);
       points.push(HyperPoint.fromPoincare(c));
     }
     return points;
   }
 
-  // hyperbolicNecklaces(steps: number): HyperbolicPolygon[][] {
-  //     const n = this.tableParams.polygonParams.n;
-  //     const k = this.gameParams.tilingPolygon;
-  //     const l = this.hyperbolicTilingRadius();
-  //     if (!l) {
-  //         return [[this.hyperbolicTable.polygon]];
-  //     }
-  //     const polygons = [[this.hyperbolicTable.polygon]];
-  //     let oldFrontier: HyperPoint[] = [];
-  //     for (let i = 0; i < steps; i++) {
-  //         const newFrontier = [];
-  //         for (let polygon of polygons[polygons.length - 1]) {
-  //             for (let v of polygon.vertices) {
-  //                 for (let f of oldFrontier) {
-  //                     if (v.distance(f) > l / 2) {
-  //                         newFrontier.push(v);
-  //                     }
-  //                 }
-  //             }
-  //         }
-  //         const newPolygons: HyperbolicPolygon[] = [];
-  //         const q = i % 2 == 0 ? k : n;
-  //         for (let j = 0; j < newFrontier.length; j++) {
-  //             const v1 = newFrontier[j];
-  //             const v2 = newFrontier[(j + 1) % newFrontier.length];
-  //             // need to check first and last
-  //             let already = false;
-  //             if (newPolygons.length > 0) {
-  //                 for (let polygon of [newPolygons[0], newPolygons[newPolygons.length - 1]]) {
-  //                     let av1 = false;
-  //                     let av2 = false;
-  //                     for (let v of polygon.vertices) {
-  //                         if (v.distance(v1) < l / 2) av1 = true;
-  //                         if (v.distance(v2) < l / 2) av2 = true;
-  //                     }
-  //                     if (av1 && av2) {
-  //                         already = true;
-  //                         break;
-  //                     }
-  //                 }
-  //             }
-  //             if (already) continue;
-  //             newPolygons.push(HyperbolicPolygon.regular(q, v2, v1));
-  //         }
-  //         oldFrontier = newFrontier;
-  //         polygons.push(newPolygons);
-  //     }
-  // }
   protected readonly Duality = Duality;
+}
+
+function hyperbolicTilingRadius(n: number, k: number): number {
+  const nint = (n - 2) * Math.PI / n;
+  const kint = (k - 2) * Math.PI / k;
+  if (2 * nint + 2 * kint <= 2 * Math.PI) throw Error('nonsense');
+
+  const kext = 2 * n * Math.PI / k;
+
+  const t = Math.tan(Math.PI / n) * Math.tan(kext / (2 * n));
+  const po = Math.sqrt((1 - t) / (1 + t));
+  const ko = poincareToKleinDistance(po);
+  const kl = ko * Math.cos(Math.PI / n);
+  return kleinToTrueDistance(kl);
+}
+
+function sphericalTilingRadius(n: number, k: number): number {
+  if (1 / n + 1 / k <= 1 / 2) return -1;
+  let m = Math.max(n, k);
+  let l;
+  switch (m) {
+  case 3:
+    l = Math.PI / 2;
+    break;
+  case 4:
+    l = Math.PI / 3;
+    break;
+  case 5:
+    l = Math.PI / 5;
+    break;
+  default:
+    throw Error('nonsense');
+  }
+  // need radius of n-gon with side length l
+  let a = Math.cos(l);
+  let b = Math.cos(2 * Math.PI / n);
+  return Math.acos(Math.abs(Math.sqrt((b - a) / (b - 1))));
+}
+
+function populateLineGeometry(geo: LineGeometry, pts: (Vector2 | Complex)[] | Vector3[], z: number = 0): LineGeometry {
+  if (pts.length === 0) return geo;
+  geo.setPositions(pts.flatMap(v => {
+      if (v instanceof Vector3) return [v.x, v.y, v.z];
+      else return [v.x, v.y, z];
+    })
+  );
+  return geo;
 }

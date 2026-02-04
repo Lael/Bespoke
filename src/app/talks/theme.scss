@@ -1,0 +1,29 @@
+@use "sass:color";
+
+:root {
+  --r-background-color: #F0F1EB;
+  --r-main-color: #000;
+  --r-heading-color: #0A2933;
+  --r-link-color: #0f4059;
+  --r-link-color-hover: color.scale(--r-link-color, $lightness: 20%);
+  --r-selection-background-color: #26351C;
+  --r-heading-text-shadow: none;
+  --r-heading-text-transform: none;
+  --r-main-font: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+  --r-heading-font: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --r-background-color: #0A2933;
+    --r-main-color: #FFF;
+    --r-heading-color: #F0F1EB;
+    --r-link-color: #467991;
+    --r-link-color-hover: color.scale(--r-link-color, $lightness: 20%);
+    --r-selection-background-color: #26351C;
+    --r-heading-text-shadow: none;
+    --r-heading-text-transform: none;
+    --r-main-font: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+    --r-heading-font: 'Palatino Linotype', 'Book Antiqua', Palatino, FreeSerif, serif;
+  }
+}

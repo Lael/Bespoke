@@ -1,0 +1,552 @@
+<div class="reveal">
+    <div class="slides">
+        <!--    Title    -->
+        <section class="center">
+            <h2 class="talk-title">
+                Limiting Behavior in <br/>
+                Outer Length Billiards
+            </h2>
+            <h4>Hamiltonian Systems Seminar</h4>
+            <span>Lael Edwards-Costa</span><br/>
+            <span> 21 January 2026</span>
+        </section>
+
+        <!--    Usual, Symplectic, Outer    -->
+        <section>
+            <h3 class="slide-title">Four Billiards</h3>
+            <div class="r-stack">
+                <img class="large-image fragment"
+                     data-fragment-index="1"
+                     ngSrc="assets/images/hamiltonian/inner_length.png" width="600" height="480"
+                     alt="Inner length billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="2"
+                     ngSrc="assets/images/hamiltonian/inner_area.png" width="600" height="480"
+                     alt="Inner area billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="3"
+                     ngSrc="assets/images/hamiltonian/outer_area.png" width="600" height="480"
+                     alt="Outer area billiards">
+            </div>
+            <div class="r-stack">
+                <span class="fragment fade-in-then-out" data-fragment-index="1">1. Inner length (Birkhoff)</span>
+                <span class="fragment fade-in-then-out" data-fragment-index="2">2. Inner area (Symplectic)</span>
+                <span class="fragment fade-in-then-out" data-fragment-index="3">3. Outer area (Dual) </span>
+            </div>
+        </section>
+
+        <!--    Outer Billiards Facts    -->
+        <section>
+            <h3 class="slide-title">Outer Billiards</h3>
+            <div class="math-block">
+                <span class="math-heading">Facts:</span>
+                <ul>
+                    <li class="fragment">
+                        Invariant curves exist for sufficiently smooth tables (Moser)
+                    </li>
+                    <li class="fragment">
+                        Unbounded orbits exist for non-smooth tables:
+                        <ul>
+                            <li>half-disk (Dolgopyat–Fayad)</li>
+                            <li>irrational kites (Schwartz)</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Outer Billiards</h3>
+            <div class="math-block">
+                <span class="math-heading">Theorem (Albers–Caliz–Tabachnikov)</span>
+                <p class="math-text">
+                    Every distant outerArea billiard orbit approximates a scaled copy of the
+                    polar dual of the central symmetrization $K+(-K)$.
+                </p>
+            </div>
+        </section>
+        <section
+                data-background-iframe='/billiards?duality=Outer&generator=Area&geometry=Euclidean&tableType=semidisk&singularities=false&singularityIterations=0&orbit=true&start=true&connectEvery=2&scaffold=false&centers=false&iterations=12&startX=1.1654709844553763&startY=-0.09431445676463593'
+                data-preload
+                data-background-interactive>
+        </section>
+
+        <!--    Polygonal Case    -->
+        <section>
+            <h3 class="slide-title">Polygonal Case</h3>
+            <div class="figure">
+                <div class="r-stack">
+                    <img class="large-image"
+                         ngSrc="assets/images/eberly-talk/discontinuity_1.png"
+                         width="600"
+                         height="480"
+                         alt="Inner length billiards"/>
+                    <img class="large-image fragment"
+                         data-fragment-index="1"
+                         ngSrc="assets/images/eberly-talk/discontinuity_2.png"
+                         width="600"
+                         height="480"
+                         alt="Inner length billiards"/>
+                </div>
+                <span class="fragment" data-fragment-index="1">
+                            We exclude iterated preimages of side extensions from the domain of $T$.
+                        </span>
+            </div>
+        </section>
+        <!--    Triangle diagram    -->
+        <section
+                data-background-iframe="/billiards?geometry=euclidean&duality=outerArea&generator=length&tableType=polygon&singularities=true&singularityIterations=1&startX=1.5&startY=0.5&draw=true&start=true"
+                data-preload
+                data-background-interactive>
+        </section>
+
+        <!--    Three images    -->
+        <section class="center">
+            <div class="grid-2x2">
+                <div class="grid-cell" style="grid-area: 1 / 2 / 2 / 3">
+                    <span>Length</span>
+                </div>
+                <div class="grid-cell" style="grid-area: 1 / 3 / 2 / 4">
+                    <span>Area</span>
+                </div>
+                <div class="grid-cell" style="grid-area: 2 / 1 / 3 / 2">
+                    <div style="transform: rotate(-90deg)">
+                        <span>Inner</span>
+                    </div>
+                </div>
+                <div class="grid-cell" style="grid-area: 3 / 1 / 4 / 2">
+                    <div style="transform: rotate(-90deg)">
+                        <span>Outer</span>
+                    </div>
+                </div>
+
+                <img
+                        style="grid-area: 2 / 2 / 3 / 3"
+                        class="cell grid-cell"
+                        ngSrc="assets/images/hamiltonian/inner_length.png"
+                        width="1500"
+                        height="1204"
+                        alt="Inner length billiards"
+                />
+                <img
+                        style="grid-area: 2 / 3 / 3 / 4"
+                        class="cell grid-cell"
+                        ngSrc="assets/images/hamiltonian/inner_area.png"
+                        width="1500"
+                        height="1204"
+                        alt="Inner area billiards"
+                />
+                <img
+                        style="grid-area: 3 / 3 / 4 / 4"
+                        class="cell grid-cell"
+                        ngSrc="assets/images/hamiltonian/outer_area.png"
+                        width="1500"
+                        height="1204"
+                        alt="Outer area billiards"
+                />
+                <div style="grid-area: 3 / 2 / 4 / 3" class="text-cell grid-cell">
+                    <span class="cell-text">?</span>
+                </div>
+            </div>
+        </section>
+
+        <!--    Fourth    -->
+        <section>
+            <h3 class="slide-title">Four Billiards</h3>
+            <div class="figure">
+                <div class="r-stack">
+                    <img
+                            class="large-image"
+                            ngSrc="assets/images/hamiltonian/outer_length1.png"
+                            width="600"
+                            height="480"
+                            alt="Inner length billiards"
+                    />
+                    <img
+                            class="large-image fragment"
+                            ngSrc="assets/images/hamiltonian/outer_length2.png"
+                            width="600"
+                            height="480"
+                            alt="Inner length billiards"
+                    />
+                    <img
+                            class="large-image fragment"
+                            ngSrc="assets/images/hamiltonian/outer_length3.png"
+                            width="600"
+                            height="480"
+                            alt="Inner length billiards"
+                    />
+                    <img
+                            class="large-image fragment"
+                            ngSrc="assets/images/hamiltonian/outer_length.png"
+                            width="600"
+                            height="480"
+                            alt="Inner length billiards"
+                    />
+                </div>
+                <div><span>4. Outer length </span> <span class="fragment">(&#8220;Fourth&#8221; 🤷)</span></div>
+            </div>
+        </section>
+
+        <!--    Four images    -->
+        <section class="center">
+            <div class="grid-2x2">
+                <div class="grid-cell" style="grid-area: 1 / 2 / 2 / 3">
+                    <span>Length</span>
+                </div>
+                <div class="grid-cell" style="grid-area: 1 / 3 / 2 / 4">
+                    <span>Area</span>
+                </div>
+                <div class="grid-cell" style="grid-area: 2 / 1 / 3 / 2">
+                    <div style="transform: rotate(-90deg)">
+                        <span>Inner</span>
+                    </div>
+                </div>
+                <div class="grid-cell" style="grid-area: 3 / 1 / 4 / 2">
+                    <div style="transform: rotate(-90deg)">
+                        <span>Outer</span>
+                    </div>
+                </div>
+
+                <img
+                        style="grid-area: 2 / 2 / 3 / 3"
+                        class="cell grid-cell"
+                        ngSrc="assets/images/hamiltonian/inner_length.png"
+                        width="1500"
+                        height="1204"
+                        alt="Inner length billiards"
+                />
+                <img
+                        style="grid-area: 2 / 3 / 3 / 4"
+                        class="cell grid-cell"
+                        ngSrc="assets/images/hamiltonian/inner_area.png"
+                        width="1500"
+                        height="1204"
+                        alt="Inner area billiards"
+                />
+                <img
+                        style="grid-area: 3 / 3 / 4 / 4"
+                        class="cell grid-cell"
+                        ngSrc="assets/images/hamiltonian/outer_area.png"
+                        width="1500"
+                        height="1204"
+                        alt="Outer area billiards"
+                />
+                <img
+                        style="grid-area: 3 / 2 / 4 / 3"
+                        class="cell grid-cell"
+                        ngSrc="assets/images/hamiltonian/outer_length.png"
+                        width="1500"
+                        height="1204"
+                        alt="Outer length billiards"
+                />
+                <img
+                        style="grid-area: 3 / 2 / 4 / 3"
+                        class="fragment highlighted-cell grid-cell"
+                        ngSrc="assets/images/hamiltonian/outer_length.png"
+                        width="1500"
+                        height="1204"
+                        alt="Outer length billiards"
+                />
+            </div>
+        </section>
+
+        <!--    Smooth Case    -->
+        <section>
+            <h3 class="slide-title">Generating Function</h3>
+            <div class="figure" style="margin-top: -20px">
+                <div class="r-stack">
+                    <img ngSrc="assets/images/hamiltonian/generate1.png"
+                         width="600" height="380"
+                         alt="generating function 1">
+                    <img class="fragment"
+                         data-fragment-index="1"
+                         ngSrc="assets/images/hamiltonian/generate2.png"
+                         width="600" height="380"
+                         alt="generating function 2">
+                </div>
+                <p>
+                    Set $G(x,x')=|xA|+|Ax'|$.
+                    <span class="fragment" data-fragment-index="1">
+                                Then
+                        {{
+                            "$$ \\frac{\\partial\\left({\\color{darkblue}G(x,x')}+{\\color{darkred}G(x',x'')}\\right)}{\\partial x'} = 0\\iff B=T(A). $$"
+                        }}
+                            </span>
+                </p>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Generating Function</h3>
+            <div class="figure" style="margin-top: -20px">
+                <div class="r-stack">
+                    <img ngSrc="assets/images/hamiltonian/generator3.png"
+                         width="600" height="500"
+                         alt="generating function 3">
+                </div>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Generating Function</h3>
+            <div class="math-block">
+                        <span>
+                            $T$ is a monotone twist map:
+                            {{
+                                "$$ \\frac{\\partial^2 G(x,x')}{\\partial x \\partial x'} = " +
+                                "-\\frac{\\kappa(x)\\kappa(x')G(x,x')}{2\\sin^2\\frac{\\varphi}{2} } < 0 $$"
+                            }}
+                        </span>
+                <span class="fragment">
+                            and thus preserves the 2-form
+                    {{
+                        "$$ \\begin{align*}" +
+                        "\\omega &= -\\frac{\\partial^2 G(x,x')}{\\partial x \\partial x'} dx \\wedge dx' \\\\" +
+                        "&=\\cot\\left(\\frac{\\varphi}{2}\\right)\\left(\\frac{1}{|xA|}+\\frac{1}{|Ax'|}\\right)\\omega_0." +
+                        "\\end{align*} $$"
+                    }}
+                        </span>
+            </div>
+        </section>
+
+        <!--    Preliminaries    -->
+        <section>
+            <h3 class="slide-title">Preliminary Results</h3>
+            <div class="math-block">
+                <span class="math-heading">Lemma 1</span>
+                <p class="math-text">
+                    Ellipses are completely integrable; caustics are confocal ellipses.
+                </p>
+                <span class="math-heading fragment"
+                      data-fragment-index="1">Lemma 2</span>
+                <p class="math-text fragment"
+                   data-fragment-index="1">
+                    Outer length billiard about $K$ is uniformly close to outerArea area
+                    billiard about $K$.
+                </p>
+            </div>
+        </section>
+
+        <!--    Ellipses, back and forth     -->
+        <section
+                data-background-iframe='/billiards?duality=Outer&generator=Length&geometry=Euclidean&tableType=Ellipse&singularities=false&singularityIterations=0&orbit=true&start=true&connectEvery=0&scaffold=false&centers=false&iterations=10&startX=1.5&startY=0.5'
+                data-preload
+                data-background-interactive>
+        </section>
+
+        <section>
+            <h3 class="slide-title">Questions</h3>
+            <ol>
+                <li>Is there a similar KAM-type result?<span class="fragment">✅</span></li>
+                <li>What are the orbits at infinity?<span class="fragment">✅</span></li>
+                <li>Do the auxiliary circles do interesting things?<span class="fragment">✅</span></li>
+                <li>What do polygon discontinuity sets look like?<span class="fragment">💡</span></li>
+                <li>Are there escaping orbits?<span class="fragment">💡</span></li>
+            </ol>
+        </section>
+
+        <!--    Main results    -->
+        <section>
+            <h3 class="slide-title">Behavior &#8220;at Infinity&#8221;</h3>
+            <div class="math-block">
+                <span class="math-heading">Theorem 1 (a)</span>
+                <p class="math-text">
+                            <span class="fragment">
+                                Let {{ "$K\\in\\mathbb{R}^2$" }} be convex and let be $x$ be a
+                                non-singular point of the outerArea length billiard around $K$.
+                            </span>
+                    <span class="fragment">
+                                If {{ "$\\mathcal{O}$" }} is the “once around” orbit of $x$, then
+                        {{ "$\\mathcal{O}$" }} is contained in an annulus of thickness
+                                $C_1$ depending only on $K$.
+                            </span>
+                </p>
+
+                <p class="fragment">
+                    Simply put, distant orbits are approximately circular over bounded
+                    time intervals.
+                </p>
+            </div>
+        </section>
+        <section
+                data-background-iframe="/billiards?geometry=euclidean&duality=outerArea&generator=length&tableType=polygon&singularities=false&startX=20&startY=10&connectEvery=2&iterations=12&orbit=true"
+                data-preload
+                data-background-interactive>
+        </section>
+        <section>
+            <h3 class="slide-title">Proof Sketch</h3>
+            <div class="figure">
+                <div class="r-stack" style="margin-top: -20px">
+                    <img alt="Proof 1" ngSrc="assets/images/hamiltonian/proofA.png" width="600" height="500">
+                    <img alt="Proof 2" class="fragment" data-fragment-index="1"
+                         ngSrc="assets/images/hamiltonian/proofB.png" width="600" height="500">
+                    <img alt="Proof 3" class="fragment" data-fragment-index="2"
+                         ngSrc="assets/images/hamiltonian/proof_1.png" width="600" height="500">
+                    <img alt="Proof 4" class="fragment" data-fragment-index="3"
+                         ngSrc="assets/images/hamiltonian/proof_2.png" width="600" height="500">
+                    <img alt="Proof 5" class="fragment" data-fragment-index="4"
+                         ngSrc="assets/images/hamiltonian/proof_3.png" width="600" height="500">
+                    <img alt="Proof 6" class="fragment" data-fragment-index="5"
+                         ngSrc="assets/images/hamiltonian/proof_4.png" width="600" height="500">
+                </div>
+                <div class="r-stack">
+                    <span class="fragment fade-in-then-out"
+                          data-fragment-index="1">
+                        1. Replace table with line segment.
+                    </span>
+                    <span class="fragment fade-in-then-out"
+                          data-fragment-index="2">
+                        1. Replace table with line segment.
+                    </span>
+                    <span class="fragment fade-in-then-out" data-fragment-index="3">
+                        2. Lemma 1: $x$ and $T(x)$ lie on $E_1$.
+                    </span>
+                    <span class="fragment fade-in-then-out" data-fragment-index="4">
+                        3. Lemma 1: $T(x)$ and $T^2(x)$ lie on $E_2$.
+                    </span>
+                    <span class="fragment fade-in-then-out" data-fragment-index="5">
+                        4. Hausdorff distance from $E_1$ to $E_2$ ~ $|p_1r_2|+|p_2r_1|$.
+                    </span>
+                    <span class="fragment fade-in-then-out"
+                          data-fragment-index="6">5. Sum of radial displacements ~ perimeter of $K$. $\square$
+                    </span>
+                </div>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Behavior &#8220;at Infinity&#8221;</h3>
+            <div class="math-block">
+                <span class="math-heading">Theorem 1 (b)</span>
+                <p class="math-text">
+                    <span>Suppose $K$ is smooth with positive curvature.</span>
+                    <span class="fragment">
+                        Let {{ "$w(\\theta)$" }} be the width of $K$ as seen from angle {{ "$\\theta$" }} and let
+                        {{ "$ \\Omega = \\frac{r dr \\wedge d\\theta }{w(\\theta)} $" }}.
+                    </span>
+                    <span class="fragment">
+                        If {{ "$H(r,\\theta)= 2r$" }} and
+                        {{ "$X(r,\\theta)= -\\frac{2w(\\theta)}{r} \\partial_\\theta$" }},
+                    </span>
+                    <span class="fragment">
+                        then
+                        {{ "$$\\big|T^2(x) - \\Phi(x) \\big| \\leq C_2/|x|, $$" }}
+                        where {{ "$\\Phi$" }} is the time-1 flow of $X$ and $C_2$ depends only on $K.$
+                    </span>
+                </p>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Rate of Escape</h3>
+            <div class="math-block">
+                <span class="math-heading">Corollary 1</span>
+                <p class="math-text">
+                    For any $K$ and non-singular $x$,
+                    {{ "$|T^n(x)| = O(\\sqrt{n}).$" }}
+                </p>
+                <p class="fragment" data-fragment-index="1">
+                    Idea:
+                    $k$-th trip around the origin increases radius by $O(1)$, but takes $O(k)$ steps, so it takes
+                    $n=O(k^2)$ steps to reach distance {{ "$k = O(\\sqrt{n})$" }}.
+                </p>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">KAM-type Result</h3>
+            <div class="math-block">
+                <span class="math-heading">Corollary 2</span>
+                <p class="math-text">
+                    For smooth enough $K$, there are distant invariant curves and orbits cannot escape.
+                </p>
+                <p class="fragment" data-fragment-index="1">
+                    Idea: Moser's small twist theorem.
+                </p>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Auxiliary Circles</h3>
+            <div class="math-block">
+                <span class="math-heading">Theorem 2</span>
+                <p class="math-text">
+                    The auxiliary centers from the construction of the outerArea <em>length</em> billiard about $K$
+                    approximate curves similar to the distant orbits of the outerArea <em>area</em> billiard about $K$.
+                </p>
+            </div>
+        </section>
+
+        <!--    Auxiliary circles    -->
+        <section
+                data-background-iframe="/billiards?geometry=euclidean&duality=outerArea&generator=length&tableType=semidisk&singularities=false&centers=true&iterations=10&orbit=true&start=true&startX=1.5&startY=0.5&connectEvery=0"
+                data-preload
+                data-background-interactive>
+        </section>
+
+        <section>
+            <h3 class="slide-title">Proof Sketch</h3>
+            <img ngSrc="assets/images/hamiltonian/aux.png" width="600" height="376">
+            <div class="math-block">
+                <p style="margin-top: -20px">
+                    <span>Idea: $\varphi$ ~ {{ "$w(\\theta)/r$" }}, so $\rho$ ~ {{ "$r/w(\\theta)$" }}</span>
+                    <span class="fragment"> ~ radial function of $(K+(-K))^*$.</span>
+                    <span class="fragment"> However, the center leads orbit point by {{ "$\\pi / 2$" }}
+                        in argument.</span>
+                </p>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Conjectures</h3>
+            <div class="math-block">
+                <span class="math-heading">Conjecture 1</span>
+                <p class="math-text">
+                    The discontinuity set {{ "$\\Sigma$" }} satisfies {{ "$\\dim_H(\\Sigma)>1$" }} for every polygon.
+                </p>
+                <span class="math-heading fragment" data-fragment-index="1">Conjecture 2</span>
+                <p class="math-text fragment" data-fragment-index="1">
+                    Every polygon admits an unbounded orbit which is dense in the closure of {{ "$\\Sigma$" }}.
+                </p>
+                <span class="math-heading fragment" data-fragment-index="2">Conjecture 3</span>
+                <p class="math-text fragment" data-fragment-index="2">
+                    The square admits a disk of orbits which escape &#8220;as fast as possible.&#8221;
+                    That is, with $|T^n(x)|$ ~ {{ "$\\sqrt{n}.$" }}
+                </p>
+            </div>
+        </section>
+        <!--    Square    -->
+        <section
+                data-background-iframe="/billiards?geometry=euclidean&duality=outerArea&generator=length&tableType=polygon&n=4&singularities=true&singularityIterations=50&startX=1.5&startY=0.5"
+                data-preload
+                data-background-interactive>
+        </section>
+
+        <!--    References    -->
+        <section>
+            <h3 class="slide-title">References</h3>
+            <ol class="references">
+                <li>
+                    R. Schwartz. <em>Unbounded orbits for outerArea billiards</em>. Journal of
+                    Modern Dynamics, 2009.
+                </li>
+                <li>S. Tabachnikov. <em>Geometry and Billiards</em>. AMS, 2012.</li>
+                <li>
+                    P. Albers, A. C. Caliz, and S. Tabachnikov.
+                    <em>Outer symplectic billiard map at infinity</em>. 2025.
+                    <a href="https://arxiv.org/abs/2508.15142">arXiv</a>.
+                </li>
+                <li>
+                    L. Edwards-Costa,
+                    <em>Outer length billiards on polygons</em>. 2025.
+                    <a href="https://arxiv.org/abs/2510.11869">arXiv</a>.
+                </li>
+                <li>
+                    P. Albers, L. Edwards-Costa, and S. Tabachnikov.
+                    <em>Outer length billiards on a large scale</em>. 2025.
+                    <a href="https://arxiv.org/abs/2510.08370">arXiv</a>.
+                </li>
+                <li>
+                    <a href="https://lael.dev/billiards">https://lael.dev/billiards</a>
+                </li>
+            </ol>
+        </section>
+
+        <section class="center">
+            <h2>Thank you!</h2>
+        </section>
+    </div>
+</div>

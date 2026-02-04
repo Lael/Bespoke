@@ -1,82 +1,8 @@
 import {Complex} from "../complex/complex";
-import {ColorRepresentation, Mesh, Vector2, Vector3} from "three";
-import {Generator} from "./new-billiard";
+import {Vector2} from "three";
 import {LineSegment} from "../geometry/line-segment";
 import {AffineCircle} from "../geometry/affine-circle";
 import {Line} from "../geometry/line";
-import {closeEnough} from "../math-helpers";
-import {SpherePoint, SphericalArc} from "../geometry/spherical";
-import {ThickLine} from "../../graphics/thickline";
-
-export abstract class SphericalOuterBilliardTable {
-  abstract point(time: number): SpherePoint;
-
-  abstract time(point: SpherePoint): number;
-
-  abstract tangentVector(time: number): Vector3 | undefined;
-
-  abstract leftTangentPoint(point: SpherePoint): SpherePoint;
-
-  abstract rightTangentPoint(point: SpherePoint): SpherePoint;
-
-  abstract containsPoint(point: SpherePoint): boolean;
-
-  abstract pointOnBoundary(point: SpherePoint): boolean;
-
-  outer(point: SpherePoint, inverse = false): SpherePoint[] {
-    let invertPoint: SpherePoint;
-    if (inverse) {
-      invertPoint = this.leftTangentPoint(point);
-    } else {
-      invertPoint = this.rightTangentPoint(point);
-    }
-    return [point.reflectThrough(invertPoint), invertPoint];
-  }
-
-  iterateOuter(start: SpherePoint, iters: number): SpherePoint[][] {
-    if (this.containsPoint(start) || this.containsPoint(start.antipode)) {
-      console.log(`point or antipode is in interior of table: <${start.x}, ${start.y}>`);
-      return [[start], []];
-    }
-    if (this.pointOnBoundary(start) || this.pointOnBoundary(start.antipode)) {
-      console.log(`point or antipode  is on boundary of table: <${start.x}, ${start.y}>`);
-      return [[start], []];
-    }
-    const points = [start];
-    const centers = [];
-    let point = start;
-    for (let i = 0; i < iters; i++) {
-      let newPoint, center;
-      try {
-        [newPoint, center] = this.outer(point);
-        points.push(newPoint);
-        centers.push(center);
-      } catch (e) {
-        console.log(e);
-        return [points, centers];
-      }
-      point = newPoint;
-      if (closeEnough(newPoint.distanceTo(start), 0)) break;
-    }
-    return [points, centers];
-  }
-
-  mesh(n: number, color: ColorRepresentation, stereograph: boolean): Mesh {
-    let points = [];
-    for (let i = 0; i <= n; i++) {
-      points.push(this.point(i * (1.0 / n)).coords);
-    }
-    // return new ThickLine(points, 6, 0.1, 0xff0000).mesh;
-    return new ThickLine([
-      new Vector3(0, 1, 0),
-      new Vector3(0, 2, 0),
-      new Vector3(2, 2, 0),
-      new Vector3(2, 2, 2),
-    ], 12, 0.1, color).mesh;
-  }
-
-  abstract preimages(flavor: Generator, iterations: number): SphericalArc[];
-}
 
 export function fixTime(time: number): number {
   let t = time % 1;

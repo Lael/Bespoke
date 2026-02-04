@@ -9,13 +9,13 @@ import {
   Points,
   PointsMaterial,
   SRGBColorSpace,
-  Vector2
+  Vector2,
+  Vector3,
 } from "three";
 import {CommonModule} from "@angular/common";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js";
 import {GUI} from "dat.gui";
 import {LineSegment} from "../../../math/geometry/line-segment";
-import {Complex} from "../../../math/complex/complex";
 import {EuclideanPolygon} from "../../../math/geometry/euclidean-polygon";
 import {randInt} from "three/src/math/MathUtils.js";
 
@@ -32,17 +32,17 @@ const FILL_RESOLUTION: number = 500;
 })
 export class BachmanComponent extends PolygonPickerComponent implements AfterViewInit, OnDestroy {
 
-  n = 5;
-  iterations = 1;
+  n = 3;
+  iterations = 12;
   vertexOnly: boolean = false;
   convex: boolean = true;
   connectEvery: number = 0;
-  start: Vector2 = new Vector2(0.01, 0.02);
-  factor: number = 2;
+  start: Vector3 = new Vector3(0.01, 0.02, 0);
+  factor: number = 1 + 1 / Math.cos(Math.PI / 3);
   // factor: Complex = new Complex(1 + 1 / Math.cos(Math.PI / 5), 0);
-  orbit: Vector2[] = [this.start.clone()];
+  orbit: Vector3[] = [this.start.clone()];
   orbitDirty = false;
-  orbitPointsMaterial = new PointsMaterial();
+  orbitPointsMaterial = new PointsMaterial({vertexColors: true});
   orbitLineMaterial = new LineBasicMaterial();
 
   points: Points = new Points();
@@ -90,7 +90,7 @@ export class BachmanComponent extends PolygonPickerComponent implements AfterVie
       .name('log2(iters)').onFinishChange(() => {
       this.markDirty();
     });
-    this.gui.add(this, 'factor', 1, 4, 0.01)
+    this.gui.add(this, 'factor', -4, 4, 0.01)
       .name('Factor').onChange(() => {
       this.markDirty();
     });
@@ -114,7 +114,7 @@ export class BachmanComponent extends PolygonPickerComponent implements AfterVie
   }
 
   override frame(dt: number) {
-    this.orbitPointsMaterial.color.set(this.getColor('orbit'));
+    // this.orbitPointsMaterial.color.set(this.getColor('orbit'));
     this.orbitLineMaterial.color.set(this.getColor('orbit'));
     this.orbitDirty = this.orbitDirty || this.dirty;
     this.mat.color.set(this.getColor('handle'));
@@ -129,7 +129,16 @@ export class BachmanComponent extends PolygonPickerComponent implements AfterVie
       this.scene.remove(this.points);
       if (this.lines !== null) this.scene.remove(this.lines);
       if (this.fillPoints !== null) this.scene.remove(this.fillPoints);
-      this.points = new Points(new BufferGeometry().setFromPoints(this.orbit), this.orbitPointsMaterial);
+      const geo = new BufferGeometry();
+      const positions = this.orbit.flatMap(v => [v.x, v.y, v.z]);
+      const colors = this.orbit.flatMap(v => {
+        // if (v.z !== this.n) return [1, 1, 1];
+        const color = new Color().setHSL((v.z - 0.15) / this.n, 0.75, 0.5);
+        return [color.r, color.g, color.b];
+      })
+      geo.setAttribute('position', new Float32BufferAttribute(positions, 3));
+      geo.setAttribute('color', new Float32BufferAttribute(colors, 3));
+      this.points = new Points(geo, this.orbitPointsMaterial);
       if (this.connectEvery > 0) {
         const ls = [];
         for (let i = 0; i < this.orbit.length - this.connectEvery; i++) {
@@ -177,7 +186,8 @@ export class BachmanComponent extends PolygonPickerComponent implements AfterVie
     let z = job.clone();
     for (; i < FILL_DEPTH; i++) {
       if (z.length() > 10) break;
-      z = this.step(z);
+      const z3 = this.step(new Vector3(z.x, z.y, 0));
+      z = new Vector2(z3.x, z3.y);
     }
     return i / FILL_DEPTH;
   }
@@ -222,7 +232,7 @@ export class BachmanComponent extends PolygonPickerComponent implements AfterVie
     if (this.keyJustPressed('Escape')) this.stopFilling();
     else if (this.keyJustPressed('KeyF')) this.startFilling();
 
-    const pointDiff = new Vector2();
+    const pointDiff = new Vector3();
     if (this.keysPressed.get('ArrowLeft')) pointDiff.x -= 1;
     if (this.keysPressed.get('ArrowRight')) pointDiff.x += 1;
     if (this.keysPressed.get('ArrowUp')) pointDiff.y += 1;
@@ -237,50 +247,54 @@ export class BachmanComponent extends PolygonPickerComponent implements AfterVie
 
   iterate() {
     this.orbitDirty = true;
-    let z = this.start.clone();
+    let z = new Vector3(this.start.x, this.start.y, 0);
     this.orbit = [z];
     for (let i = 0; i < Math.pow(2, this.iterations); i++) {
       z = this.step(z);
       this.orbit.push(z);
     }
-    console.log(this.orbit);
+    // console.log(this.orbit);
   }
 
-  step(z: Vector2): Vector2 {
+  step(z: Vector3): Vector3 {
     const cp = this.vertexOnly ? closestVertex(z, this.vertices) : closestOnPolygon(z, this.vertices);
-    const diff = Complex.fromVector2(z).minus(cp);
-    return cp.plus(diff.times(new Complex(this.factor, 1))).toVector2();
+    const index = cp.z;
+    const diff = z.clone().sub(cp);
+    const p2 = new Vector2(cp.x, cp.y).addScaledVector(new Vector2(diff.x, diff.y), this.factor);
+    return new Vector3(p2.x, p2.y, index);
   }
 }
 
-function closestVertex(p: Vector2, vertices: Vector2[]): Complex {
+function closestVertex(p: Vector3, vertices: Vector2[]): Vector3 {
   if (vertices.length === 0) throw Error('no vertices');
   let m = Number.POSITIVE_INFINITY;
-  let best: Vector2 = p.clone();
-  for (let v of vertices) {
+  let best: Vector3 = p.clone();
+  for (let i = 1; i <= vertices.length; i++) {
+    const v = vertices[i - 1];
     let d = v.distanceTo(p);
     if (d < m) {
       m = d;
-      best = v.clone();
+      best = new Vector3(v.x, v.y, i);
     }
   }
-  return Complex.fromVector2(best);
+  return best;
 }
 
-function closestOnPolygon(p: Vector2, vertices: Vector2[]): Complex {
+function closestOnPolygon(p: Vector3, vertices: Vector2[]): Vector3 {
   const n = vertices.length;
   let m = Number.POSITIVE_INFINITY;
-  let best: Vector2 = p.clone();
+  let best: Vector3 = p.clone();
+  const p2 = new Vector2(p.x, p.y);
   for (let i = 0; i < n; i++) {
     const ls = new LineSegment(vertices[i], vertices[(i + 1) % n]);
-    const cp = closestOnSegment(p, ls);
+    const cp = closestOnSegment(p2, ls);
     const d = cp.distanceTo(p);
     if (d < m) {
       m = d;
-      best = cp;
+      best = new Vector3(cp.x, cp.y, i + 1);
     }
   }
-  return Complex.fromVector2(best);
+  return best;
 }
 
 function closestOnSegment(p: Vector2, ls: LineSegment): Vector2 {

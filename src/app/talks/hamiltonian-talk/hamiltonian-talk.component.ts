@@ -1,0 +1,35 @@
+import {AfterViewInit, Component, OnDestroy} from "@angular/core";
+
+import Reveal from "reveal.js";
+import RevealMath from "reveal.js/plugin/math/math";
+import {NgOptimizedImage} from "@angular/common";
+import {BilliardsComponent} from "../../demos/billiards/billiards.component";
+
+@Component({
+  selector: "hamiltonian-talk",
+  templateUrl: "hamiltonian-talk.component.html",
+  styleUrls: ["hamiltonian-talk.component.sass"],
+  imports: [NgOptimizedImage, BilliardsComponent],
+  standalone: true,
+})
+export class HamiltonianTalkComponent implements AfterViewInit, OnDestroy {
+  ngAfterViewInit() {
+    console.log("initializing");
+
+    if (Reveal.isReady()) {
+      Reveal.sync();
+      return;
+    }
+
+    Reveal.initialize({
+      plugins: [RevealMath.MathJax3],
+      transition: "fade",
+      center: false,
+      // hash: true,
+    }).then((v) => console.log(v));
+  }
+
+  ngOnDestroy() {
+    Reveal.destroy();
+  }
+}

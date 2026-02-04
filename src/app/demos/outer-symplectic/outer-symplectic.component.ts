@@ -351,7 +351,7 @@ const CHART_CONFIG: ChartConfiguration = {
 }
 
 @Component({
-  selector: 'outer-symplectic',
+  selector: 'outerArea-symplectic',
   templateUrl: 'outer-symplectic.component.html',
   styleUrls: ['../../widgets/three-demo/three-demo.component.sass', 'outer-symplectic.component.sass'],
   standalone: true,

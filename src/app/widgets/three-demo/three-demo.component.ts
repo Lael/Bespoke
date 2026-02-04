@@ -5,48 +5,7 @@ import Stats from 'three/examples/jsm/libs/stats.module.js'
 import {CommonModule} from "@angular/common";
 import {Line2} from "three/examples/jsm/lines/Line2.js";
 import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
-
-// [light, dark]
-declare type ColorPair = [Color, Color];
-
-export class ColorScheme {
-  private map: Map<string, ColorPair> = new Map();
-
-  constructor() {
-  }
-
-  register(key: string, light: ColorRepresentation, dark: ColorRepresentation) {
-    this.map.set(key, [new Color(light), new Color(dark)]);
-  }
-
-  getColor(key: string, alpha: number): Color {
-    const pair = this.map.get(key);
-    if (pair === undefined) throw Error(`Color ${key} not registered in color scheme`);
-    const light = pair[0];
-    const dark = pair[1];
-    if (alpha === 0) {
-      // console.log(key, light);
-      return light;
-    }
-    if (alpha === 1) {
-      // console.log(key, dark);
-      return dark;
-    }
-    // console.log(key, interpolated);
-    return new Color().lerpColors(light, dark, alpha);
-  }
-}
-
-enum ColorMode {
-  Light,
-  Dark,
-}
-
-const COLOR_MODE_TRANSITION_TIME: number = 0.25;
-
-interface Colorable {
-  color: ColorRepresentation
-}
+import {COLOR_MODE_TRANSITION_TIME, Colorable, ColorMode, ColorScheme} from "../../demos/color-scheme";
 
 @Component({
   selector: 'three-demo',
@@ -65,6 +24,7 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
   @ViewChild('render_container', {static: true})
   hostElement?: ElementRef;
 
+  showStats: boolean = true;
   stats: Stats;
 
   private resized = true;
@@ -112,7 +72,6 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
     document.addEventListener('visibilitychange', this.focusout.bind(this));
 
     this.stats = new Stats();
-    document.body.appendChild(this.stats.dom);
     this.old = Date.now();
 
     this.colorMode = systemMode();
@@ -128,7 +87,9 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    document.body.removeChild(this.stats.dom);
+    if (this.showStats) {
+      document.body.removeChild(this.stats.dom);
+    }
     this.hostElement?.nativeElement.removeChild(this.renderer.domElement);
     this.renderer.dispose();
     document.removeEventListener('mousedown', this.mousedown.bind(this));
@@ -206,6 +167,9 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
     if (!this.hostElement) {
       console.error('Missing container for renderer');
       return;
+    }
+    if (this.showStats) {
+      document.body.appendChild(this.stats.dom);
     }
     const w = this.hostElement?.nativeElement.offsetWidth || 0;
     const h = this.hostElement?.nativeElement.offsetHeight || 0;

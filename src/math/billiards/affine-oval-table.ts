@@ -13,10 +13,10 @@ import {Line} from "../geometry/line";
 import {closeEnough, normalizeAngle} from "../math-helpers";
 import {fixTime} from "./tables";
 import {Complex} from "../complex/complex";
-import {AffineOuterBilliardTable} from "./affine-billiard-table";
+import {AffineOuterBilliardTable, Straight} from "./affine-billiard-table";
 import {EuclideanRay} from "../geometry/euclidean-ray";
-import {Straight} from "./affine-polygon-table";
 import {EuclideanShape, NormalPair, ShapeRayCollision} from "../geometry/euclidean-shape";
+import {findPeriodicMinimumX} from "./find-min";
 
 export type Parametrization = (t: number) => Vector2;
 export type ContainmentTest = (v: Vector2) => boolean;
@@ -271,14 +271,21 @@ export class AffineOvalTable extends AffineOuterBilliardTable implements Euclide
   }
 
   rightTangentLine(circle: AffineCircle): Line {
-    // console.log('finding right tangent line');
-    const bestGuess = findOnCircle(
+    console.clear();
+    console.log('finding right tangent line');
+    const bestGuess = findPeriodicMinimumX(
       (t: number) => {
         const pt = this.point(t);
         const th = this.heading(t);
         const cp = circle.leftTangentPoint(Complex.fromVector2(pt)).toVector2();
         const d = pt.sub(cp);
         return Math.pow(normalizeAngle(th - d.angle()), 2);
+      },
+      {
+        x0: 0,
+        samples: 100,
+        tol: 1e-12,
+        maxIter: 100,
       }
     );
 

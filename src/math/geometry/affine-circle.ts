@@ -6,16 +6,25 @@ import {Vector2} from "three";
 
 export class AffineCircle {
 
+  static readonly UNIT_CIRCLE: AffineCircle = new AffineCircle(Complex.ZERO, 1);
+
   private r2: number | undefined = undefined;
 
   constructor(readonly center: Complex, readonly radius: number) {
     if (center.isInfinite() || !isFinite(radius)) throw Error('Circle with infinite parameter');
-    if (radius <= 0) throw Error('Circle with non-positive radius');
+    if (radius < 0) throw Error('Circle with negative radius');
   }
 
   static fromThreePoints(p1: Complex, p2: Complex, p3: Complex): AffineCircle {
     const center = Line.bisector(p1, p2).intersectLine(Line.bisector(p2, p3));
     const radius = center.distance(p2);
+    return new AffineCircle(center, radius);
+  }
+
+  static withTangent(p: Complex, heading: number, through: Complex): AffineCircle {
+    const perp = Line.srcDir(p, Complex.polar(1, heading)).perpAtPoint(p);
+    const center = perp.intersectLine(Line.bisector(p, through));
+    const radius = center.distance(p);
     return new AffineCircle(center, radius);
   }
 
@@ -29,10 +38,11 @@ export class AffineCircle {
     if (d > this.radius + other.radius || d < Math.abs(this.radius - other.radius)) return [];
     if (d === this.radius + other.radius) return [this.center.plus(v.normalize(this.radius))];
     const x = (d * d - other.radius * other.radius + this.radius * this.radius) / (2 * d);
-    const y = Math.sqrt(this.radius * this.radius - x * x);
-    // if (isNaN(y)) console.log(this.radius, other.radius, d, x);
     const c = this.center.plus(v.normalize(x));
-    const perp = v.times(Complex.I).normalize(y);
+    const y2 = this.radius * this.radius - x * x;
+    if (closeEnough(y2, 0)) return [c];
+    if (y2 < 0) throw Error(`this shouldn't have happened: ${this} ${other}`);
+    const perp = v.times(Complex.I).normalize(Math.sqrt(y2));
     return [c.plus(perp), c.minus(perp)];
   }
 
@@ -51,6 +61,7 @@ export class AffineCircle {
   }
 
   rightTangentPoint(point: Complex): Complex {
+    if (this.radius === 0) return this.center;
     let d = point.distance(this.center);
     if (d < this.radius) throw Error("point inside circle");
     if (d === this.radius) return point;
@@ -60,6 +71,7 @@ export class AffineCircle {
   }
 
   leftTangentPoint(point: Complex): Complex {
+    if (this.radius === 0) return this.center;
     let d = point.distance(this.center);
     if (closeEnough(d, this.radius)) return point;
     if (d < this.radius) throw Error("point inside circle");
@@ -69,6 +81,7 @@ export class AffineCircle {
   }
 
   conePoint(other: AffineCircle): Complex {
+    if (this.radius === 0) return this.center;
     if (this.radius === other.radius) {
       if (other.center.equals(this.center)) return this.center;
       else return Complex.INFINITY;
@@ -122,6 +135,12 @@ export class AffineCircle {
 
   supportPoint(theta: number): Vector2 {
     return this.center.plus(Complex.polar(this.radius, theta - Math.PI / 2)).toVector2();
+  }
+
+  invert(pt: Complex): Complex {
+    const diff = pt.minus(this.center);
+    const l2 = diff.modulusSquared();
+    return this.center.plus(diff.scale(this.radius / l2));
   }
 }
 

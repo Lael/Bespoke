@@ -1,8 +1,7 @@
-import {AffineOuterBilliardTable} from "./affine-billiard-table";
+import {AffineOuterBilliardTable, Straight} from "./affine-billiard-table";
 import {Shape, Vector2} from "three";
 import {AffineCircle} from "../geometry/affine-circle";
 import {EuclideanRay} from "../geometry/euclidean-ray";
-import {Straight} from "./affine-polygon-table";
 import {Line} from "../geometry/line";
 import {Segment} from "../geometry/segment";
 import {LineSegment} from "../geometry/line-segment";
@@ -57,7 +56,9 @@ export class AffinePiecewiseTable extends AffineOuterBilliardTable {
   }
 
   circleTangentLine(circle: AffineCircle, towardCircle: boolean): Line {
-    throw Error('not yet implemented');
+    console.log('circle tangent');
+    const pt = this.point(this.tangency(circle, !towardCircle));
+    return towardCircle ? circle.rightTangentLine(Complex.fromVector2(pt)) : circle.leftTangentLine(Complex.fromVector2(pt));
   }
 
   interior(point: Vector2): boolean {
@@ -126,6 +127,48 @@ export class AffinePiecewiseTable extends AffineOuterBilliardTable {
   }
 
   tangentFromPoint(point: Vector2): number {
+    // let tp: Vector2 | null = null;
+    // for (let i = 0; i < this.n; i++) {
+    //   const s1 = this.segments[i];
+    //   const p = this.vertices[(i + 1) % this.n];
+    //   const s2 = this.segments[(i + 1) % this.n];
+    //
+    //   // might it be the arc?
+    //   if (s1 instanceof ArcSegment) {
+    //     const circle = s1.circle;
+    //     try {
+    //       const tpc = circle.rightTangentPoint(Complex.fromVector2(point));
+    //       if (s1.containsPoint(tpc)) {
+    //         tp = tpc.toVector2();
+    //         break;
+    //       }
+    //     } catch (e) {
+    //     }
+    //   }
+    //   const theta = p.clone().sub(point).angle();
+    //   const s1eh = s1.endHeading() + Math.PI;
+    //   const s2sh = s2.startHeading();
+    //   const n1 = normalizeAngle(theta, s1eh) - s1eh;
+    //   const n2 = normalizeAngle(s2sh, theta) - theta;
+    //   if (n1 < Math.PI && n2 < Math.PI) {
+    //     tp = p.clone();
+    //     break;
+    //   }
+    // }
+    // if (tp === null) {
+    //   throw Error('no tangent from point');
+    // }
+    // return this.time(tp);
+    console.log('tangent from point');
+    return this.tangency(new AffineCircle(Complex.fromVector2(point), 0), true);
+  }
+
+  tangentTowardsPoint(point: Vector2): number {
+    console.log('tangent towards point');
+    return this.tangency(new AffineCircle(Complex.fromVector2(point), 0), false);
+  }
+
+  private tangency(circle: AffineCircle, forward: boolean) {
     let tp: Vector2 | null = null;
     for (let i = 0; i < this.n; i++) {
       const s1 = this.segments[i];
@@ -134,34 +177,37 @@ export class AffinePiecewiseTable extends AffineOuterBilliardTable {
 
       // might it be the arc?
       if (s1 instanceof ArcSegment) {
-        const circle = s1.circle;
+        const s1circle = s1.circle;
         try {
-          const tpc = circle.rightTangentPoint(Complex.fromVector2(point));
-          if (s1.containsPoint(tpc)) {
-            tp = tpc.toVector2();
+          const tls = forward ? s1circle.rightTangentLineSegment(circle) : s1circle.leftTangentLineSegment(circle);
+          if (s1.containsPoint(tls.end)) {
+            tp = tls.end.toVector2();
+            console.log(`circle point: (${tls.start.x},${tls.start.y})`);
+            console.log(`table point: (${tp.x},${tp.y})`);
             break;
           }
         } catch (e) {
         }
       }
+      const cp = Complex.fromVector2(p);
+      const point = forward ? circle.leftTangentPoint(cp) : circle.rightTangentPoint(cp);
+      if (closeEnough(point.distance(cp), 0)) continue;
       const theta = p.clone().sub(point).angle();
-      const s1eh = s1.endHeading() + Math.PI;
-      const s2sh = s2.startHeading();
+      const s1eh = s1.endHeading() + (forward ? Math.PI : 0);
+      const s2sh = s2.startHeading() + (forward ? 0 : Math.PI);
       const n1 = normalizeAngle(theta, s1eh) - s1eh;
       const n2 = normalizeAngle(s2sh, theta) - theta;
       if (n1 < Math.PI && n2 < Math.PI) {
+        console.log(`circle point: (${point.x},${point.y})`);
+        console.log(`table point: (${p.x},${p.y})`);
         tp = p.clone();
         break;
       }
     }
     if (tp === null) {
-      throw Error('not in domain of forward map');
+      throw Error('no tangent point');
     }
     return this.time(tp);
-  }
-
-  tangentTowardsPoint(point: Vector2): number {
-    throw Error('not yet implemented');
   }
 
   tangentVector(time: number): Vector2 {

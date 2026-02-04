@@ -72,7 +72,10 @@ export class Complex {
   }
 
   normalize(l: number = 1): Complex {
-    if (isNaN(l)) throw Error('Normalizing length is NaN');
+    if (isNaN(l)) {
+      debugger;
+      throw Error('Normalizing length is NaN');
+    }
     if (this.isZero()) throw Error('Cannot normalize 0');
     return new Complex(this.real, this.imag).scale(l / this.modulus())
   }

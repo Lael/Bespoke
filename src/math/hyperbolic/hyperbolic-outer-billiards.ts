@@ -5,7 +5,7 @@ import {Scene} from "../../graphics/scene";
 import {Disk, DiskSpec} from "../../graphics/shapes/disk";
 import {MultiArc} from "../../graphics/shapes/multi-path";
 import {HyperbolicModel, HyperGeodesic, HyperIsometry, HyperPoint} from "./hyperbolic";
-import {closeEnough, normalizeAngle} from "../math-helpers";
+import {normalizeAngle} from "../math-helpers";
 import {Segment} from "../geometry/segment";
 
 interface Orbit {
@@ -141,100 +141,100 @@ export class HyperbolicOuterBilliards {
       this.startRegions.push(r);
       this.imageRegions.push(this.mapRegion(r));
     }
-    this.findAllOrbits();
+    // this.findAllOrbits();
   }
 
-  findAllOrbits() {
-    this.orbits = [];
-    let words: number[][] = [];
-    let maps: HyperIsometry[] = [];
-    let ranges: HyperPolygon[] = [];
-    const n = this.vertices.length;
-    for (let i = 0; i < n; i++) {
-      words.push([i]);
-      maps.push(this.maps[i]);
-      ranges.push(this.imageRegions[i]);
-    }
-    for (let len = 2; len <= this.settings.searchIterations; len++) {
-      const newWords = [];
-      const newMaps = [];
-      const newRanges = [];
-      for (let i = 0; i < words.length; i++) {
-        for (let j = 0; j < n; j++) {
-          if (j === words[i][words[i].length - 1]) continue;
-          const newWord = words[i].concat(j);
-          const newMap = this.maps[j].compose(maps[i]);
-          const intersection = ranges[i].convexIntersect(this.startRegions[j]);
-          if (intersection === undefined) {
-            // console.log(`Trimming a substring: [${newWord.join(', ')}]`);
-            continue;
-          }
-          try {
-            const newRange = transformRegion(intersection, this.maps[j]);
-            newWords.push(newWord);
-            newMaps.push(newMap);
-            newRanges.push(newRange);
-          } catch (_) {
-          }
-        }
-      }
-      words = newWords;
-      maps = newMaps;
-      ranges = newRanges;
-      // console.log(`Found ${words.length} words of length ${len}.`);
-      // console.log(newWords);
-      for (let i = 0; i < words.length; i++) {
-        const word = words[i];
-        if (word[0] === word[word.length - 1]) continue;
-        const map = maps[i];
-        const f = map.fixedPoints().find(value => !closeEnough(value.klein.modulusSquared(), 1));
-        if (!f) {
-          // console.warn('Map has no interior fixed point. This is unexpected.');
-          continue;
-        }
-        let p = f;
-        const points = [];
-        for (let l of word) {
-          if (l !== this.forwardMapIndex(p)) {
-            break;
-          }
-          p = this.maps[l].apply(p);
-          points.push(p);
-        }
-        if (points.length === word.length) {
-          this.addOrbit({word, points, map});
-        }
-      }
-    }
-  }
+  // findAllOrbits() {
+  //   this.orbits = [];
+  //   let words: number[][] = [];
+  //   let maps: HyperIsometry[] = [];
+  //   let ranges: HyperPolygon[] = [];
+  //   const n = this.vertices.length;
+  //   for (let i = 0; i < n; i++) {
+  //     words.push([i]);
+  //     maps.push(this.maps[i]);
+  //     ranges.push(this.imageRegions[i]);
+  //   }
+  //   for (let len = 2; len <= this.settings.searchIterations; len++) {
+  //     const newWords = [];
+  //     const newMaps = [];
+  //     const newRanges = [];
+  //     for (let i = 0; i < words.length; i++) {
+  //       for (let j = 0; j < n; j++) {
+  //         if (j === words[i][words[i].length - 1]) continue;
+  //         const newWord = words[i].concat(j);
+  //         const newMap = this.maps[j].compose(maps[i]);
+  //         const intersection = ranges[i].convexIntersect(this.startRegions[j]);
+  //         if (intersection === undefined) {
+  //           // console.log(`Trimming a substring: [${newWord.join(', ')}]`);
+  //           continue;
+  //         }
+  //         try {
+  //           const newRange = transformRegion(intersection, this.maps[j]);
+  //           newWords.push(newWord);
+  //           newMaps.push(newMap);
+  //           newRanges.push(newRange);
+  //         } catch (_) {
+  //         }
+  //       }
+  //     }
+  //     words = newWords;
+  //     maps = newMaps;
+  //     ranges = newRanges;
+  //     // console.log(`Found ${words.length} words of length ${len}.`);
+  //     // console.log(newWords);
+  //     for (let i = 0; i < words.length; i++) {
+  //       const word = words[i];
+  //       if (word[0] === word[word.length - 1]) continue;
+  //       const map = maps[i];
+  //       const f = map.fixedPoints().find(value => !closeEnough(value.klein.modulusSquared(), 1));
+  //       if (!f) {
+  //         // console.warn('Map has no interior fixed point. This is unexpected.');
+  //         continue;
+  //       }
+  //       let p = f;
+  //       const points = [];
+  //       for (let l of word) {
+  //         if (l !== this.forwardMapIndex(p)) {
+  //           break;
+  //         }
+  //         p = this.maps[l].apply(p);
+  //         points.push(p);
+  //       }
+  //       if (points.length === word.length) {
+  //         this.addOrbit({word, points, map});
+  //       }
+  //     }
+  //   }
+  // }
 
-  private addOrbit(orbit: Orbit): void {
-    // Check if orbit is new
-    for (let other of this.orbits) {
-      if (orbit.points.length % other.points.length !== 0) continue;
-      for (let p of orbit.points) {
-        for (let op of other.points) {
-          if (p.equals(op)) return;
-        }
-      }
-    }
+  // private addOrbit(orbit: Orbit): void {
+  //   // Check if orbit is new
+  //   for (let other of this.orbits) {
+  //     if (orbit.points.length % other.points.length !== 0) continue;
+  //     for (let p of orbit.points) {
+  //       for (let op of other.points) {
+  //         if (p.equals(op)) return;
+  //       }
+  //     }
+  //   }
+  //
+  //   // console.log(`Found a periodic orbit of length ${orbit.word.length} and rotation angle ${orbit.map.rotation() / Math.PI}π`);
+  //   if (!this.results.hasOrbit && orbit.word.length === this.settings.vertexCount) {
+  //     this.results.hasOrbit = true;
+  //     this.results.orbitLength = orbit.word.length;
+  //     this.results.orbitMapRotation = orbit.map.rotationAngle();
+  //   }
+  //
+  //   this.orbits.push(orbit);
+  // }
 
-    // console.log(`Found a periodic orbit of length ${orbit.word.length} and rotation angle ${orbit.map.rotation() / Math.PI}π`);
-    if (!this.results.hasOrbit && orbit.word.length === this.settings.vertexCount) {
-      this.results.hasOrbit = true;
-      this.results.orbitLength = orbit.word.length;
-      this.results.orbitMapRotation = orbit.map.rotationAngle();
-    }
-
-    this.orbits.push(orbit);
-  }
-
-  forwardMapIndex(p: HyperPoint): number {
-    for (let i = 0; i < this.startRegions.length; i++) {
-      if (this.startRegions[i].containsPoint(p)) return i;
-    }
-    return -1;
-  }
+  // forwardMapIndex(p: HyperPoint): number {
+  //   for (let i = 0; i < this.startRegions.length; i++) {
+  //     if (this.startRegions[i].containsPoint(p)) return i;
+  //   }
+  //   return -1;
+  // }
 
   forwardMap(p: HyperPoint): HyperIsometry {
     for (let i = 0; i < this.startRegions.length; i++) {

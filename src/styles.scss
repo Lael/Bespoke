@@ -20,3 +20,8 @@ body {
   color: var(--mat-sys-on-primary-container);
   font: var(--mat-sys-body-large);
 }
+
+.reveal mjx-container[display="true"],
+.reveal .MathJax_Display {
+  margin: 0.5em 0 !important;
+}
