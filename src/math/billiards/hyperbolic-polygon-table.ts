@@ -208,6 +208,10 @@ export class HyperbolicPolygonTable extends HyperbolicOuterBilliardTable {
     return shape;
   }
 
+  points(model: HyperbolicModel) {
+    return this.polygon.interpolateVertices(model).map(v => v.toVector2())
+  }
+
   tangentFromPoint(point: HyperPoint): HyperPoint {
     const pk = point.klein;
     for (let i = 0; i < this.n; i++) {

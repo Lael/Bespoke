@@ -64,7 +64,7 @@ export class DilationSurfaceComponent extends ThreeDemoComponent {
   polygon: Line2;
   orbit: LineSegments2[] = [];
 
-  gui: GUI = new GUI();
+  gui: GUI | null = null;
 
   constructor() {
     super();
@@ -111,8 +111,11 @@ export class DilationSurfaceComponent extends ThreeDemoComponent {
     this.orbitControls.enablePan = true;
     this.orbitControls.zoomToCursor = true;
 
-    this.gui.add(this, 'iters', 0, 14, 1).name('log2(iters)').onChange(() => this.orbitDirty = true);
-    this.gui.open();
+    if (!this.isPreview) {
+      this.gui = new GUI();
+      this.gui.add(this, 'iters', 0, 14, 1).name('log2(iters)').onChange(() => this.orbitDirty = true);
+      this.gui.open();
+    }
   }
 
   dragVertex() {
@@ -220,7 +223,6 @@ export class DilationSurfaceComponent extends ThreeDemoComponent {
     let downs = [];
     for (let i = 0; i < Math.pow(2, this.iters); i++) {
       let pts = this.intersect(new Line(1, 0, -x));
-      console.log(pts);
       if (pts.length > 2) {
         console.warn('hit a vertex!');
       }
@@ -282,6 +284,11 @@ export class DilationSurfaceComponent extends ThreeDemoComponent {
       this.orbit.push(new LineSegments2(downGeo, this.downMat));
     }
     if (this.orbit.length > 0) this.scene.add(...this.orbit);
+  }
+
+  override ngOnDestroy() {
+    super.ngOnDestroy();
+    if (this.gui) this.gui.destroy();
   }
 }
 

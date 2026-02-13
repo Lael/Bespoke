@@ -295,6 +295,7 @@ export class PolygonPickerComponent extends ThreeDemoComponent implements OnChan
 
     this.renderer.setClearColor(this.getColor('clear'));
     this.polyMat.color.set(this.getColor('edge'));
+    this.polyMat.resolution = this.resolution;
 
     if (this.arrowKeys) this.processKeyboardInput(dt);
     if (this.dirty) {

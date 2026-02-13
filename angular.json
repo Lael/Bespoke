@@ -28,7 +28,7 @@
               "src/assets/files/zine.pdf"
             ],
             "styles": [
-              "src/styles.scss",
+              "src/styles.sass",
               "node_modules/reveal.js/dist/reveal.css",
               "node_modules/reveal.js/css/theme/source/serif.scss",
               "src/app/talks/theme.scss"
@@ -94,7 +94,7 @@
               "src/assets/images"
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.sass"
             ],
             "scripts": []
           }

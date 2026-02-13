@@ -13,130 +13,127 @@ import {TwoLines} from "./two-lines";
 const CLEAR_COLOR = 0x0a2933;
 
 enum Geometry {
-    AFFINE,
-    HYPERBOLIC,
-    SPHERICAL
+  AFFINE,
+  HYPERBOLIC,
+  SPHERICAL
 }
 
 const DIR_SPEED: number = 0.3;
 const START_SPEED: number = 0.1;
 
 @Component({
-    selector: 'tiling-billiards',
-    templateUrl: '../../widgets/three-demo/three-demo.component.html',
-    styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
-    standalone: true,
-    imports: [CommonModule]
+  selector: 'tiling-billiards',
+  templateUrl: '../../widgets/three-demo/three-demo.component.html',
+  styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
+  standalone: true,
+  imports: [CommonModule]
 })
 export class TileBilliardsComponent extends ThreeDemoComponent implements OnDestroy {
-    orbitControls: OrbitControls;
-    n: number = 3;
-    m: number = 6;
-    depth: number = 20;
-    logIterations: number = 1;
-    geometry: Geometry = Geometry.AFFINE;
-    start: Vector2 = new Vector2();
-    direction: number = 0.1234;
+  orbitControls: OrbitControls;
+  n: number = 3;
+  m: number = 6;
+  depth: number = 20;
+  logIterations: number = 1;
+  geometry: Geometry = Geometry.AFFINE;
+  start: Vector2 = new Vector2();
+  direction: number = 0.1234;
 
-    private tiling: PolygonalTiling<any, any> | undefined = undefined;
-    private gui: dat.GUI;
+  private tiling: PolygonalTiling<any, any> | undefined = undefined;
+  private gui: dat.GUI;
 
-    constructor() {
-        super();
-        this.useOrthographic = true;
-        this.updateOrthographicCamera();
-        this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
-        this.orbitControls.enableRotate = false;
-        this.orbitControls.enablePan = true;
-        this.orbitControls.zoomToCursor = true;
+  constructor() {
+    super();
+    this.useOrthographic = true;
+    this.updateOrthographicCamera();
+    this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.orbitControls.enableRotate = false;
+    this.orbitControls.enablePan = true;
+    this.orbitControls.zoomToCursor = true;
 
-        this.renderer.setClearColor(CLEAR_COLOR);
+    this.renderer.setClearColor(CLEAR_COLOR);
 
-        this.gui = new dat.GUI();
-        this.updateGUI();
-        this.resetTiling();
+    this.gui = new dat.GUI();
+    this.updateGUI();
+    this.resetTiling();
+  }
 
-        this.helpTitle = 'Tiling Billiards';
+  override ngOnDestroy() {
+    super.ngOnDestroy();
+    this.gui.destroy();
+  }
+
+  private resetTiling() {
+    const c = 2.0 / this.n + 2.0 / this.m;
+    if (closeEnough(c, 1)) {
+      // Affine
+      this.geometry = Geometry.AFFINE;
+      this.tiling = new AffineQuasiregularTiling(this.n, this.m);
+      this.tiling.generate(this.depth);
+    } else if (c < 1.0) {
+      // Hyperbolic
+      this.geometry = Geometry.HYPERBOLIC;
+      this.tiling = new HyperbolicQuasiregularTiling(this.n, this.m);
+      this.tiling.generate(Math.min(this.depth, 7));
+    } else {
+      // Spherical
+      this.geometry = Geometry.SPHERICAL;
+      // Depth is meaningless here: we will always generate the whole tiling.
+      this.tiling = new TwoLines(Math.PI / 4);
+      this.tiling.generate(2);
+      this.start = new Vector2(0.1, 0.1);
     }
+    this.play();
+  }
 
-    override ngOnDestroy() {
-        super.ngOnDestroy();
-        this.gui.destroy();
-    }
+  override frame(dt: number) {
+    this.processKeyboardInput(dt);
+    this.scene.clear();
+    this.tiling?.draw(this.scene);
+  }
 
-    private resetTiling() {
-        const c = 2.0 / this.n + 2.0 / this.m;
-        if (closeEnough(c, 1)) {
-            // Affine
-            this.geometry = Geometry.AFFINE;
-            this.tiling = new AffineQuasiregularTiling(this.n, this.m);
-            this.tiling.generate(this.depth);
-        } else if (c < 1.0) {
-            // Hyperbolic
-            this.geometry = Geometry.HYPERBOLIC;
-            this.tiling = new HyperbolicQuasiregularTiling(this.n, this.m);
-            this.tiling.generate(Math.min(this.depth, 7));
-        } else {
-            // Spherical
-            this.geometry = Geometry.SPHERICAL;
-            // Depth is meaningless here: we will always generate the whole tiling.
-            this.tiling = new TwoLines(Math.PI / 4);
-            this.tiling.generate(2);
-            this.start = new Vector2(0.1, 0.1);
-        }
-        this.play();
-    }
+  processKeyboardInput(dt: number) {
+    let mul = 1;
+    if (this.keyHeld('ShiftLeft')) mul *= 0.1;
+    if (this.keyHeld('AltLeft')) mul *= 0.01;
+    let dd = 0;
+    if (this.keyHeld('BracketLeft')) dd += dt * DIR_SPEED;
+    if (this.keyHeld('BracketRight')) dd -= dt * DIR_SPEED;
 
-    override frame(dt: number) {
-        this.processKeyboardInput(dt);
-        this.scene.clear();
-        this.tiling?.draw(this.scene);
-    }
+    let ds = new Vector2();
+    if (this.keyHeld('KeyA')) ds.x -= 1;
+    if (this.keyHeld('KeyD')) ds.x += 1;
+    if (this.keyHeld('KeyS')) ds.y -= 1;
+    if (this.keyHeld('KeyW')) ds.y += 1;
+    if (ds.length() != 0) ds.normalize().multiplyScalar(dt * START_SPEED)
 
-    processKeyboardInput(dt: number) {
-        this.showHelp = !!this.keysPressed.get('KeyH');
-        let mul = 1;
-        if (this.keyHeld('ShiftLeft')) mul *= 0.1;
-        if (this.keyHeld('AltLeft')) mul *= 0.01;
-        let dd = 0;
-        if (this.keyHeld('BracketLeft')) dd += dt * DIR_SPEED;
-        if (this.keyHeld('BracketRight')) dd -= dt * DIR_SPEED;
+    this.direction += dd * mul;
+    this.start.x += ds.x * mul;
+    this.start.y += ds.y * mul;
+    if (dd !== 0 || ds.length() !== 0) this.play();
+  }
 
-        let ds = new Vector2();
-        if (this.keyHeld('KeyA')) ds.x -= 1;
-        if (this.keyHeld('KeyD')) ds.x += 1;
-        if (this.keyHeld('KeyS')) ds.y -= 1;
-        if (this.keyHeld('KeyW')) ds.y += 1;
-        if (ds.length() != 0) ds.normalize().multiplyScalar(dt * START_SPEED)
+  play() {
+    this.tiling?.play(Math.pow(2, this.logIterations), this.start, this.direction);
+  }
 
-        this.direction += dd * mul;
-        this.start.x += ds.x * mul;
-        this.start.y += ds.y * mul;
-        if (dd !== 0 || ds.length() !== 0) this.play();
-    }
+  updateGUI() {
+    this.gui.destroy();
+    this.gui = new dat.GUI();
+    let tilingFolder = this.gui.addFolder('Tiling');
+    tilingFolder.add(this, 'n', 3, 10, 1)
+      .onFinishChange(this.resetTiling.bind(this));
+    tilingFolder.add(this, 'm', 3, 10, 1)
+      .onFinishChange(this.resetTiling.bind(this));
+    tilingFolder.add(this, 'depth', 1, 100, 1)
+      .onFinishChange(this.resetTiling.bind(this));
+    tilingFolder.open();
 
-    play() {
-        this.tiling?.play(Math.pow(2, this.logIterations), this.start, this.direction);
-    }
+    let billiardFolder = this.gui.addFolder('Tiling Billiards');
+    billiardFolder.add(this, 'logIterations', 1, 30, 1)
+      .name('log2(iters)')
+      .onFinishChange(this.play.bind(this));
+    billiardFolder.open();
 
-    updateGUI() {
-        this.gui.destroy();
-        this.gui = new dat.GUI();
-        let tilingFolder = this.gui.addFolder('Tiling');
-        tilingFolder.add(this, 'n', 3, 10, 1)
-            .onFinishChange(this.resetTiling.bind(this));
-        tilingFolder.add(this, 'm', 3, 10, 1)
-            .onFinishChange(this.resetTiling.bind(this));
-        tilingFolder.add(this, 'depth', 1, 100, 1)
-            .onFinishChange(this.resetTiling.bind(this));
-        tilingFolder.open();
-
-        let billiardFolder = this.gui.addFolder('Tiling Billiards');
-        billiardFolder.add(this, 'logIterations', 1, 30, 1)
-            .name('log2(iters)')
-            .onFinishChange(this.play.bind(this));
-        billiardFolder.open();
-
-        this.gui.open();
-    }
+    this.gui.open();
+  }
 }

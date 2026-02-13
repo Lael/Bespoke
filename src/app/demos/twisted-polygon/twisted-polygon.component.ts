@@ -199,8 +199,6 @@ export class TwistedPolygonComponent extends ThreeDemoComponent implements After
       antialias: true,
     });
 
-    this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.coordRenderer.setPixelRatio(window.devicePixelRatio);
     this.coordRenderer.setClearColor(0xffffff);
 
@@ -216,9 +214,13 @@ export class TwistedPolygonComponent extends ThreeDemoComponent implements After
 
   override ngOnDestroy() {
     super.ngOnDestroy();
-    this.gui.destroy();
-    this.coordHostElement?.nativeElement.removeChild(this.renderer.domElement);
-    this.coordRenderer.dispose();
+    try {
+      this.gui.destroy();
+      this.coordHostElement?.nativeElement.removeChild(this.renderer.domElement);
+      this.coordRenderer.dispose();
+    } catch (e) {
+
+    }
   }
 
 

@@ -517,9 +517,13 @@ export class PentagramComponent extends ThreeDemoComponent implements AfterViewI
 
   override ngOnDestroy() {
     super.ngOnDestroy();
-    this.gui.destroy();
-    this.coordHostElement?.nativeElement.removeChild(this.renderer.domElement);
-    this.coordRenderer.dispose();
+    try {
+      this.gui.destroy();
+      this.coordHostElement?.nativeElement.removeChild(this.renderer.domElement);
+      this.coordRenderer.dispose();
+    } catch (e) {
+
+    }
   }
 
   private projectCoordinates(coordinates: Vector2[]) {

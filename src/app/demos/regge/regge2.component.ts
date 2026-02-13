@@ -102,6 +102,7 @@ class Regge2Graph {
   selector: 'regge2',
   templateUrl: '../../widgets/three-demo/three-demo.component.html',
   styleUrls: ['../../widgets/three-demo/three-demo.component.sass'],
+  standalone: true,
   imports: [CommonModule]
 })
 export class Regge2Component extends ThreeDemoComponent {

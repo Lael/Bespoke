@@ -43,6 +43,8 @@ abstract class SphericalCurve {
   abstract pointOnBoundary(point: SpherePoint): boolean;
 
   abstract mesh(n: number, color: ColorRepresentation, stereograph: boolean): Mesh;
+
+  abstract points(n: number, stereograph: boolean): Vector3[];
 }
 
 export abstract class SphericalInnerBilliardTable extends SphericalCurve implements SphericalInner {
@@ -153,7 +155,7 @@ export abstract class SphericalOuterBilliardTable extends SphericalInnerBilliard
       return [[start], []];
     }
     if (this.pointOnBoundary(start) || this.pointOnBoundary(start.antipode)) {
-      console.log(`point or antipode  is on boundary of table: <${start.x}, ${start.y}>`);
+      console.log(`point or antipode is on boundary of table: <${start.x}, ${start.y}>`);
       return [[start], []];
     }
     const points = [start];
@@ -166,7 +168,7 @@ export abstract class SphericalOuterBilliardTable extends SphericalInnerBilliard
         points.push(newPoint);
         centers.push(center);
       } catch (e) {
-        console.log(e);
+        // console.log(e);
         return [points, centers];
       }
       point = newPoint;

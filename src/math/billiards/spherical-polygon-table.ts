@@ -11,7 +11,6 @@ import {
 } from "three";
 import {Generator} from "./new-billiard";
 import {SphericalOuterBilliardTable, SphericalRay} from "./spherical-billiard-table";
-import * as console from "node:console";
 
 export class SphericalPolygonTable extends SphericalOuterBilliardTable {
   polygon: SphericalPolygon;
@@ -149,6 +148,24 @@ export class SphericalPolygonTable extends SphericalOuterBilliardTable {
     );
   }
 
+  override points(scale: number, stereograph: boolean): Vector3[] {
+    const pts = [];
+    for (let a of this.polygon.arcs) {
+      const l = a.length;
+      const hSegments = Math.ceil(l * scale);
+      for (let i = 0; i < hSegments; i++) {
+        const v = a.lerp(i / hSegments).coords;
+        if (stereograph) {
+          pts.push(new Vector3(v.x / (1 + v.z), v.y / (1 + v.z), 0.5));
+        } else {
+          pts.push(new Vector3(v.x * 1.005, v.y * 1.005, v.z * 1.005));
+        }
+      }
+    }
+    return pts;
+  }
+
+
   private slicePreimage(arc: SphericalArc): SphericalArc[] {
     const intersections = [arc.p1, arc.p2];
     for (let slicingArc of this.slicingArcs) {
@@ -197,7 +214,7 @@ export class SphericalPolygonTable extends SphericalOuterBilliardTable {
           try {
             pivot = this.leftTangentPoint(mid);
           } catch (e) {
-            console.log(e);
+            // console.log(e);
             continue;
           }
           newFrontier.push(

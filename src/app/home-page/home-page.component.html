@@ -1,67 +1,60 @@
-<div class="content">
-    <div class="head">
-        <h1 routerLink="/"> Demos</h1>
-    </div>
-    <div class="demo-links">
-        <!--        <link-tile.ts title="Dynamics" path="/functions"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Surfaces" path="/surfaces"></link-tile.ts>-->
-        <link-tile title="Billiards" path="/billiards"></link-tile>
-        <!--        <link-tile.ts title="Envelopes" path="/envelopes"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Pentagram" path="/pentagram"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Möbius" path="/mobius"></link-tile.ts>-->
-        <!--        <link-tile title="Tiling" path="/tiling"></link-tile>-->
-        <!--        <link-tile.ts title="Poincaré" path="/poincare"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Symplectic" path="/symplectic"></link-tile.ts>-->
-        <!--        <link-tile title="Unfolding" path="/unfolding"></link-tile>-->
-        <!--        <link-tile.ts title="Unfolding 3D" path="/unfolding-3d"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Tile Billiards" path="/tile.ts-billiards"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Corridors" path="/corridors"></link-tile.ts>-->
-        <link-tile title="Scaling Billiards" path="/scaling"></link-tile>
-        <!--        <link-tile.ts title="Hyperbolic Geometry" path="/hyperbolic"></link-tile.ts>-->
-        <!--        <link-tile title="Bicycle" path="/ticktock"></link-tile>-->
-        <!--        <link-tile title="Triangle Map" path="/triangle-map"></link-tile>-->
-        <!--        <link-tile.ts title="Symmetric" path="/symmetric"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Phase" path="/phase"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Crossing" path="/crossing"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Regge 2D" path="/regge2"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Regge 2+1" path="/regge2p1"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Regge 3D" path="/regge3"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Regge 3+1" path="/regge3p1"></link-tile.ts>-->
-        <!--        <link-tile.ts title="Teichmüller" path="/teichmuller"></link-tile.ts>-->
-        <!--        <link-tile title="Pixel" path="/pixel"></link-tile>-->
-        <!--        <link-tile.ts title="Rotation" path="/rotation"></link-tile.ts>-->
-        <!--        <link-tile title="Kobon" path="/kobon"></link-tile>-->
-        <!--        <link-tile title="Scattering" path="/scattering"></link-tile>-->
-        <link-tile title="Tiling Billiards" path="/tiling-billiards"></link-tile>
-        <link-tile title="Minkowski Billiards" path="/minkowski"></link-tile>
-        <!--        <link-tile title="Wavefront" path="/wavefront"></link-tile>-->
-        <link-tile title="Square Tiling" path="/squares"></link-tile>
-        <!--        <link-tile title="Dynamics (2D)" path="/dynamics-2d"></link-tile>-->
-        <!--        <link-tile title="Force Graph" path="/force-graph"></link-tile>-->
-        <link-tile title="Symplectic Table" path="/symplectic-table"></link-tile>
-        <link-tile title="Pentagram" path="/pentagram"></link-tile>
-        <link-tile title="Twist" path="/twist"></link-tile>
-        <!--        <link-tile title="Sea Ice" path="/sea-ice"></link-tile>-->
-        <!--        <link-tile title="Bespoke" path="/bespoke"></link-tile>-->
-        <link-tile title="Outer Symplectic" path="/outerArea-symplectic"></link-tile>
-        <!--        <link-tile title="Dilation Surfaces" path="/dilation-surfaces"></link-tile>-->
-        <link-tile title="Bachman Fractal" path="/bachman-fractal"></link-tile>
-        <!--        <link-tile title="Summer's Circles" path="/summer"></link-tile>-->
-    </div>
+<div class="render-container">
+    <ng-container #container></ng-container>
+</div>
 
-    <div class="head">
-        <h1>Talks</h1>
-    </div>
-    <div class="demo-links">
-        <link-tile title="👶" path="/talks/ihp-baby-seminar"></link-tile>
-        <!--            <link-tile title="Eberly Research Showcase" path="/talks/eberly-research-showcase"></link-tile>-->
-        <!--            <link-tile title="Hamiltonian Systems" path="/talks/hamiltonian"></link-tile>-->
-    </div>
+<header class="gallery-header">
+    <h1 class="shimmer-text">Interactive Demos</h1>
+    <p class="subtitle">A collection of mathematical experiments.</p>
+</header>
 
-    <!--    <div class="head">-->
-    <!--        <h1>Outreach</h1>-->
-    <!--    </div>-->
-    <!--    <div class="demo-links">-->
-    <!--        <link-tile title="Zine" path="/zine"></link-tile>-->
-    <!--    </div>-->
+<div class="gallery-grid" [@listAnimation]="demosCount">
+    <div *ngFor="let item of demos"
+         class="demo-card"
+         appMagneticCard
+         [routerLink]="item.path"
+         [class.dark-mode-active]="isDarkTheme$ | async">
+
+        <div class="preview-container">
+
+            <img *ngIf="item.lightPreview" [src]="item.lightPreview" class="preview-img light-img">
+            <img *ngIf="item.darkPreview" [src]="item.darkPreview" class="preview-img dark-img">
+
+            <div class="title-overlay">
+                <h3>{{ item.title }}</h3>
+                <div class="decorative-line"></div>
+            </div>
+
+            <div class="loader-overlay" *ngIf="!item.lightPreview">
+                <div class="minimal-spinner"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<header class="gallery-header">
+    <h1 class="shimmer-text">Talks</h1>
+    <p class="subtitle">Slide decks with embedded interactive content.</p>
+</header>
+
+<div class="gallery-grid" [@listAnimation]="talksCount">
+    <div *ngFor="let item of talks"
+         class="demo-card"
+         appMagneticCard
+         [routerLink]="item.path"
+         [class.dark-mode-active]="isDarkTheme$ | async">
+
+        <div class="preview-container">
+
+            <!--            <img *ngIf="item.lightPreview" [src]="item.lightPreview" class="preview-img light-img">-->
+            <!--            <img *ngIf="item.darkPreview" [src]="item.darkPreview" class="preview-img dark-img">-->
+
+            <div class="centered">
+                <h3>{{ item.title }}</h3>
+            </div>
+
+            <!--            <div class="loader-overlay" *ngIf="!item.lightPreview">-->
+            <!--                <div class="minimal-spinner"></div>-->
+            <!--            </div>-->
+        </div>
+    </div>
 </div>

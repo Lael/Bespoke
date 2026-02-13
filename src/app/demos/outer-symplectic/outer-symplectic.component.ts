@@ -21,7 +21,7 @@ import {
   Vector3,
   Vector4
 } from "three";
-import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
+import {RunningContext, ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import {AfterViewInit, Component, ElementRef, OnDestroy, ViewChild} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
@@ -485,11 +485,15 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
   override ngOnDestroy() {
     super.ngOnDestroy();
     this.gui.destroy();
-    this.xyHost?.nativeElement.removeChild(this.xyRenderer.domElement);
-    this.xyRenderer.dispose();
+    try {
+      this.xyHost?.nativeElement.removeChild(this.xyRenderer.domElement);
+      this.xyRenderer.dispose();
 
-    this.zwHost?.nativeElement.removeChild(this.zwRenderer.domElement);
-    this.zwRenderer.dispose();
+      this.zwHost?.nativeElement.removeChild(this.zwRenderer.domElement);
+      this.zwRenderer.dispose();
+    } catch (e) {
+
+    }
   }
 
   override ngAfterViewInit() {
@@ -530,6 +534,7 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
   }
 
   updateGUI() {
+    if (this.runningContext === RunningContext.PREVIEW) return;
     this.gui.destroy();
     this.gui = new GUI();
 
@@ -564,7 +569,6 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
   }
 
   iterate(): number {
-    console.clear();
     this.drawDirty = true;
     let start = this.start.clone().applyMatrix4(this.ortho);
     this.orbit = [];
@@ -583,9 +587,9 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
         const closest = state.clone().addScaledVector(diff,
           -diff.dot(state) / diff.lengthSq()).applyMatrix4(this.orthoInverse);
 
-        if (Math.abs(closest.x) < 1 && Math.abs(closest.y) < 1 && Math.abs(closest.z) < 1 && Math.abs(closest.w) < 1) {
-          console.log(closest);
-        }
+        // if (Math.abs(closest.x) < 1 && Math.abs(closest.y) < 1 && Math.abs(closest.z) < 1 && Math.abs(closest.w) < 1) {
+        //   console.log(closest);
+        // }
 
         state = newState;
 
@@ -691,10 +695,10 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
       this.updateTables();
     }
 
-    if (this.keyJustPressed('KeyP')) {
-      console.clear();
-      console.log(this.orbit.map(v => v.clone().multiplyScalar(1000).round().multiplyScalar(0.001)));
-    }
+    // if (this.keyJustPressed('KeyP')) {
+    //   console.clear();
+    //   console.log(this.orbit.map(v => v.clone().multiplyScalar(1000).round().multiplyScalar(0.001)));
+    // }
   }
 
   updateTables() {
@@ -872,7 +876,7 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
         if (claims) {
           pivot = facePivot;
           facesClaiming++;
-          console.log(face.center);
+          // console.log(face.center);
         }
       }
     }
@@ -885,7 +889,7 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
     const image = pivot.clone().add(pivot.clone().sub(start));
     if (Math.abs(image.x) < 1 && Math.abs(image.y) < 1 && Math.abs(image.z) < 1 && Math.abs(image.w) < 1)
       console.log('Uh oh, we are inside the hypercube!');
-    console.log('image', image);
+    // console.log('image', image);
     return image;
     // if (pNorm(start, this.p) <= 1) throw Error('inside table');
     // const pivot = minimizeS3(

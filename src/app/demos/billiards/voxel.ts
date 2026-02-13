@@ -1,5 +1,5 @@
 import {Mesh, MeshBasicMaterial, MeshPhongMaterial, Vector3} from "three";
-import {MarchingCubes} from "three/examples/jsm/objects/MarchingCubes";
+import {MarchingCubes} from "three/examples/jsm/objects/MarchingCubes.js";
 
 const CUBE_HALF_LENGTH: number = 200;
 const N_CHUNKS: number = CUBE_HALF_LENGTH / 4;
@@ -17,6 +17,10 @@ export function emptyGrid(): VoxelGrid {
   const chunks: boolean[] = new Array(N_CHUNKS * N_CHUNKS * N_CHUNKS).fill(false);
   return {grid, chunks};
 }
+
+// function distanceToLineSegment(p: Vector3, s: Vector3, e: Vector3): number {
+//
+// }
 
 export function paintVoxelLine(g: VoxelGrid, v1: Vector3, v2: Vector3) {
   const start = convertToVoxelCoords(v1.multiplyScalar(0.99));

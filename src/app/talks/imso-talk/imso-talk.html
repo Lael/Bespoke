@@ -1,0 +1,114 @@
+<div class="reveal">
+    <div class="slides">
+        <section class="center">
+            <h2 class="talk-title">Polygonal Outer Billiard Discontinuity Sets</h2>
+            <h5>Lael Edwards-Costa</h5>
+            <h5>IHP, February 13<sup>th</sup> 2026</h5>
+            <h5>Illustrating Math Seminar (Online)</h5>
+        </section>
+        <section>
+            <h3 class="slide-title">Outer Billiards</h3>
+            <div class="r-stack">
+                <img class="large-image fragment"
+                     data-fragment-index="1"
+                     ngSrc="assets/images/imso/outer1.png" width="600" height="451"
+                     alt="Outer billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="2"
+                     ngSrc="assets/images/imso/outer2.png" width="600" height="451"
+                     alt="Outer billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="3"
+                     ngSrc="assets/images/imso/outer3.png" width="600" height="451"
+                     alt="Outer billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="4"
+                     ngSrc="assets/images/imso/outer4.png" width="600" height="451"
+                     alt="Outer billiards">
+                <img class="large-image fragment"
+                     data-fragment-index="5"
+                     ngSrc="assets/images/imso/outer5.png" width="600" height="451"
+                     alt="Outer billiards">
+            </div>
+            <div class="r-stack">
+                <span class="fragment fade-in-then-out" data-fragment-index="1">
+                    1. Fix a polygon $P$ in the plane and choose a point $x$.</span>
+                <span class="fragment fade-in-then-out" data-fragment-index="2">
+                    2. Two support lines to $P$ pass through $x$.</span>
+                <span class="fragment fade-in-then-out" data-fragment-index="3">
+                    3. Orient so that $P$ stays on the left.</span>
+                <span class="fragment fade-in-then-out" data-fragment-index="4">
+                    4. Reflect $x$ through the forward vertex of $P$. $T(x):=y$.</span>
+                <span class="fragment" data-fragment-index="5">
+                    5. Continue: $T^2(x)=z$, and so on.</span>
+            </div>
+        </section>
+        <section>
+            <h3 class="slide-title">Discontinuity Set</h3>
+            <div class="figure">
+                <div class="r-stack">
+                    <img class="large-image"
+                         ngSrc="assets/images/imso/discontinuity1.png"
+                         width="600"
+                         height="450"
+                         alt="Discontinuity"/>
+                    <img class="large-image fragment"
+                         data-fragment-index="1"
+                         ngSrc="assets/images/imso/discontinuity2.png"
+                         width="600"
+                         height="450"
+                         alt="Discontinuity"/>
+                    <img class="large-image fragment"
+                         data-fragment-index="2"
+                         ngSrc="assets/images/imso/discontinuity3.png"
+                         width="600"
+                         height="450"
+                         alt="Discontinuity"/>
+                </div>
+                <span class="fragment" data-fragment-index="2">
+                    We exclude (iterated preimages of) side extensions from the domain of $T$.
+                </span>
+            </div>
+        </section>
+        <section
+                data-background-iframe="/billiards?geometry=euclidean&duality=outer&generator=area&tableType=polygon&singularities=true&singularityIterations=1&start=false"
+                data-preload
+                data-background-interactive>
+        </section>
+        <section>
+            <h3 class="slide-title">Physical Objects</h3>
+            <div class="side-by-side">
+                <img ngSrc="assets/images/imso/gasket1.png" width="450" height="450">
+                <img ngSrc="assets/images/imso/gasket2.png" width="450" height="450">
+            </div>
+            <span>Hyperbolic discontinuity sets</span>
+        </section>
+        <section>
+            <h3 class="slide-title">Physical Objects</h3>
+            <div class="side-by-side">
+                <img ngSrc="assets/images/imso/gasket3dRender.png" width="450" height="450">
+                <img ngSrc="assets/images/imso/gasket3d.png" width="450" height="450">
+            </div>
+            <span>A family of spherical discontinuity sets</span>
+        </section>
+        <section>
+            <section>
+                <h3 class="slide-title">Hopes and Dreams</h3>
+                <ol>
+                    <li>Resin printing</li>
+                    <li>Lampshade</li>
+                    <li>Other billiards variations</li>
+                    <li>Stacked transparent engravings with side illumination; cf. Chris Hanusa's <em>Fractal
+                        Emergence</em>:
+                    </li>
+                </ol>
+                <img src="https://cdn.myportfolio.com/7d2ce9c8-12ab-43c9-8caf-7d2cf5ca205a/57ccc963-5c6f-441d-a82f-3f445a89f5fc_rw_1920.jpg?h=4974b3dbb88f1fcdcf2635042c7e7a64"
+                     srcset="https://cdn.myportfolio.com/7d2ce9c8-12ab-43c9-8caf-7d2cf5ca205a/57ccc963-5c6f-441d-a82f-3f445a89f5fc_rw_600.jpg?h=1862e09d89847c747022f170004849e0 600w,https://cdn.myportfolio.com/7d2ce9c8-12ab-43c9-8caf-7d2cf5ca205a/57ccc963-5c6f-441d-a82f-3f445a89f5fc_rw_1200.jpg?h=6878e826be77426e816ee6e993078e3b 1200w,https://cdn.myportfolio.com/7d2ce9c8-12ab-43c9-8caf-7d2cf5ca205a/57ccc963-5c6f-441d-a82f-3f445a89f5fc_rw_1920.jpg?h=4974b3dbb88f1fcdcf2635042c7e7a64 1920w,"
+                     alt="Fractal Emergence (2023)" width="350">
+            </section>
+        </section>
+        <section class="center">
+            <h2>Thank you!</h2>
+        </section>
+    </div>
+</div>

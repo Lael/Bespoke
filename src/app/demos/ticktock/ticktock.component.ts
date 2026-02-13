@@ -114,12 +114,6 @@ export class TicktockComponent extends ThreeDemoComponent implements OnDestroy, 
 
     this.gui = new dat.GUI();
     this.updateGUI();
-
-    this.helpTitle = 'Evasion';
-    this.shortcuts.push(['Space', 'Cycle selected vertex']);
-    this.shortcuts.push(['Arrow Keys', 'Move currently selected vertex']);
-    this.shortcuts.push(["Shift", "Slow movement of vertex by 10x"]);
-    this.shortcuts.push(["Alt", "Slow movement of vertex by 100x"]);
   }
 
   ngOnInit(): void {
@@ -195,7 +189,6 @@ export class TicktockComponent extends ThreeDemoComponent implements OnDestroy, 
   }
 
   processKeyboardInput(dt: number) {
-    this.showHelp = !!this.keysPressed.get('KeyH');
     if (this.keysPressed.get('Space') != true) this.debounce = false;
     if (!this.debounce && this.keysPressed.get('Space') == true) {
       this.debounce = true;

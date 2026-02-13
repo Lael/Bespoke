@@ -1,11 +1,16 @@
-import {AfterViewInit, Component, ElementRef, OnDestroy, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, inject, OnDestroy, ViewChild} from '@angular/core';
 import * as THREE from 'three';
-import {Color, ColorRepresentation, Vector2} from 'three';
+import {Color, ColorRepresentation, Vector2, WebGLRenderer} from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module.js'
 import {CommonModule} from "@angular/common";
-import {Line2} from "three/examples/jsm/lines/Line2.js";
-import {LineSegments2} from "three/examples/jsm/lines/LineSegments2.js";
 import {COLOR_MODE_TRANSITION_TIME, Colorable, ColorMode, ColorScheme} from "../../demos/color-scheme";
+import {MatDialog} from "@angular/material/dialog";
+import {PREVIEW_RENDERER} from "./preview-renderer";
+
+export enum RunningContext {
+  STANDARD,
+  PREVIEW,
+}
 
 @Component({
   selector: 'three-demo',
@@ -14,12 +19,19 @@ import {COLOR_MODE_TRANSITION_TIME, Colorable, ColorMode, ColorScheme} from "../
   styleUrls: ['./three-demo.component.sass']
 })
 export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
+  previewRenderer = inject(PREVIEW_RENDERER, {optional: true});
+  runningContext: RunningContext = RunningContext.STANDARD;
+  renderer: WebGLRenderer;
+
+  helpDialogOpen = false;
+  readonly helpDialog = inject(MatDialog);
+
   perspectiveCamera: THREE.PerspectiveCamera;
   orthographicCamera: THREE.OrthographicCamera;
   useOrthographic = false;
   orthographicDiagonal: number = 1;
+
   scene: THREE.Scene;
-  renderer: THREE.WebGLRenderer;
 
   @ViewChild('render_container', {static: true})
   hostElement?: ElementRef;
@@ -29,11 +41,6 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
 
   private resized = true;
   resolution = new Vector2(800, 800);
-
-  showHelp = false;
-  helpTitle = 'Demo';
-  helpText = '';
-  shortcuts: string[][] = [];
 
   keysPressed = new Map<string, boolean>();
   keysJustPressed = new Set<string>;
@@ -45,15 +52,23 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
   colorScheme: ColorScheme = new ColorScheme();
   materialRegistry: Map<Colorable, string> = new Map();
 
+  initPromise: Promise<any> | null = null;
+  isLoaded = true;
+
   constructor() {
+    if (this.previewRenderer) {
+      this.runningContext = RunningContext.PREVIEW;
+      this.renderer = this.previewRenderer;
+    } else {
+      this.renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        preserveDrawingBuffer: true,
+      });
+      this.renderer.setPixelRatio(window.devicePixelRatio);
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
     this.scene = new THREE.Scene();
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      preserveDrawingBuffer: true,
-    });
-    // this.renderer.shadowMap.enabled = true;
-    this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
     window.addEventListener('resize', this.onResize.bind(this));
 
     const aspect = window.innerWidth / window.innerHeight;
@@ -78,8 +93,19 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
     this.colorModeFraction = this.colorMode;
 
     this.colorScheme.register('clear', 0xffffff, 0x000000);
-    // this.colorScheme.register('clear', 0xf0f1eb, 0x000000);
     this.renderer.setClearColor(this.getColor('clear'));
+    // this.colorScheme.register('clear', 0xf0f1eb, 0x000000);
+  }
+
+  loadShader(url: string): Promise<string> {
+    const loader = new THREE.FileLoader();
+    return new Promise((resolve, reject) => {
+      loader.load(url,
+        data => resolve(data as string),
+        undefined,
+        err => reject(err)
+      );
+    });
   }
 
   onResize() {
@@ -88,10 +114,22 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.showStats) {
-      document.body.removeChild(this.stats.dom);
+      try {
+        document.body.removeChild(this.stats.dom);
+      } catch (e) {
+
+      }
     }
-    this.hostElement?.nativeElement.removeChild(this.renderer.domElement);
+
+    this.scene.clear();
     this.renderer.dispose();
+
+    try {
+      this.hostElement?.nativeElement.removeChild(this.renderer.domElement);
+    } catch (e) {
+
+    }
+
     document.removeEventListener('mousedown', this.mousedown.bind(this));
     document.removeEventListener('mousemove', this.mousemove.bind(this));
     document.removeEventListener('mouseup', this.mouseup.bind(this));
@@ -122,6 +160,7 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
   keyup(e: KeyboardEvent) {
     this.keysPressed.set(e.code, false);
     this.keysJustPressed.add(e.code);
+    this.keysJustPressed.add(e.key);
   }
 
   keyHeld(code: string): boolean {
@@ -151,6 +190,7 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
     this.resolution.set(w, h);
     this.renderer.setSize(w, h);
     this.perspectiveCamera.aspect = w / h;
+    this.perspectiveCamera.updateMatrix();
     this.perspectiveCamera.updateProjectionMatrix();
     this.updateOrthographicCamera(w, h);
     this.renderer.render(this.scene, this.camera);
@@ -164,6 +204,9 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
   abstract frame(dt: number): void;
 
   ngAfterViewInit(): void {
+    if (this.runningContext === RunningContext.PREVIEW) {
+      return;
+    }
     if (!this.hostElement) {
       console.error('Missing container for renderer');
       return;
@@ -177,23 +220,35 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
     this.hostElement.nativeElement.appendChild(this.renderer.domElement);
     this.old = Date.now();
     this.animate();
+    console.log('starting loop');
+  }
+
+  renderPreview(w: number, h: number, mode: ColorMode) {
+    if (this.runningContext === RunningContext.PREVIEW) {
+      this.colorModeFraction = mode == ColorMode.Light ? 0 : 1;
+      this.frame(0);
+      this.resize(w, h);
+      this.renderer.render(this.scene, this.camera);
+    }
+  }
+
+  resize(w: number, h: number) {
+    this.resized = false;
+    this.resolution.set(w, h);
+    if (this.runningContext !== RunningContext.PREVIEW) this.renderer.setSize(w, h);
+    this.perspectiveCamera.aspect = w / h;
+    this.perspectiveCamera.updateProjectionMatrix();
+    this.updateOrthographicCamera(w, h);
+    // for (let child of this.scene.children) {
+    //   if (child instanceof Line2 || child instanceof LineSegments2) {
+    //     child.material.resolution.set(w, h);
+    //   }
+    // }
   }
 
   animate() {
     if (this.resized) {
-      this.resized = false;
-      const w = this.hostElement?.nativeElement.offsetWidth || 0;
-      const h = this.hostElement?.nativeElement.offsetHeight || 0;
-      this.resolution.set(w, h);
-      this.renderer.setSize(w, h);
-      this.perspectiveCamera.aspect = w / h;
-      this.perspectiveCamera.updateProjectionMatrix();
-      this.updateOrthographicCamera();
-      for (let child of this.scene.children) {
-        if (child instanceof Line2 || child instanceof LineSegments2) {
-          child.material.resolution.set(w, h);
-        }
-      }
+      this.resize(this.hostElement?.nativeElement.offsetWidth || 0, this.hostElement?.nativeElement.offsetHeight || 0);
     }
     this.stats.update();
     const now = Date.now();
@@ -254,6 +309,10 @@ export abstract class ThreeDemoComponent implements AfterViewInit, OnDestroy {
 
   registerMaterial(material: Colorable, colorKey: string) {
     this.materialRegistry.set(material, colorKey);
+  }
+
+  get isPreview() {
+    return this.runningContext === RunningContext.PREVIEW;
   }
 }
 

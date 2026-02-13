@@ -2,22 +2,22 @@ import {Component, OnDestroy, OnInit} from "@angular/core";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {
-    BufferGeometry,
-    Color,
-    DoubleSide,
-    InstancedMesh,
-    Line as ThreeLine,
-    LineBasicMaterial,
-    LineSegments,
-    Matrix4,
-    Mesh,
-    MeshBasicMaterial,
-    Object3D,
-    Points,
-    PointsMaterial,
-    SphereGeometry,
-    Vector2,
-    Vector3
+  BufferGeometry,
+  Color,
+  DoubleSide,
+  InstancedMesh,
+  Line as ThreeLine,
+  LineBasicMaterial,
+  LineSegments,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  Object3D,
+  Points,
+  PointsMaterial,
+  SphereGeometry,
+  Vector2,
+  Vector3
 } from "three";
 import {Triangle} from "../../../math/geometry/triangle";
 import {iterate} from "../ticktock/ticktock.component";
@@ -115,16 +115,6 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
     this.updateGUI();
     this.start = new Mesh(new SphereGeometry(0.01), new MeshBasicMaterial({color: 0x44aaff}));
     this.scene.add(this.start);
-    this.helpTitle = 'Evasion Shape Space';
-    this.shortcuts.push(['Arrow Keys', 'Move test point around shape space']);
-    this.shortcuts.push(["[ & ]", "Change the value of t"]);
-    this.shortcuts.push(["Shift", "Slow movement of test point or t by 10x"]);
-    this.shortcuts.push(["Alt", "Slow movement of test point or t by 100x"]);
-    this.shortcuts.push(["C", "Clear the screen"]);
-    this.shortcuts.push(["O", "Show the current test point in the geometry view"]);
-    this.shortcuts.push(['Degenerate', 'Compute for given t which triangles are degenerate (red)']);
-    this.shortcuts.push(['Phase', 'Draw a phase portrait for the current settings']);
-    this.shortcuts.push(['Clear', 'Show only the orbit of the test point']);
   }
 
   ngOnInit() {
@@ -255,8 +245,6 @@ export class TriangleMapComponent extends ThreeDemoComponent implements OnDestro
     let multiplier = 1;
     multiplier *= (this.keysPressed.get('ShiftLeft') || this.keysPressed.get('ShiftRight') ? 0.1 : 1);
     multiplier *= (this.keysPressed.get('AltLeft') || this.keysPressed.get('AltRight') ? 0.01 : 1);
-
-    this.showHelp = !!this.keysPressed.get('KeyH');
 
     let dv = new Vector2();
     if (this.keysPressed.get('ArrowUp')) dv.y += 1;

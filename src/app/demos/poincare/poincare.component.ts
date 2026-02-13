@@ -1,6 +1,6 @@
 import {Component} from "@angular/core";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
-import {HyperbolicModel, HyperPoint} from "../../../math/hyperbolic/hyperbolic";
+import {HyperbolicModel, HyperPoint, poincareToTrueDistance} from "../../../math/hyperbolic/hyperbolic";
 import * as dat from 'dat.gui';
 import {CommonModule} from "@angular/common";
 import {Complex} from "../../../math/complex/complex";
@@ -122,6 +122,6 @@ export class PoincareComponent extends ThreeDemoComponent {
 
 function isoscelesRadius(t: number, n: number, mi: number): number {
   const central = Math.PI / n;
-  const pt = HyperPoint.poincareToTrue(t);
+  const pt = poincareToTrueDistance(t);
   return 0.75;
 }
