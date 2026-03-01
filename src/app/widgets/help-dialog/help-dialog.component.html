@@ -1,0 +1,53 @@
+<h2 mat-dialog-title>
+    {{ data.title }}
+</h2>
+
+<mat-dialog-content>
+    @if (data.description.length > 0) {
+        <p>{{ data.description }}</p>
+    }
+    @for (block of data.sections; track block.heading) {
+        <section>
+            <h3>{{ block.heading }}</h3>
+            <p>{{ block.text }}</p>
+        </section>
+    }
+    @if (data.keyBindings.length > 0) {
+        <section>
+            <h3>Key Bindings</h3>
+            <mat-divider></mat-divider>
+            <!-- TODO: mat-table? -->
+            @for (kb of data.keyBindings; track kb.keys) {
+                <div class="keybinding">
+                    <div class="keys">
+                        @if (!!kb.cluster) {
+                            <div class="key-grid">
+                                @for (row of kb.cluster; track $index) {
+                                    <div class="key-row">
+                                        @for (key of row; track $index) {
+                                            <span [class.kbd]="key" [class.spacer]="!key">{{ key.toUpperCase() }}</span>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        } @else if (!!kb.keys) {
+                            <div class="key-list">
+                                @for (key of kb.keys; track $index; let last = $last) {
+                                    <span class="kbd">{{ key }}</span>
+                                    @if (!$last) {
+                                        <span class="plus">+</span>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+                    <span>{{ kb.effect }}</span>
+                </div>
+                <mat-divider></mat-divider>
+            }
+        </section>
+    }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-flat-button color="primary" mat-dialog-close>Got it!</button>
+</mat-dialog-actions>

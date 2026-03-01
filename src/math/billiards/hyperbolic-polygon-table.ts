@@ -127,20 +127,20 @@ export class HyperbolicPolygonTable extends HyperbolicOuterBilliardTable {
         try {
           pivot = this.tangentTowardsPoint(mid);
         } catch (e) {
-          console.log('issue pivoting:', e);
+          // console.log('issue pivoting:', e);
           continue;
         }
         try {
           const newP = this.reflect(piece.p1, pivot);
           const newQ = this.reflect(piece.p2, pivot);
-          if (newP.poincare.distance(newQ.poincare) < 0.000_01) {
-            console.log('too short');
+          if (newP.poincare.distance(newQ.poincare) < 0.000_001) {
+            // console.log('too short');
             continue;
           }
 
           newFrontier.push(new HyperGeodesic(newP, newQ));
         } catch (e) {
-          console.log('issue preimaging:', e);
+          // console.log('issue preimaging:', e);
         }
       }
     }

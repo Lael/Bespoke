@@ -6,7 +6,7 @@ import {RouterOutlet} from '@angular/router';
   imports: [RouterOutlet],
   templateUrl: './app.component.html',
   standalone: true,
-  styleUrl: '../styles.sass'
+  styleUrl: '../styles.scss'
 })
 export class AppComponent {
   title = 'bespoke';

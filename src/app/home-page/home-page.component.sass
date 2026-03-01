@@ -5,34 +5,17 @@ $transition-speed: 0.5s ease-in-out
 .render-container
   display: none
 
+.nav-buttons
+  .nav-button
+    margin: 0 8px 0 8px
+
+  .selected
+    background-color: var(--mat-sys-secondary)
+
+
 .gallery-header
   text-align: center
   padding: 4rem 1rem 2rem
-
-  .shimmer-text
-    font-size: clamp(2.5rem, 5vw, 4.5rem)
-    // Responsive scaling
-    font-weight: 800
-    letter-spacing: -0.02em
-    margin: 0 0 1rem 0
-
-    --text-main: rgb(0, 0, 0)
-    --accent-color: rgb(200, 10, 60)
-
-    background: linear-gradient(120deg, var(--text-main) 0%, var(--text-main) 40%, var(--accent-color) 50%, var(--text-main) 60%, var(--text-main) 100%)
-    background-size: 200% auto
-
-    -webkit-background-clip: text
-    -webkit-text-fill-color: transparent
-
-    animation: shine 5s linear infinite
-
-  .subtitle
-    font-size: 1.1rem
-    color: var(--text-secondary)
-    max-width: 600px
-    margin: 0 auto
-    line-height: 1.6
 
 @keyframes shine
   to
@@ -44,7 +27,7 @@ $transition-speed: 0.5s ease-in-out
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr))
   gap: 2rem
   padding: 3rem
-  background: radial-gradient(circle at center, var(--bg-accent) 0%, var(--bg-main) 100%)
+//background: radial-gradient(circle at center, var(--bg-accent) 0%, var(--bg-main) 100%)
 
 .demo-card
   --tilt-x: 0deg
@@ -56,9 +39,9 @@ $transition-speed: 0.5s ease-in-out
   overflow: visible
   // Changed from hidden to allow 3D "pop"
   cursor: pointer
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1)
-  background: var(--card-base)
-  border: 1px solid rgba(255, 255, 255, 0.1)
+  //box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1)
+  //background: var(--card-base)
+  //border: 1px solid rgba(255, 255, 255, 0.1)
 
   // 3D Setup
   transform-style: preserve-3d
@@ -97,7 +80,7 @@ $transition-speed: 0.5s ease-in-out
       content: ''
       position: absolute
       inset: -50%
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 50%)
+      //background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 50%)
       transform: translateX(calc(var(--move-x) * -15px)) translateY(calc(var(--move-y) * 15px))
       z-index: 5
       opacity: 0
@@ -127,10 +110,6 @@ $transition-speed: 0.5s ease-in-out
     opacity: 0
     z-index: 2
 
-  &.dark-mode-active
-    .dark-img
-      opacity: 1
-
   .title-overlay
     position: absolute
     bottom: 0
@@ -155,3 +134,15 @@ $transition-speed: 0.5s ease-in-out
       font-size: 1.2rem
       font-weight: 600
       letter-spacing: 0.5px
+
+html.dark-theme
+  .dark-img
+    opacity: 1
+
+.about-me-container
+  width: 100%
+  display: flex
+  justify-content: space-around
+
+.about-me
+  max-width: 800px

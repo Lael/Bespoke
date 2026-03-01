@@ -1,0 +1,100 @@
+<div #container class="pane-container">
+    <canvas #canvas class="full-page"></canvas>
+    <div class="full-page">
+        <as-split direction="horizontal" unit="pixel" useTransition="true">
+            <as-split-area [size]="'*'">
+                <as-split direction="vertical">
+                    <as-split-area [size]="60" [minSize]="10">
+                        <as-split direction="horizontal">
+                            <as-split-area [size]="50" [minSize]="10" class="canvas-pane">
+                                <div #table class="canvas-pane-mask">
+                                    <h3 class="pane-label">Table</h3>
+                                </div>
+                            </as-split-area>
+                            <as-split-area [size]="50" [minSize]="10" class="canvas-pane">
+                                <div #metric class="canvas-pane-mask">
+                                    <h3 class="pane-label">Metric</h3>
+                                </div>
+                            </as-split-area>
+                        </as-split>
+                    </as-split-area>
+                    <as-split-area [size]="40" [minSize]="10">
+                        <as-split direction="horizontal" useTransition="true">
+                            <as-split-area [size]="100" [visible]="!dim3" class="canvas-pane">
+                                <div #phase class="canvas-pane-mask">
+                                    <h3 class="pane-label">Phase Space</h3>
+                                </div>
+                            </as-split-area>
+                            <as-split-area [size]="50" [visible]="dim3" class="canvas-pane">
+                                <div #qNet class="canvas-pane-mask">
+                                    <h3 class="pane-label">Table Net</h3>
+                                </div>
+                            </as-split-area>
+                            <as-split-area [size]="50" [visible]="dim3" class="canvas-pane">
+                                <div #pNet class="canvas-pane-mask">
+                                    <h3 class="pane-label">Metric Net</h3>
+                                </div>
+                            </as-split-area>
+                        </as-split>
+                    </as-split-area>
+                </as-split>
+            </as-split-area>
+            <as-split-area [size]="400" [minSize]="400" [visible]="showSettings">
+                <as-split direction="vertical">
+                    <as-split-area [size]="60" [minSize]="20" class="plain-pane settings-pane">
+                        <div class="plain-pane-mask">
+                            <div class="settings-container">
+                                <div class="settings-header">
+                                    <h3>Settings</h3>
+                                    <button mat-icon-button (click)="showSettings = false" class="close-btn">
+                                        <mat-icon>close</mat-icon>
+                                    </button>
+                                </div>
+                                <div class="settings-panel">
+                                    <settings-panel [gui]="gui"></settings-panel>
+                                </div>
+                            </div>
+                        </div>
+                    </as-split-area>
+                    <as-split-area [size]="40" [minSize]="20" class="plain-pane settings-pane">
+                        <div class="plain-pane-mask">
+                            <div class="output-text">
+                                <section>
+                                    <h3>Statistics</h3>
+                                    <table mat-table [dataSource]="results">
+                                        <!-- Key Column -->
+                                        <ng-container matColumnDef="key">
+                                            <th mat-header-cell *matHeaderCellDef><strong>Quantity</strong></th>
+                                            <td mat-cell *matCellDef="let element"> {{ element.key }}</td>
+                                        </ng-container>
+
+                                        <!-- Value Column -->
+                                        <ng-container matColumnDef="value">
+                                            <th mat-header-cell *matHeaderCellDef><strong>Value</strong></th>
+                                            <td mat-cell *matCellDef="let element">{{ element.value }}</td>
+                                        </ng-container>
+
+                                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                    </table>
+                                </section>
+                            </div>
+                        </div>
+                    </as-split-area>
+                </as-split>
+            </as-split-area>
+        </as-split>
+        @if (!showSettings) {
+            <button mat-mini-fab
+                    class="reopen-btn"
+                    (click)="showSettings = true">
+                <mat-icon>tune</mat-icon>
+            </button>
+            <button mat-mini-fab
+                    class="help-fab"
+                    (click)="openMainHelp()">
+                <mat-icon>help</mat-icon>
+            </button>
+        }
+    </div>
+</div>

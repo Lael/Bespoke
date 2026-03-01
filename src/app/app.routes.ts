@@ -5,32 +5,45 @@ import {EberlyTalkComponent} from "./talks/eberly-research-showcase/eberly-talk.
 import {HamiltonianTalkComponent} from "./talks/hamiltonian-talk/hamiltonian-talk.component";
 import {IhpBabySeminar} from "./talks/ihp-baby-seminar/ihp-baby-seminar";
 import {Type} from "@angular/core";
-import {ThreeDemoComponent} from "./widgets/three-demo/three-demo.component";
 import {SourdoughComponent} from "./demos/sourdough/sourdough.component";
 import {PentagramComponent} from "./demos/pentagram/pentagram.component";
 import {BilliardsComponent} from "./demos/billiards/billiards.component";
-import {MinkowskiBilliardsComponent} from "./demos/minkowski/minkowski-billiards.component";
 import {OuterSymplecticComponent} from "./demos/outer-symplectic/outer-symplectic.component";
-import {TileBilliardsComponent} from "./demos/tile-billiards/tile-billiards-component";
 import {SymplecticTableComponent} from "./demos/symplectic-table/symplectic-table.component";
 import {TwistedPolygonComponent} from "./demos/twisted-polygon/twisted-polygon.component";
 import {ImsoTalkComponent} from "./talks/imso-talk/imso-talk.component";
+import {SquareTilingComponent} from "./demos/square-tiling/square-tiling.component";
+import {MinkowskiBilliardComponent} from "./demos/minkowski/minkowski-billiard.component";
+import {ColorMode} from "./demos/color-scheme";
+
+export interface Previewable {
+  initPromise: Promise<any> | null;
+  renderPreview: (w: number, h: number, mode: ColorMode) => void;
+}
 
 interface DemoConfig {
-  component: Type<ThreeDemoComponent>,
+  component: Type<Previewable>,
+  title: string,
+  path: string,
+}
+
+interface OtherDemoConfig {
+  component: Type<any>,
   title: string,
   path: string,
 }
 
 export const demoRoutes: DemoConfig[] = [
   {path: 'billiards', component: BilliardsComponent, title: 'Billiards'},
-  {path: 'minkowski', component: MinkowskiBilliardsComponent, title: 'Minkowski Billiards'},
+  {path: 'minkowski', component: MinkowskiBilliardComponent, title: 'Minkowski'},
   {path: 'outer-symplectic', component: OuterSymplecticComponent, title: 'Outer Symplectic Billiards'},
-  {path: 'tiling-billiards', component: TileBilliardsComponent, title: 'Tiling Billiards'},
+  // {path: 'tiling-billiards', component: TileBilliardsComponent, title: 'Tiling Billiards'},
   {path: 'symplectic-table', component: SymplecticTableComponent, title: 'Symplectic Table Map'},
   {path: 'twist', component: TwistedPolygonComponent, title: 'Symplectic Table Map (Twisted)'},
   {path: 'pentagram', component: PentagramComponent, title: 'Pentagram Map'},
+  {path: 'squares', component: SquareTilingComponent, title: 'Squares'},
   {path: 'sourdough', component: SourdoughComponent, title: 'Sourdough Fractal'},
+  // {path: 'polyhedron', component: PolyhedronPickerComponent, title: 'Polyhedron Picker'},
 
   // {path: 'demo/tiling', component: TilingComponent, title: 'Tiling'},
   // {path: 'demo/symplectic', component: SymplecticComponent, title: 'Symplectic'},
@@ -42,7 +55,7 @@ export const demoRoutes: DemoConfig[] = [
   // {path: 'demo/ticktock', component: TicktockComponent, title: 'Evasion'},
   // {path: 'demo/triangle-map', component: TriangleMapComponent, title: 'Triangle'},
   // {path: 'demo/symmetric', component: SymmetricComponent, title: 'Symmetric'},
-  // {path: 'demo/phase', component: PhaseComponent, title: 'Phase'},
+  // {path: 'phase', component: PhaseComponent, title: 'Phase'},
   // {path: 'demo/crossing', component: CrossingComponent, title: 'Crossing'},
   //
   // {path: 'demo/regge2', component: Regge2Component, title: 'Regge 2D'},
@@ -54,11 +67,16 @@ export const demoRoutes: DemoConfig[] = [
   // {path: 'demo/kobon', component: KobonComponent, title: 'Kobon'},
   // {path: 'demo/scattering', component: ScatteringComponent, title: 'Scattering Billiards'},
   // {path: 'demo/wavefront', component: WavefrontComponent, title: 'Wavefronts'},
-  // {path: 'demo/squares', component: SquareTilingComponent, title: 'Squares'},
   // {path: 'demo/dynamics-2d', component: Dynamics2dComponent, title: '2D Dynamics'},
   // {path: 'demo/force-graph', component: ForceGraphComponent, title: 'Force Graph'},
   // {path: 'demo/sea-ice', component: SeaIceComponent, title: 'Sea Ice'},
   // {path: 'demo/dilation-surfaces', component: DilationSurfaceComponent, title: 'Dilation Surfaces'},
+  // {path: 'hilbert', component: HilbertComponent, title: 'Hilbert'},
+];
+
+export const otherDemoRoutes: OtherDemoConfig[] = [
+  // {path: 'wasm', component: WasmDemoComponent, title: 'WASM Demo'},
+  // {path: 'drag', component: DraggableComponent, title: 'Drag'},
 ];
 
 interface TalkConfig {
@@ -78,5 +96,6 @@ export const talkRoutes: TalkConfig[] = [
 export const routes: Routes = [
   {path: '', component: HomePageComponent, title: ''},
   ...demoRoutes,
+  ...otherDemoRoutes,
   ...talkRoutes,
 ];

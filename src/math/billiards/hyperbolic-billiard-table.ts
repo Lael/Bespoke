@@ -158,7 +158,7 @@ export abstract class HyperbolicInnerBilliardTable extends HyperbolicCurve imple
       // return {
       //   state: {
       //     time: yTime,
-      //     angle: Math.PI / 2,
+      //     deltaAngle: Math.PI / 2,
       //   }, hyperCycle: hyperCycle
       // };
       if (debug) {

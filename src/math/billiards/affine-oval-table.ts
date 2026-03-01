@@ -1,13 +1,4 @@
-import {
-  BufferGeometry,
-  ColorRepresentation,
-  Group,
-  Line as ThreeLine,
-  LineBasicMaterial,
-  Shape,
-  Vector2,
-  Vector3
-} from "three";
+import {Vector2, Vector3} from "three";
 import {AffineCircle} from "../geometry/affine-circle";
 import {Line} from "../geometry/line";
 import {closeEnough, normalizeAngle} from "../math-helpers";
@@ -15,13 +6,13 @@ import {fixTime} from "./tables";
 import {Complex} from "../complex/complex";
 import {AffineOuterBilliardTable, Straight} from "./affine-billiard-table";
 import {EuclideanRay} from "../geometry/euclidean-ray";
-import {EuclideanShape, NormalPair, ShapeRayCollision} from "../geometry/euclidean-shape";
+import {EuclideanShape, NormalPair, ShapeData, ShapeRayCollision} from "../geometry/euclidean-shape";
 import {findPeriodicMinimumX} from "./find-min";
 
 export type Parametrization = (t: number) => Vector2;
 export type ContainmentTest = (v: Vector2) => boolean;
 
-export function smoothPolygon(n: number, p: number) {
+export function smoothPolygon(n: number, p: number): AffineOvalTable {
   function radial(t: number) {
     return Math.pow(
       Math.pow(Math.abs(Math.cos(n / 4 * t)), p) +
@@ -146,6 +137,95 @@ function findOnInterval(f: (t: number) => number,
   // uuu -> g1, g3
 }
 
+function derivative(f: (t: number) => number, t: number, h: number = 1e-7): number {
+  return (f(t + h) - f(t - h)) / (2 * h);
+}
+
+function findMinimumOnCircle(f: (t: number) => number): number {
+  const tol = 1e-10; // Desired precision
+  const eps = 1e-14; // Small value to prevent division by zero
+  const c = (3 - Math.sqrt(5)) / 2; // Golden section ratio
+
+  let a = 0;
+  let b = 1;
+  let v = a + c * (b - a);
+  let w = v;
+  let x = v;
+  let d = 0;
+  let e = 0;
+
+  let fx = f(x);
+  let fv = fx;
+  let fw = fx;
+
+  for (let iter = 0; iter < 100; iter++) {
+    let m = 0.5 * (a + b);
+    let tol1 = tol * Math.abs(x) + eps;
+    let tol2 = 2 * tol1;
+
+    // Check if we are done
+    if (Math.abs(x - m) <= tol2 - 0.5 * (b - a)) {
+      break;
+    }
+
+    let p = 0, q = 0, r = 0;
+    if (Math.abs(e) > tol1) {
+      // Fit a parabola
+      r = (x - w) * (fx - fv);
+      q = (x - v) * (fx - fw);
+      p = (x - v) * q - (x - w) * r;
+      q = 2 * (q - r);
+      if (q > 0) p = -p;
+      q = Math.abs(q);
+      let etemp = e;
+      e = d;
+
+      if (Math.abs(p) >= Math.abs(0.5 * q * etemp) || p <= q * (a - x) || p >= q * (b - x)) {
+        // Parabolic fit failed; use golden section step
+        e = (x >= m) ? a - x : b - x;
+        d = c * e;
+      } else {
+        // Parabolic step
+        d = p / q;
+        let u = x + d;
+        if (u - a < tol2 || b - u < tol2) {
+          d = (m - x >= 0) ? Math.abs(tol1) : -Math.abs(tol1);
+        }
+      }
+    } else {
+      // Use golden section step
+      e = (x >= m) ? a - x : b - x;
+      d = c * e;
+    }
+
+    let u = (Math.abs(d) >= tol1) ? x + d : x + (d >= 0 ? tol1 : -tol1);
+    let fu = f(u);
+
+    if (fu <= fx) {
+      if (u >= x) a = x; else b = x;
+      v = w;
+      fv = fw;
+      w = x;
+      fw = fx;
+      x = u;
+      fx = fu;
+    } else {
+      if (u < x) a = u; else b = u;
+      if (fu <= fw || w === x) {
+        v = w;
+        fv = fw;
+        w = u;
+        fw = fu;
+      } else if (fu <= fv || v === x || v === w) {
+        v = u;
+        fv = fu;
+      }
+    }
+  }
+
+  return x % 1; // Ensure result is in [0, 1)
+}
+
 // Assumptions: f(t) = f(t + 1) & value has one min and one max on [0, 1).
 function findOnCircle(f: (t: number) => number): number {
   let tv = new Vector3(0.0, 1. / 3, 2. / 3);
@@ -225,6 +305,8 @@ export class AffineOvalTable extends AffineOuterBilliardTable implements Euclide
   private factor: number = 1;
   private translation = new Vector2();
 
+  private _area: number | undefined = undefined;
+
   constructor(
     private readonly parametrization: Parametrization,
     private readonly tangent: Parametrization,
@@ -247,6 +329,23 @@ export class AffineOvalTable extends AffineOuterBilliardTable implements Euclide
       throw Error('point does not lie on curve');
     }
     return fixTime(bestGuess);
+  }
+
+  area(): number {
+    if (this._area === undefined) {
+      const steps = 16_384;
+      const dt = 1 / steps;
+      let a = 0;
+      let left;
+      let right = this.point(0);
+      for (let i = 0; i < steps; i++) {
+        left = right;
+        right = this.point((i + 1) * dt % 1);
+        a += (left.x * right.y - left.y * right.x);
+      }
+      this._area = Math.abs(a) / 2;
+    }
+    return this._area;
   }
 
   override tangentVector(time: number): Vector2 {
@@ -415,10 +514,15 @@ export class AffineOvalTable extends AffineOuterBilliardTable implements Euclide
   }
 
   supportPoint(theta: number): Vector2 {
-    const t = findOnCircle(t =>
+    const t = findMinimumOnCircle(t =>
       Math.pow(normalizeAngle(this.heading(t) - theta), 2)
     );
     return this.point(t);
+  }
+
+  support(p: Vector2): number {
+    debugger;
+    return p.dot(this.supportPoint(p.angle() - Math.PI / 2));
   }
 
   width(theta: number): number {
@@ -426,14 +530,6 @@ export class AffineOvalTable extends AffineOuterBilliardTable implements Euclide
     const sp2 = this.supportPoint(theta + Math.PI);
     const diff = sp1.sub(sp2);
     return Math.abs(diff.dot(new Vector2(-Math.sin(theta), Math.cos(theta))));
-  }
-
-  shape(n: number): Shape {
-    const points = [];
-    for (let i = 0.0; i < n; i++) {
-      points.push(this.point(i / n));
-    }
-    return new Shape().setFromPoints(points).closePath();
   }
 
   circleTangentLine(circle: AffineCircle, towardCircle: boolean): Line {
@@ -465,12 +561,11 @@ export class AffineOvalTable extends AffineOuterBilliardTable implements Euclide
     };
   }
 
-  drawable(color: ColorRepresentation): Group {
-    let l = new ThreeLine(
-      new BufferGeometry().setFromPoints(this.points(360).concat([this.point(0)])),
-      new LineBasicMaterial({color})
-    );
-    return new Group().add(l);
+  shapeData(): ShapeData {
+    return {
+      path: this.points(360).concat([this.point(0)]),
+      dots: [],
+    };
   }
 
   param(t: number): NormalPair {

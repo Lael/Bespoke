@@ -1,6 +1,6 @@
 import {Component, OnDestroy} from "@angular/core";
 import {CommonModule} from "@angular/common";
-import {RunningContext, ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
+import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import {CircleGeometry, Mesh, MeshBasicMaterial, Object3D, PlaneGeometry, ShaderMaterial, Vector2} from "three";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
 import {DragControls} from "three/examples/jsm/controls/DragControls.js";
@@ -9,6 +9,7 @@ import {Line2} from "three/examples/jsm/lines/Line2.js";
 import {LineGeometry} from "three/examples/jsm/lines/LineGeometry.js";
 import {LineMaterial} from "three/examples/jsm/lines/LineMaterial.js";
 import {Pane} from "tweakpane";
+import {ColorMode} from "../color-scheme";
 
 const MAX_VERTICES: number = 12;
 
@@ -28,6 +29,7 @@ const FRAGMENT_SHADER = "varying vec3 vPosition;\n" +
   "uniform vec2 uVertices[MAX_VERTICES];\n" +
   "uniform float uLambda;\n" +
   "uniform int uIterations;\n" +
+  "uniform bool uDark;\n" +
   "\n" +
   "vec2 closestPoint(vec2 p, vec2 v1, vec2 v2) {\n" +
   "    vec2 d = v2 - v1;\n" +
@@ -92,7 +94,8 @@ const FRAGMENT_SHADER = "varying vec3 vPosition;\n" +
   "    //    float factor = clamp(length(p), 0.0, 1.0);\n" +
   "    //    if (length(p) > 1) factor = 1.0;\n" +
   "    //    else factor = 0.0;\n" +
-  "    float factor = 1. - float(i) / float(uIterations);\n" +
+  "    float factor = float(i) / float(uIterations);\n" +
+  "    if (uDark) factor = 1. - factor; \n" +
   "\n" +
   "    gl_FragColor = vec4(vec3(factor), 1.0);\n" +
   "}";
@@ -106,8 +109,8 @@ const FRAGMENT_SHADER = "varying vec3 vPosition;\n" +
 })
 export class SourdoughComponent extends ThreeDemoComponent implements OnDestroy {
   // Params
-  iterations: number = 20;
-  lambda: number = 3;
+  iterations: number = 30;
+  lambda: number = -3;
   n: number = 5;
 
   private oc: OrbitControls;
@@ -120,6 +123,7 @@ export class SourdoughComponent extends ThreeDemoComponent implements OnDestroy 
       uVertices: {value: this.paddedVertices},
       uLambda: {value: this.lambda},
       uIterations: {value: this.iterations},
+      uDark: {value: this.colorMode === ColorMode.Light}
     }
   });
   private billboard: Mesh = new Mesh(new PlaneGeometry(20, 20), this.shaderMaterial);
@@ -142,7 +146,7 @@ export class SourdoughComponent extends ThreeDemoComponent implements OnDestroy 
     super();
     console.log('constructor');
     this.useOrthographic = true;
-    this.orthographicDiagonal = 1.5;
+    this.orthographicDiagonal = 2;
     this.updateOrthographicCamera();
     this.oldZoom = this.camera.zoom;
     // this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
@@ -171,7 +175,7 @@ export class SourdoughComponent extends ThreeDemoComponent implements OnDestroy 
     // });
 
     // this.billboard.frustumCulled = true;
-    if (this.runningContext === RunningContext.STANDARD) {
+    if (!this.isPreview) {
       this.initPane();
     }
 
@@ -183,13 +187,11 @@ export class SourdoughComponent extends ThreeDemoComponent implements OnDestroy 
     this.shaderMaterial.fragmentShader = FRAGMENT_SHADER;
     this.shaderMaterial.needsUpdate = true;
 
-    this.isLoaded = false;
     this.initPromise = this.renderer.compileAsync(this.scene, this.camera).then(() => {
-      this.isLoaded = true;
-      // const start = Date.now();
-      // this.renderer.render(this.scene, this.camera);
-      // const end = Date.now();
-      // console.log(`Rendering first frame took ${end - start}ms`);
+      const start = Date.now();
+      this.renderer.render(this.scene, this.camera);
+      const end = Date.now();
+      console.log(`Rendering first frame took ${end - start}ms`);
     });
   }
 
@@ -224,10 +226,12 @@ export class SourdoughComponent extends ThreeDemoComponent implements OnDestroy 
   }
 
   regularPolygon(n: number) {
+    this.scene.clear();
     this.draggables.length = 0;
     for (let i = 0; i < n; i++) {
       this.draggables.push(this.dot(Complex.polar(1, i / n * Math.PI * 2 + Math.PI / 2).toVector2()))
     }
+    this.scene.add(...this.draggables, this.billboard, this.edges);
   }
 
   override frame(_: number) {
@@ -242,11 +246,11 @@ export class SourdoughComponent extends ThreeDemoComponent implements OnDestroy 
     this.dotOuterGeo.scale(dz, dz, 1);
     this.oldZoom = zoom;
 
-    if (this.isPreview) return;
     this.shaderMaterial.uniforms['uVertexCount'].value = this.vertices.length;
     this.shaderMaterial.uniforms['uVertices'].value = this.paddedVertices;
     this.shaderMaterial.uniforms['uIterations'].value = this.iterations;
     this.shaderMaterial.uniforms['uLambda'].value = this.lambda;
+    this.shaderMaterial.uniforms['uDark'].value = this.colorMode === ColorMode.Light;
   }
 
   dot(p: Vector2): Object3D {

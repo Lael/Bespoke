@@ -1,0 +1,22 @@
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.not-last {
+  margin-bottom: 16px;
+}
+
+.full-width {
+  max-width: 100%;
+  width: 100%;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.number-label {
+  margin-right: 8px;
+}

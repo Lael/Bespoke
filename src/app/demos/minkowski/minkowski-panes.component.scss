@@ -1,0 +1,71 @@
+.output-text {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.settings-panel {
+  height: calc(100% - 80px);
+  min-width: 368px;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: 32px;
+  margin-bottom: 16px;
+  overflow-y: scroll;
+}
+
+.help-btn {
+  width: calc(100% - 32px);
+  margin: 16px;
+  height: 32px;
+  //justify-self: flex-end;
+}
+
+.reopen-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 100;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.help-fab {
+  position: absolute;
+  top: 64px;
+  right: 8px;
+  z-index: 100;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.settings-container {
+  height: 100%;
+}
+
+.settings-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  margin-left: 16px;
+  height: 64px;
+}
+
+.mat-column-key {
+  width: 96px;
+  border-right: 1px solid currentColor;
+}
+
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

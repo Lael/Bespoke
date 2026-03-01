@@ -1,4 +1,4 @@
-import {ColorRepresentation, Group, Vector2} from "three";
+import {Vector2} from "three";
 import {EuclideanRay} from "./euclidean-ray";
 
 export interface ShapeRayCollision {
@@ -6,10 +6,14 @@ export interface ShapeRayCollision {
   paramTime: number;
 }
 
-
 export interface NormalPair {
-  point: Vector2,
-  normal: Vector2,
+  point: Vector2;
+  normal: Vector2;
+}
+
+export interface ShapeData {
+  path: Vector2[];
+  dots: Vector2[];
 }
 
 export interface EuclideanShape {
@@ -17,7 +21,9 @@ export interface EuclideanShape {
   rotate(angle: number): EuclideanShape;
   translate(t: Vector2): EuclideanShape;
   castRay(ray: EuclideanRay): ShapeRayCollision;
-  drawable(color: ColorRepresentation): Group;
+  shapeData(): ShapeData;
   param(t: number): NormalPair;
   corners(): number[];
+  area(): number;
+  support(p: Vector2): number;
 }

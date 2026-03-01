@@ -10,6 +10,7 @@ export class LineSegment extends Segment {
   private readonly p2: Complex;
   private readonly m;
   readonly line: Line;
+  _vector: Complex | undefined = undefined;
 
   constructor(private readonly p: Complex | Vector2, private readonly q: Complex | Vector2) {
     super();
@@ -66,7 +67,10 @@ export class LineSegment extends Segment {
 
   override containsPoint(p: Complex | Vector2): boolean {
     if (p instanceof Vector2) return this.containsPoint(Complex.fromVector2(p));
-    return closeEnough(this.p1.distance(p) + this.p2.distance(p), this.length);
+    const v = p.minus(this.p1);
+    const f = v.dot(this.vector);
+    if (f < 0 || f > this.length) return false;
+    return closeEnough(v.minus(this.vector.scale(f)).modulus(), 0);
   }
 
   override startHeading(): number {
@@ -116,5 +120,12 @@ export class LineSegment extends Segment {
 
   override get length(): number {
     return this.p1.minus(this.p2).modulus();
+  }
+
+  get vector(): Complex {
+    if (!this._vector) {
+      this._vector = this.p2.minus(this.p1).normalize();
+    }
+    return this._vector;
   }
 }

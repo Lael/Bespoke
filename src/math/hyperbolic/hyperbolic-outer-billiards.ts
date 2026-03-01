@@ -219,7 +219,7 @@ export class HyperbolicOuterBilliards {
   //     }
   //   }
   //
-  //   // console.log(`Found a periodic orbit of length ${orbit.word.length} and rotation angle ${orbit.map.rotation() / Math.PI}π`);
+  //   // console.log(`Found a periodic orbit of length ${orbit.word.length} and rotation deltaAngle ${orbit.map.rotation() / Math.PI}π`);
   //   if (!this.results.hasOrbit && orbit.word.length === this.settings.vertexCount) {
   //     this.results.hasOrbit = true;
   //     this.results.orbitLength = orbit.word.length;
@@ -382,7 +382,7 @@ export class HyperbolicOuterBilliards {
 //             (_x: number, _y: number, _: VertexHandle) => {},
 //             (x: number, y: number, ths: VertexHandle) => {
 //             const polygon = pixelToWorld(x, y);
-//             ths.drawable.recenter(polygon.real, polygon.imag, 0);
+//             ths.shapeData.recenter(polygon.real, polygon.imag, 0);
 //             hob.moveVertex(index, polygon);
 //             hob.populateScene(scene);
 //             },
@@ -400,7 +400,7 @@ function transformSegment(s: HyperSegment, t: HyperIsometry): HyperSegment {
   else return new IdealArc(t.apply(s.start), t.apply(s.mid), t.apply(s.end));
 }
 
-// function angle(g1: HyperbolicGeodesic, g2: HyperbolicGeodesic): number {
+// function deltaAngle(g1: HyperbolicGeodesic, g2: HyperbolicGeodesic): number {
 //     let h1 = 0;
 //     let h2 = 0;
 //     if (g1.p1.equals(g2.p1)) {

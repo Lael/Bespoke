@@ -42,7 +42,6 @@ export interface Colorable {
   color: ColorRepresentation
 }
 
-
 export function systemMode(): ColorMode {
   return (
     window.matchMedia &&

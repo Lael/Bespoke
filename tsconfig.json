@@ -6,6 +6,9 @@
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "paths": {
+      "wasm-wrapper": [
+        "./projects/wasm-wrapper/src/public-api.ts"
+      ],
       "*": [
         "node_modules/*",
         "src/types/*"
@@ -13,6 +16,9 @@
       "three": [
         "node_modules/three/src/Three",
         "node_modules/three/examples/jsm/controls"
+      ],
+      "@/*": [
+        "src/app/*"
       ]
     },
     "strict": true,

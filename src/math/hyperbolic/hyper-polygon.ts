@@ -128,7 +128,7 @@ export class HyperPolygon {
       s += a;
     }
     if (s > (angles.length - 2) * Math.PI) v = false;
-    if (!v) throw new Error('Invalid angle list');
+    if (!v) throw new Error('Invalid deltaAngle list');
 
     const a0 = angles[0];
     const a1 = angles[1];

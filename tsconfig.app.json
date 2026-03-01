@@ -4,6 +4,7 @@
   "compilerOptions": {
     "resolveJsonModule": true,
     "paths": {
+      "wasm-wrapper": ["./projects/wasm-wrapper/src/public-api.ts"],
       "@angular/*": [
         "../node_modules/@angular/*"
       ]

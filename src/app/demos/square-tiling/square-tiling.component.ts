@@ -67,6 +67,7 @@ export class SquareTilingComponent extends ThreeDemoComponent {
 
   constructor() {
     super();
+    this.registerColor('clear', 0xffffff, 0x000000);
     this.useOrthographic = true;
     this.updateOrthographicCamera();
     this.tilings = new Array(this.n).fill([]).map(() => new Array(this.n).fill(undefined));
@@ -140,8 +141,8 @@ export class SquareTilingComponent extends ThreeDemoComponent {
           let mn = Math.min(a, b);
           let g = gcd(mn, mx);
           let k = mx / mn + 3 * Math.log2(mn / g);
-          if (!boring) console.log(`Real: ${t.l}, Kenyon: ${k}`);
-          if (t.l > k) console.log('  C too low');
+          // if (!boring) console.log(`Real: ${t.l}, Kenyon: ${k}`);
+          // if (t.l > k) console.log('  C too low');
 
           boring = false;
 
@@ -162,6 +163,12 @@ export class SquareTilingComponent extends ThreeDemoComponent {
     }
     this.rectangles.instanceMatrix.needsUpdate = true;
     if (this.rectangles.instanceColor) this.rectangles.instanceColor.needsUpdate = true;
+
+    const center = new Vector3();
+    this.rectangles.computeBoundingBox();
+    this.rectangles.boundingBox?.getCenter(center);
+    this.camera.translateX(center.x);
+    this.camera.translateY(center.y);
 
 
     let ls: Vector2[] = [];

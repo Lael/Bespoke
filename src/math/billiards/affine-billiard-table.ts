@@ -98,7 +98,13 @@ abstract class AffineCurve {
 
   abstract boundary(point: Vector2): boolean;
 
-  abstract shape(n: number): Shape;
+  shape(n: number): Shape {
+    const points = [];
+    for (let i = 0; i < n; i++) {
+      points.push(this.point(i / n));
+    }
+    return new Shape().setFromPoints(points).closePath();
+  }
 }
 
 export abstract class AffineInnerBilliardTable extends AffineCurve implements AffineInner {
@@ -189,7 +195,13 @@ export abstract class AffineOuterBilliardTable extends AffineInnerBilliardTable 
 
   outerArea(start: Vector2, reverse: boolean = false): Vector2 {
     const t = reverse ? this.tangentTowardsPoint(start) : this.tangentFromPoint(start);
+    // Check:
     const rp = this.point(t);
+    const dv = this.tangentVector(t).normalize();
+    const v = rp.clone().sub(start).normalize();
+    const dot = v.dot(dv);
+    const error = Math.abs(Math.abs(dot) - 1);
+    if (error > 1e-7) console.log(`large angular error: ${error}`);
     return rp.add(rp.clone().sub(start));
   }
 

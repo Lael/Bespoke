@@ -127,7 +127,7 @@ export class ScatteringComponent extends ThreeDemoComponent implements OnDestroy
     }
   }
 
-  updateColors() {
+  updateColorScheme() {
     let bright = new Color('gold');
     let dark = new Color('black');
     for (let i = 0; i < this.nregions; i++) {
@@ -147,7 +147,7 @@ export class ScatteringComponent extends ThreeDemoComponent implements OnDestroy
       let orbit = this.computeOrbit();
       let path =
         new Line(new BufferGeometry().setFromPoints(orbit), new LineBasicMaterial({color: 0xffffff}));
-      this.updateColors();
+      this.updateColorScheme();
       this.scene.add(...this.illumination);
       this.scene.add(path);
       this.dirty = false;

@@ -1,0 +1,70 @@
+<div class="control-list">
+    @for (c of node().children; track c; let last = $last) {
+        @if (c.visible) {
+            @if (isFolder(c)) {
+                <mat-expansion-panel [expanded]="false" [class.not-last]="!last">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title class="mat-h4"><h4>{{ c.title }}</h4></mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <settings-node [node]="c"/>
+                </mat-expansion-panel>
+            } @else if (isControl(c)) {
+                <div class="control-row" [class.not-last]="!last">
+                    @if (c.type !== 'function') {
+                        <span class="control-label" [matTooltip]="c.tooltipVal">{{ c.label }}</span>
+                    }
+                    <div class="control-input" [class.full-width]="c.type === 'function'">
+                        @switch (c.type) {
+                            @case ('boolean') {
+                                <mat-slide-toggle
+                                        [(ngModel)]="c.value"
+                                        [disabled]="c.disabled"
+                                        color="primary"></mat-slide-toggle>
+                            }
+                            @case ('number') {
+                                @if (c.minVal !== undefined) {
+                                    <span class="number-label">{{ c.formatValue(c.value) }}</span>
+                                    <mat-slider
+                                            [showTickMarks]="showTicks(c)"
+                                            [min]="c.minVal"
+                                            [max]="c.maxVal"
+                                            [step]="c.stepVal || 1"
+                                            [disabled]="c.disabled">
+                                        <input matSliderThumb [(ngModel)]="c.value">
+                                    </mat-slider>
+                                } @else {
+                                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                        <input matInput type="number"
+                                               [(ngModel)]="c.value"
+                                               [disabled]="c.disabled">
+                                    </mat-form-field>
+                                }
+                            }
+                            @case ('select') {
+                                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                    <mat-select [disabled]="c.disabled" [(ngModel)]="c.value">
+                                        @for (opt of c.optionsList; track opt) {
+                                            <mat-option [value]="opt">{{ opt }}</mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                            }
+                            @case ('function') {
+                                <button [disabled]="c.disabled" mat-stroked-button color="primary" class="w-full"
+                                        (click)="c.target[c.property]()">
+                                    {{ c.label }}
+                                </button>
+                            }
+                            @default {
+                                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                    <input [disabled]="c.disabled" matInput [(ngModel)]="c.value"
+                                           [matTooltip]="c.tooltipVal">
+                                </mat-form-field>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        }
+    }
+</div>

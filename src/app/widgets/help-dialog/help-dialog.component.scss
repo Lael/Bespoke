@@ -1,0 +1,66 @@
+.keybinding {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1em 0;
+}
+
+.key-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.action-label {
+  color: #aaa;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.key-cell {
+  padding: 16px 0;
+  text-align: right;
+}
+
+.kbd {
+  display: inline-block;
+  padding: 4px 8px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 11px;
+  font-weight: bold;
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 4px;
+  box-shadow: 0 2px 0 #111;
+  color: #fff;
+  min-width: 1.2em;
+  text-align: center;
+}
+
+.key-grid {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.key-row {
+  display: flex;
+  gap: 2px;
+}
+
+.spacer {
+  width: 28px;
+  height: 21px;
+}
+
+.key-list {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.plus {
+  color: #666;
+  font-size: 12px;
+}

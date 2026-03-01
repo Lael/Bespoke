@@ -1,6 +1,6 @@
 import {Component} from "@angular/core";
 import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
-import {Matrix3, Mesh, MeshBasicMaterial, PlaneGeometry, ShaderMaterial, Vector2, Vector3} from "three";
+import {Matrix3, Mesh, PlaneGeometry, ShaderMaterial, Vector2, Vector3} from "three";
 import {clamp} from "three/src/math/MathUtils.js";
 import {CommonModule} from "@angular/common";
 
@@ -134,7 +134,7 @@ export class Regge3Component extends ThreeDemoComponent {
     this.useOrthographic = true;
     this.renderer.setClearColor(CLEAR_COLOR);
     this.bigQuad = new Mesh(
-      new PlaneGeometry(1, 1), new MeshBasicMaterial({})
+      new PlaneGeometry(1, 1), new ShaderMaterial({})
     );
 
     const vertPromise = fetch('assets/shaders/regge3.vert').then(response => response.text());

@@ -4,20 +4,20 @@ import {Line3D} from "./line3D";
 
 export class Plane {
   // ax + by + cy + d = 0
-  constructor(private readonly a: number,
-              private readonly b: number,
-              private readonly c: number,
-              private readonly d: number,
+  constructor(readonly a: number,
+              readonly b: number,
+              readonly c: number,
+              readonly d: number,
   ) {
     if (this.normal.length() === 0) throw new Error('Zero normal');
   }
 
   get normal(): Vector3 {
-    return new Vector3(this.a, this.b, this.c);
+    return new Vector3(this.a, this.b, this.c).normalize();
   }
 
   get point(): Vector3 {
-    return this.normal.setLength(-this.d / this.normal.lengthSq());
+    return this.normal.setLength(-this.d / new Vector3(this.a, this.b, this.c).lengthSq());
   }
 
   static fromPointAndNormal(point: Vector3, normal: Vector3): Plane {

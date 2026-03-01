@@ -118,7 +118,7 @@ export class AffinePiecewiseTable extends AffineOuterBilliardTable {
     throw Error('no point found');
   }
 
-  shape(n: number): Shape {
+  override shape(n: number): Shape {
     let points: Vector2[] = [];
     for (let s of this.segments) {
       points.push(...s.interpolate(1).map(c => c.toVector2()));
@@ -145,7 +145,7 @@ export class AffinePiecewiseTable extends AffineOuterBilliardTable {
     //     } catch (e) {
     //     }
     //   }
-    //   const theta = p.clone().sub(point).angle();
+    //   const theta = p.clone().sub(point).deltaAngle();
     //   const s1eh = s1.endHeading() + Math.PI;
     //   const s2sh = s2.startHeading();
     //   const n1 = normalizeAngle(theta, s1eh) - s1eh;

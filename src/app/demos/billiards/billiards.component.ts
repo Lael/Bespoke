@@ -46,7 +46,7 @@ import {
   AffineOuterBilliardTable,
   Straight
 } from "../../../math/billiards/affine-billiard-table";
-import {ellipse, lpCircle} from "../../../math/billiards/affine-oval-table";
+import {ellipse} from "../../../math/billiards/affine-oval-table";
 import {AffineFlexigonTable} from "../../../math/billiards/affine-flexigon-table";
 import {Line2} from "three/examples/jsm/lines/Line2.js";
 import {LineGeometry} from "three/examples/jsm/lines/LineGeometry.js";
@@ -63,7 +63,9 @@ import {ActivatedRoute} from "@angular/router";
 import {AffineEllipseTable} from "../../../math/billiards/affine-ellipse-table";
 import {emptyGrid, VoxelGrid} from "./voxel";
 import {HyperbolicPolygonTable} from "../../../math/billiards/hyperbolic-polygon-table";
-// import {ArcCSVGenerator} from "./arc-data";
+import {ArcCSVGenerator} from "./arc-data";
+import {SuperellipseTable} from "../../../math/billiards/superellipse-table";
+import {populateLineGeometry} from "../demo-helpers";
 
 const SPHERE_COLOR: ColorRepresentation = 0xffffff;
 const SPHERE_TABLE_COLOR: ColorRepresentation = 0x123456;
@@ -75,6 +77,24 @@ const START_POINT_COLOR: ColorRepresentation = 0x51e76f;
 const END_POINT_COLOR: ColorRepresentation = 0x6f51e7;
 const SCAFFOLD_COLOR: ColorRepresentation = 0xff00ff;
 const CIRCLE_CENTER_COLOR: ColorRepresentation = 0x004400;
+
+const TABLE_BOUNDARY_THICKNESS: number = 2;
+
+interface Coaster {
+  n: number,
+  tiling: boolean,
+  r?: number,
+  k?: number,
+}
+
+const COASTERS: Coaster[] = [
+  {n: 5, tiling: false, r: 0.40235},
+  {n: 5, tiling: false, r: 0.623},
+  {n: 4, tiling: false, r: 0.525},
+  {n: 4, tiling: false, r: 0.321},
+  {n: 5, tiling: true, k: 4},
+  {n: 4, tiling: true, k: 5},
+];
 
 enum TableType {
   POLYGON = 'Polygon',
@@ -148,12 +168,12 @@ const CHART_CONFIG: ChartConfiguration = {
   },
 }
 
-const ANIMATION_FRAME_COUNT: number = 200;
+const ANIMATION_FRAME_COUNT: number = 1;
 const ANIMATION_FRAME_RATE: number = 60;
 // const ANIMATION_MIN_R: number = hyperbolicTilingRadius(5, 5);
 // const ANIMATION_MAX_R: number = hyperbolicTilingRadius(5, 4);
-const ANIMATION_MIN_R: number = 0.1;
-const ANIMATION_MAX_R: number = 0.5;
+const ANIMATION_MIN_R: number = 0.214;
+const ANIMATION_MAX_R: number = ANIMATION_MIN_R;
 
 // function ding() {
 //   const audio = new Audio('assets/audio/ding.mp3');
@@ -178,13 +198,14 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
 
   draggables: Object3D[] = [];
   dragging = false;
+  moving = false;
   cameraSwitch = true;
 
   animationRunning = false;
   animationFrame = 0;
   frameReady = true;
   grid: VoxelGrid | null = null;
-  // csvGen = new ArcCSVGenerator();
+  csvGen = new ArcCSVGenerator();
   mc: Mesh | null = null;
   // blobs: Blob[] = [];
   // mediaRecorder: MediaRecorder | null = null;
@@ -195,7 +216,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
   billiardTypeParams = {
     duality: Duality.OUTER,
     generator: Generator.AREA,
-    geometry: Geometry.EUCLIDEAN,
+    geometry: Geometry.HYPERBOLIC,
   }
 
   tableParams: TableParams = {
@@ -210,7 +231,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
       cornerRadius: 0,
     },
     superellipseParams: {
-      p: 1.5,
+      p: 6,
     },
     semidiskParams: {
       beta: 0,
@@ -227,7 +248,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
   drawParams = {
     model: 'Poincaré',
     singularities: true,
-    singularityIterations: 25,
+    singularityIterations: 50,
     singInterval: 0,
     orbit: false,
     start: false,
@@ -277,7 +298,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
   affineInnerTable!: AffineInnerBilliardTable;
   hyperbolicTable!: HyperbolicPolygonTable;
   sphericalTable!: SphericalOuterBilliardTable
-  affineOuterStart: Vector2 = new Vector2(4.444406348720879, 0.1280422279354999);
+  // affineOuterStart: Vector2 = new Vector2(4.444406348720879, 0.1280422279354999);
+  affineOuterStart: Vector2 = new Vector2(2, 1);
   hyperOuterStart: HyperPoint = HyperPoint.fromPoincare(new Vector2(0.5, 0.5));
   sphereOuterStart: Vector2 = new Vector2(1, 1);
 
@@ -319,9 +341,9 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
   constructor(private route: ActivatedRoute) {
     super();
 
-
     this.useOrthographic = true;
-    this.camera.zoom = 0.5;
+    this.orthographicDiagonal = 1.05;
+    // this.camera.zoom = 0.5;
     this.updateOrthographicCamera();
 
     this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -338,17 +360,20 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
     }
 
     // Color scheme
-    this.registerColor('clear', 0xF0F1EB, 0x0a2933);
-    // this.colorScheme.register('outer_table_fill', 0x000000, 0xffffff);
-    // this.registerColor('clear', 0xffffff, 0x0a2933);
+    // this.registerColor('clear', 0xF0F1EB, 0x0a2933);
+    this.registerColor('clear', 0xffffff, 0x000000);
+    // this.registerColor('disk', 0xffffff, 0xffffff);
     this.registerColor('disk', 0x000000, 0xffffff);
-    // this.registerColor('outer_table_fill', 0x123456, 0xabcdef);
-    this.registerColor('outer_table_fill', 0xbbbbee, 0xddddee);
+    this.registerColor('outer_table_fill', 0x123456, 0xabcdef);
+    // this.registerColor('outer_table_fill', 0xbbbbee, 0xddddee);
+    // this.registerColor('outer_table_fill', 0xdddddd, 0xddddee);
+    // this.registerColor('outer_table_fill', 0xffffff, 0xddddee);
     this.registerColor('outer_table_boundary', 0x3060aa, 0x3060aa);
+    // this.registerColor('outer_table_boundary', 0x0, 0x3060aa);
     this.registerColor('outer_orbit', 0x000000, 0xffffff);
     this.registerColor('handle', 0x990044, 0x990044);
     this.registerColor('outer_singularity', 0xB00020, 0xB00020);
-    // this.registerColor('outer_singularity', 0xbb0000, 0xff4444);
+    // this.registerColor('outer_singularity', 0x000000, 0xffffff);
     this.registerColor('sphere', 0xffffff, 0xffffff);
     this.registerColor('sphere_singularity', SPHERE_SING_COLOR, SPHERE_SING_COLOR);
     this.registerColor('chord', 0xffffff, 0x000000);
@@ -368,7 +393,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
     this.tableFillMaterial = new THREE.MeshBasicMaterial({color: this.getColor('outer_table_fill')});
     this.tableBoundaryMaterial = new LineMaterial({
       color: this.getColor('outer_table_boundary'),
-      linewidth: this.drawParams.orbitSize * 2,
+      linewidth: this.drawParams.orbitSize * TABLE_BOUNDARY_THICKNESS,
       resolution: this.resolution,
     });
     this.singularityMaterial = new LineMaterial({
@@ -399,9 +424,9 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
       color: this.getColor('outer_orbit')
     });
     this.chordMaterial = new LineMaterial();
-    this.registerMaterial(this.chordMaterial, 'chord');
+    this.registerColorable(this.chordMaterial, 'chord');
     this.scaffoldMaterial = new LineMaterial();
-    this.registerMaterial(this.scaffoldMaterial, 'scaffold');
+    this.registerColorable(this.scaffoldMaterial, 'scaffold');
 
     this.hyperbolicDisk = new Line2(diskGeometry, this.diskMaterial);
     this.sphericalSphere = new Mesh(
@@ -621,7 +646,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
     this.animationRunning = false;
     this.animationFrame = 0;
 
-    // this.csvGen.download();
+    this.csvGen.download();
 
     // if (this.grid) {
     //   const mesh = gridToMesh(this.grid);
@@ -643,6 +668,24 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
   }
 
   private processKeyboardInput(dt: number): void {
+    let coaster: Coaster | null = null;
+    if (this.keyJustPressed('Digit1')) coaster = COASTERS[0];
+    if (this.keyJustPressed('Digit2')) coaster = COASTERS[1];
+    if (this.keyJustPressed('Digit3')) coaster = COASTERS[2];
+    if (this.keyJustPressed('Digit4')) coaster = COASTERS[3];
+    if (this.keyJustPressed('Digit5')) coaster = COASTERS[4];
+    if (this.keyJustPressed('Digit6')) coaster = COASTERS[5];
+    if (coaster) {
+      this.tableParams.polygonParams.n = coaster.n;
+      if (coaster.tiling) {
+        this.tableParams.polygonParams.r = hyperbolicTilingRadius(coaster.n, coaster.k!);
+      } else {
+        this.tableParams.polygonParams.r = coaster.r!;
+      }
+      this.updateTable();
+      this.updateGUI();
+    }
+
     if (this.keyJustPressed('KeyT')) {
       console.log(JSON.stringify(this.billiardTypeParams));
       console.log(JSON.stringify(this.tableParams));
@@ -656,7 +699,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
         this.stopRecording();
       }
     } else if (this.keyJustPressed('KeyA')) {
-      this.startRecording();
+      // this.startRecording();
     }
 
     if (this.keyJustPressed('KeyF') &&
@@ -739,7 +782,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
       this.orbitControls.reset();
     }
     if (this.keyJustPressed('KeyP')) {
-      this.printScreen(800, 800);
+      this.printScreen(1000, 1000);
     }
     // if (this.geometry === Geometry.EUCLIDEAN &&
     //   this.duality === Duality.OUTER &&
@@ -752,7 +795,14 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
     if (this.keysPressed.get('ArrowRight')) pointDiff.x += 1;
     if (this.keysPressed.get('ArrowUp')) pointDiff.y += 1;
     if (this.keysPressed.get('ArrowDown')) pointDiff.y -= 1;
-    if (pointDiff.length() === 0) return;
+    if (pointDiff.length() === 0) {
+      if (this.moving) {
+        this.moving = false;
+        this.orbitDirty = true;
+      }
+      return;
+    }
+    this.moving = true;
     pointDiff.normalize();
     if (this.keysPressed.get('ShiftLeft')) pointDiff.multiplyScalar(0.1);
     if (this.keysPressed.get('AltLeft')) pointDiff.multiplyScalar(0.01);
@@ -806,7 +856,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
       //   this.frameReady = true;
       this.animationFrame++;
       //   console.log(`${this.animationFrame}/${ANIMATION_FRAME_COUNT}`);
-      if (this.animationFrame > ANIMATION_FRAME_COUNT) {
+      if (this.animationFrame >= ANIMATION_FRAME_COUNT) {
         this.stopRecording();
       }
       // });
@@ -883,7 +933,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
     this.scaffoldMaterial.linewidth = this.drawParams.orbitSize;
     this.scaffoldMaterial.resolution.set(this.resolution.x, this.resolution.y);
     this.tableBoundaryMaterial.color.set(this.getColor('outer_table_boundary'));
-    this.tableBoundaryMaterial.linewidth = this.drawParams.orbitSize * 2;
+    this.tableBoundaryMaterial.linewidth = this.drawParams.orbitSize * TABLE_BOUNDARY_THICKNESS;
     this.tableBoundaryMaterial.resolution = this.resolution;
 
     if (this.drawParams.phase && this.duality === Duality.INNER) {
@@ -1024,7 +1074,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
       break;
     case TableType.SUPERELLIPSE:
       tableFolder.add(this.tableParams.superellipseParams, 'p').name('p')
-        .min(1).max(5).step(0.1)
+        .min(2).max(10).step(1)
         .onFinishChange(this.updateTableParams.bind(this));
       break;
     case TableType.LENS:
@@ -1097,7 +1147,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
       .onChange(() => {
         this.orbitDirty = true;
       });
-    if (this.duality === Duality.OUTER && this.generator === Generator.AREA) {
+    if (this.duality === Duality.OUTER && this.generator === Generator.AREA && this.tableParams.tableType === TableType.POLYGON) {
       gameFolder.add(this.gameParams, 'tilingPolygon')
         .min(3).max(20).step(1).name('Tiling').onFinishChange(this.makeTiling.bind(this));
     }
@@ -1241,7 +1291,10 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
         this.affineInnerTable = new AffinePolygonTable(vertices);
         this.affineOuterTable = new AffinePolygonTable(vertices);
         shape = this.affineOuterTable.shape(vertices.length);
-        this.tableBoundary = new Line2(populateLineGeometry(new LineGeometry(), vertices.concat(vertices[0]), 0.5), this.tableBoundaryMaterial)
+        this.tableBoundary = new Line2(
+          populateLineGeometry(new LineGeometry(), vertices.concat(vertices[0]), 0.5),
+          this.tableBoundaryMaterial
+        );
         break;
       case TableType.FLEXIGON:
         this.affineOuterTable = new AffineFlexigonTable(
@@ -1281,18 +1334,14 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
         shape = this.affineOuterTable.shape(360);
         break;
       case TableType.SUPERELLIPSE:
-        this.affineInnerTable = lpCircle(this.tableParams.superellipseParams.p);
-        this.affineOuterTable = lpCircle(this.tableParams.superellipseParams.p);
+        this.affineInnerTable = new SuperellipseTable(this.tableParams.superellipseParams.p);
+        this.affineOuterTable = new SuperellipseTable(this.tableParams.superellipseParams.p);
         shape = this.affineOuterTable.shape(360);
-        const points = [];
-        const n = 10000;
-        for (let i = 0; i <= n; i++) {
-          points.push(this.affineOuterTable.point((i + 0.5) / n));
-        }
-        // this.tableBoundary = new Line2(
-        //   new LineGeometry().setPositions(points.flatMap(v => [v.x, v.y, 0])),
-        //   new LineMaterial({color: 0x000000, resolution: this.resolution, linewidth: 5})
-        // );
+        const points = shape.getPoints(360);
+        this.tableBoundary = new Line2(
+          populateLineGeometry(new LineGeometry(), points.concat(points[0]), 0.5),
+          this.tableBoundaryMaterial
+        );
         break;
       case TableType.LENS:
         this.affineInnerTable = new AffinePiecewiseTable(
@@ -1360,10 +1409,11 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
         for (let i = 0; i < spp.length - 1; i++) {
           lsp.push(spp[i], spp[i + 1]);
         }
-        // if (this.animationRunning && this.grid !== null) {
-        //   const f: number = 1.0 - (1.0 - this.animationFrame / ANIMATION_FRAME_COUNT) * 0.2;
-        //   this.csvGen.appendArc(sp.p1.coords.clone().multiplyScalar(f), sp.p2.coords.clone().multiplyScalar(f));
-        // }
+        if (this.animationRunning && this.grid !== null) {
+          // const f: number = 1.0 - (1.0 - this.animationFrame / ANIMATION_FRAME_COUNT) * 0.2;
+          const f = 1.0;
+          this.csvGen.appendArc(sp.p1.coords.clone().multiplyScalar(f), sp.p2.coords.clone().multiplyScalar(f));
+        }
       }
       const buffer = new Float32Array(lsp.length * 3);
       let i = 0;
@@ -1452,7 +1502,8 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
     let nextPointPosition: Vector2;
     let geometry;
     let material;
-    const it = this.dragging ? Math.min(this.iterations, 2) : this.iterations;
+    let it = this.dragging ? Math.min(this.iterations, 2) : this.iterations;
+    if (this.moving) it = Math.min(it, Math.pow(2, 11));
     switch (this.duality) {
     case Duality.INNER:
       const chords = this.affineInnerTable.iterateInner(
@@ -1976,14 +2027,4 @@ function sphericalTilingRadius(n: number, k: number): number {
   let a = Math.cos(l);
   let b = Math.cos(2 * Math.PI / n);
   return Math.acos(Math.abs(Math.sqrt((b - a) / (b - 1))));
-}
-
-function populateLineGeometry(geo: LineGeometry, pts: (Vector2 | Complex)[] | Vector3[], z: number = 0): LineGeometry {
-  if (pts.length === 0) return geo;
-  geo.setPositions(pts.flatMap(v => {
-      if (v instanceof Vector3) return [v.x, v.y, v.z];
-      else return [v.x, v.y, z];
-    })
-  );
-  return geo;
 }

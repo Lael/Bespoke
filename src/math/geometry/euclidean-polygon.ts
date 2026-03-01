@@ -1,10 +1,10 @@
-import {BufferGeometry, ColorRepresentation, Group, Line, LineBasicMaterial, Vector2} from "three";
+import {Vector2} from "three";
 import {LineSegment} from "./line-segment";
 import {EPSILON, normalizeAngle} from "../math-helpers";
 import {Line as GeoLine} from "./line";
 import {EuclideanRay} from "./euclidean-ray";
 import {fixTime} from "../billiards/tables";
-import {EuclideanShape, NormalPair, ShapeRayCollision} from "./euclidean-shape";
+import {EuclideanShape, NormalPair, ShapeData, ShapeRayCollision} from "./euclidean-shape";
 
 export interface EuclideanPolygonRayCollision extends ShapeRayCollision {
   sideIndex: number;
@@ -13,6 +13,8 @@ export interface EuclideanPolygonRayCollision extends ShapeRayCollision {
 export class EuclideanPolygon implements EuclideanShape {
   public readonly n: number;
   vertices: Vector2[];
+
+  private _area: number | undefined = undefined;
 
   constructor(vertices: Vector2[]) {
     this.vertices = vertices;
@@ -32,14 +34,11 @@ export class EuclideanPolygon implements EuclideanShape {
     return new EuclideanPolygon(vertices);
   }
 
-  drawable(color: ColorRepresentation): Group {
-    let l = new Line(
-      new BufferGeometry().setFromPoints(this.vertices.concat([this.vertices[0]])),
-      new LineBasicMaterial({color})
-    );
-    let g = new Group();
-    g.add(l);
-    return g;
+  shapeData(): ShapeData {
+    return {
+      path: this.vertices.concat([this.vertices[0]]),
+      dots: this.vertices,
+    }
   }
 
   normal(sideIndex: number): Vector2 {
@@ -72,6 +71,21 @@ export class EuclideanPolygon implements EuclideanShape {
       p += this.vertices[i].distanceTo(this.vertices[(i + 1) % this.n]);
     }
     return p;
+  }
+
+  area(): number {
+    if (this._area === undefined) {
+      let a = 0;
+      let left;
+      let right = this.vertices[0].clone();
+      for (let i = 0; i < this.n; i++) {
+        left = right;
+        right = this.vertices[(i + 1) % this.n].clone();
+        a += left.cross(right);
+      }
+      this._area = Math.abs(a) / 2;
+    }
+    return this._area;
   }
 
   contains(point: Vector2) {
@@ -135,6 +149,15 @@ export class EuclideanPolygon implements EuclideanShape {
       }
     }
     return bestIntersection;
+  }
+
+  support(p: Vector2): number {
+    let m = 0;
+    for (let v of this.vertices) {
+      const d = v.dot(p);
+      if (d > m) m = d;
+    }
+    return m;
   }
 
   rotate(angle: number): EuclideanPolygon {

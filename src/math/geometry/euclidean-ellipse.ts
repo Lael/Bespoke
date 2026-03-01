@@ -1,17 +1,6 @@
-import {EuclideanShape, NormalPair, ShapeRayCollision} from "./euclidean-shape";
+import {EuclideanShape, NormalPair, ShapeData, ShapeRayCollision} from "./euclidean-shape";
 import {EuclideanRay} from "./euclidean-ray";
-import {
-  BufferGeometry,
-  CircleGeometry,
-  ColorRepresentation,
-  Group,
-  Line,
-  LineBasicMaterial,
-  Mesh,
-  MeshBasicMaterial,
-  Path,
-  Vector2
-} from "three";
+import {Path, Vector2} from "three";
 import {Line as GeoLine} from './line';
 import {AffineCircle} from "./affine-circle";
 import {Complex} from "../complex/complex";
@@ -33,22 +22,21 @@ export class EuclideanEllipse implements EuclideanShape {
     this.b = this.a * Math.sqrt(1 - this.eccentricity * this.eccentricity);
   }
 
-  drawable(color: ColorRepresentation): Group {
-    let g = new Group();
+  area(): number {
+    return Math.PI * this.a * this.b;
+  }
+
+  shapeData(): ShapeData {
     let path = new Path();
     path.absellipse(this.center.x, this.center.y,
       this.a, this.b, 0, 2 * Math.PI, false, this.rotation);
-    let l = new Line(new BufferGeometry().setFromPoints(path.getPoints(360)), new LineBasicMaterial({color}));
-    g.add(l);
-    let geo = new CircleGeometry(0.01);
-    let mat = new MeshBasicMaterial({color});
-    let f1 = new Mesh(geo, mat);
-    let f2 = new Mesh(geo, mat);
     let c = Math.sqrt(this.a * this.a - this.b * this.b);
-    f1.position.set(c * Math.cos(this.rotation), c * Math.sin(this.rotation), 1);
-    f2.position.set(-c * Math.cos(this.rotation), -c * Math.sin(this.rotation), 1);
-    g.add(f1, f2);
-    return g;
+    const f1 = new Vector2(c * Math.cos(this.rotation), c * Math.sin(this.rotation));
+    const f2 = new Vector2(-c * Math.cos(this.rotation), -c * Math.sin(this.rotation));
+    return {
+      path: path.getPoints(360),
+      dots: [f1, f2],
+    };
   }
 
   castRay(ray: EuclideanRay): EllipseRayCollision {
@@ -73,6 +61,11 @@ export class EuclideanEllipse implements EuclideanShape {
     throw Error('no collision');
   }
 
+  support(p: Vector2): number {
+    const theta = p.angle();
+    return p.length() * this.param(theta).point.length();
+  }
+
   // cast(t: number, alpha: number): Vector2 {
   //     const start = this.point(t);
   //     const v = this.tangent(t).rotateAround(new Vector2(), alpha * Math.PI);
@@ -89,7 +82,7 @@ export class EuclideanEllipse implements EuclideanShape {
   //
   //         const endPoint = this.point(newT);
   //         const endTangent = this.tangent(newT);
-  //         const newAlpha = normalizeAngle(Math.PI + (endTangent.angle() - (start.sub(endPoint)).angle())) / Math.PI;
+  //         const newAlpha = normalizeAngle(Math.PI + (endTangent.deltaAngle() - (start.sub(endPoint)).deltaAngle())) / Math.PI;
   //         return new Vector2(newT, newAlpha);
   //     }
   //     throw Error('no intersection');

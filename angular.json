@@ -25,10 +25,14 @@
               "src/assets",
               "src/assets/images",
               "src/assets/audio",
-              "src/assets/files/zine.pdf"
+              "src/assets/files/zine.pdf",
+              {
+                "glob": "**/*.wasm",
+                "input": "projects/wasm-wrapper/src/lib/bespoke-wasm/pkg"
+              }
             ],
             "styles": [
-              "src/styles.sass",
+              "src/styles.scss",
               "node_modules/reveal.js/dist/reveal.css",
               "node_modules/reveal.js/css/theme/source/serif.scss",
               "src/app/talks/theme.scss"
@@ -47,8 +51,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "12kb"
+                  "maximumWarning": "100kb",
+                  "maximumError": "200kb"
                 }
               ],
               "outputHashing": "all"
@@ -91,12 +95,49 @@
               "src/favicon.svg",
               "src/favicon.ico",
               "src/assets",
-              "src/assets/images"
+              "src/assets/images",
+              {
+                "glob": "**/*.wasm",
+                "input": "projects/wasm-wrapper/src/lib/bespoke-wasm/pkg"
+              }
             ],
             "styles": [
-              "src/styles.sass"
+              "src/styles.scss"
             ],
             "scripts": []
+          }
+        }
+      }
+    },
+    "wasm-wrapper": {
+      "projectType": "library",
+      "root": "projects/wasm-wrapper",
+      "sourceRoot": "projects/wasm-wrapper/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/wasm-wrapper/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/wasm-wrapper/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/wasm-wrapper/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "tsConfig": "projects/wasm-wrapper/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
           }
         }
       }

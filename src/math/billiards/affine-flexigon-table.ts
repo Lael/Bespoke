@@ -256,7 +256,7 @@ export class AffineFlexigonTable extends AffineOuterBilliardTable {
     return [];
   }
 
-  shape(_: number): Shape {
+  override shape(_: number): Shape {
     const points = [];
     for (let segment of this.segments) {
       points.push(...segment.interpolate(1).map(c => c.toVector2()));

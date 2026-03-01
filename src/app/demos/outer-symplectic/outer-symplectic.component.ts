@@ -21,7 +21,7 @@ import {
   Vector3,
   Vector4
 } from "three";
-import {RunningContext, ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
+import {ThreeDemoComponent} from "../../widgets/three-demo/three-demo.component";
 import {AfterViewInit, Component, ElementRef, OnDestroy, ViewChild} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js";
@@ -411,6 +411,7 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
 
   pointsMaterial: PointsMaterial;
   lineMaterial: LineBasicMaterial;
+  edgeMat: LineMaterial;
 
   xyTable!: Group;
   zwTable!: Group;
@@ -442,10 +443,14 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
     this.registerColor('lo_w', 0xff0000, 0xff0000);
     this.registerColor('hi_w', 0x0000ff, 0x00ffff);
     this.registerColor('orbit', 0x123456, 0xf0f1eb);
+    this.registerColor('edge', 0xff0000, 0xff0000);
     this.pointsMaterial = new PointsMaterial();
     this.lineMaterial = new LineBasicMaterial();
-    this.registerMaterial(this.pointsMaterial, 'orbit');
-    this.registerMaterial(this.lineMaterial, 'orbit');
+    this.edgeMat = new LineMaterial({color: this.getColor('edge'), resolution: this.resolution, linewidth: 3});
+    this.registerColorable(this.pointsMaterial, 'orbit');
+    this.registerColorable(this.lineMaterial, 'orbit');
+    this.registerColorable(this.edgeMat, 'edge');
+    this.registerLineMat(this.edgeMat);
 
     this.table = new Group();
 
@@ -534,7 +539,7 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
   }
 
   updateGUI() {
-    if (this.runningContext === RunningContext.PREVIEW) return;
+    if (this.isPreview) return;
     this.gui.destroy();
     this.gui = new GUI();
 
@@ -712,7 +717,7 @@ export class OuterSymplecticComponent extends ThreeDemoComponent implements Afte
     this.table = new Group();
     this.table.add(new LineSegments2(
       new LineSegmentsGeometry().setPositions(edges.flatMap(v4 => [v4.x, v4.y, v4.z])),
-      new LineMaterial({color: 0xff0000, resolution: this.resolution, linewidth: 3}))
+      this.edgeMat)
     );
     const convexGeometry = new ConvexGeometry(v.map(v4 => new Vector3(v4.x, v4.y, v4.z)));
     this.table.add(new Mesh(convexGeometry, new MeshPhongMaterial({

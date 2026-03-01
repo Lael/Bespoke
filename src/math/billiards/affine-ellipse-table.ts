@@ -1,5 +1,5 @@
 import {AffineOuterBilliardTable, AffineOuterLengthResult, Straight} from "./affine-billiard-table";
-import {Shape, Vector2} from "three";
+import {Vector2} from "three";
 import {AffineCircle} from "../geometry/affine-circle";
 import {EuclideanRay} from "../geometry/euclidean-ray";
 import {Line} from "../geometry/line";
@@ -76,14 +76,6 @@ export class AffineEllipseTable extends AffineOuterBilliardTable {
   point(time: number): Vector2 {
     const t = 2 * Math.PI * time;
     return new Vector2(this.a * Math.cos(t), this.b * Math.sin(t))
-  }
-
-  shape(n: number): Shape {
-    const points = [];
-    for (let i = 0.0; i < n; i++) {
-      points.push(this.point(i / n));
-    }
-    return new Shape().setFromPoints(points).closePath();
   }
 
   tangentFromPoint(point: Vector2): number {
