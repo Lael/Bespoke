@@ -47,17 +47,35 @@ import {MatDialog} from "@angular/material/dialog";
 import {Face, Polyhedron} from "../../../math/geometry/polyhedron";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {PolyhedronNet} from "../../../math/geometry/polyhedron-net";
-import {MatDivider} from "@angular/material/divider";
+import {AffinePiecewiseTable} from "../../../math/billiards/affine-piecewise-table";
+import {Complex} from "../../../math/complex/complex";
 
 const ARROW_LENGTH: number = 0.25;
 const HEAD_LENGTH: number = 0.1;
 const HEAD_WIDTH: number = 0.075;
+
+interface State2D {
+  qTime: number;
+  qPoint: Vector2;
+  qNormal: Vector2;
+  pTime: number;
+  pPoint: Vector2;
+  pNormal: Vector2;
+}
+
+interface State3D {
+  qPoint: Vector3;
+  qFace: Face;
+  pPoint: Vector3;
+  pFace: Face;
+}
 
 enum TableType {
   REGULAR = 'Regular',
   ELLIPSE = 'Ellipse',
   SMOOTH = 'Smooth',
   QUAD = 'Quad',
+  // TWENTY = 'Twenty',
   PENTHOUSE = 'Penthouse',
 }
 
@@ -73,8 +91,8 @@ enum PlatonicSolid {
 interface TableParams {
   type: TableType,
   polygonN: number,
+  radius: number,
   ellipseEcc: number,
-  smoothN: number,
   smoothP: number,
   rotation: number,
   penthouse: Vector2,
@@ -87,11 +105,25 @@ function createShape(params: TableParams): EuclideanShape {
   const theta = params.rotation * Math.PI;
   switch (params.type) {
   case TableType.REGULAR:
-    return EuclideanPolygon.regular(params.polygonN).rotate(theta);
+    if (params.radius === 0) return EuclideanPolygon.regular(params.polygonN).rotate(theta);
+    // if (params.radius === 1) return new EuclideanEllipse(0, new Vector2(), theta);
+    const vertices = [];
+    const curvatures = [];
+    const k = 1 / params.radius;
+    const pin = Math.PI / params.polygonN;
+
+    for (let i = 0; i < params.polygonN; i++) {
+      const center = Complex.polar(1, 2 * i * pin + theta);
+      const lo = Complex.polar(params.radius, (2 * i - 1) * pin + theta);
+      const hi = Complex.polar(params.radius, (2 * i + 1) * pin + theta);
+      vertices.push(center.plus(lo).toVector2(), center.plus(hi).toVector2());
+      curvatures.push(k, 0);
+    }
+    return new AffinePiecewiseTable(vertices, curvatures);
   case TableType.ELLIPSE:
     return new EuclideanEllipse(params.ellipseEcc, new Vector2(), theta);
   case TableType.SMOOTH:
-    return smoothPolygon(params.smoothN, params.smoothP).rotate(theta);
+    return smoothPolygon(params.polygonN, params.smoothP).rotate(theta);
   case TableType.QUAD:
     return new EuclideanPolygon([
       new Vector2(-1, -1), new Vector2(2, -1), new Vector2(0, 1), new Vector2(-1, 0),
@@ -101,6 +133,13 @@ function createShape(params: TableParams): EuclideanShape {
       new Vector2(-1, 1), new Vector2(-1, -1), new Vector2(1, -1), new Vector2(1, 1),
       new Vector2(-1 + 2 * params.penthouse.x, 1 + 2 * params.penthouse.y)
     ]).scale(0.5).rotate(theta);
+    // case TableType.TWENTY:
+    //   const vs: Vector2[] = [];
+    //   // for (let i = 0; i < 5; i++) {
+    //   //   vs.push()
+    //   // }
+    //   return new EuclideanPolygon(vs
+    //   ).rotate(theta);
   }
 }
 
@@ -139,11 +178,12 @@ const arrowHead = new Shape().setFromPoints([
   templateUrl: 'minkowski-panes.component.html',
   styleUrl: 'minkowski-panes.component.scss',
   standalone: true,
-  imports: [AngularSplitModule, SettingsPanelComponent, MatButtonModule, MatIcon, MatTableModule, MatTooltipModule, MatDivider],
+  imports: [AngularSplitModule, SettingsPanelComponent, MatButtonModule, MatIcon, MatTableModule, MatTooltipModule],
 })
 export class MinkowskiBilliardComponent extends PaneDemo implements Previewable, OnInit, AfterViewInit {
   private dialog = inject(MatDialog);
-  dirty: boolean = true;
+  orbitDirty: boolean = true;
+  drawDirty: boolean = true;
   showSettings: boolean = true;
   results: ResultRow[] = [{
     key: 'Period',
@@ -189,10 +229,13 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
   pDotMat: RoundPointsMaterial;
 
   boundaryMaterial: LineMaterial;
+  qPhaseMat: LineMaterial;
+  pPhaseMat: LineMaterial;
   phaseMaterial: RoundPointsMaterial;
   firstDotMat: RoundPointsMaterial;
   arrowHeadMat: MeshBasicMaterial;
 
+  showAxes: boolean = true;
   pAxes = new AxesHelper(3);
   qAxes = new AxesHelper(3);
 
@@ -215,14 +258,13 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
   rightMat: MeshBasicMaterial = new MeshBasicMaterial();
 
   // Data
-  iterations: number = 1;
   qTime: number = 0.123;
   pTime: number = 0.456;
 
-  qStart = new Vector2(0.12, 0.34);
+  qStart = new Vector2(0.12, -0.34);
   qFace: number | undefined = undefined;
   qHeading: number = 0.5;
-  pStart = new Vector2(0.67, 0.89);
+  pStart = new Vector2(0.67, -0.89);
   pFace: number | undefined = undefined;
   pHeading: number = 1.0;
 
@@ -243,17 +285,20 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
   // Params
   dim3 = false;
   symplectic = true;
-  logIters = 10;
+  logIters = 4;
   showFirstPoint = true;
+  drawDots = false;
+  opacity: number = 0.2;
+
   qParams: TableParams = {
     type: TableType.REGULAR,
-    polygonN: 3,
+    polygonN: 5,
     ellipseEcc: 0.9,
-    smoothN: 5,
     smoothP: 1.4,
+    radius: 0,
     rotation: 0,
     penthouse: new Vector2(0.6, 0.2),
-    platonic: PlatonicSolid.CUBE,
+    platonic: PlatonicSolid.DODECAHEDRON,
     scale: new Vector3(1, 1, 1),
     rotateVector: new Vector3(0, 0, 0),
   };
@@ -261,7 +306,7 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
   pParams: TableParams = {
     ...this.qParams,
     rotation: 0.5,
-    platonic: PlatonicSolid.OCTAHEDRON,
+    platonic: PlatonicSolid.ICOSAHEDRON,
     scale: new Vector3(1, 1, 1),
     rotateVector: new Vector3(0, 0, 0),
   };
@@ -296,7 +341,9 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
   pOrbitPoints: InstancedMesh | undefined = undefined;
 
   oldQz: number = 1;
+  oldQNz: number = 1;
   oldPz: number = 1;
+  oldPNz: number = 1;
 
   gui = new Gui();
 
@@ -339,6 +386,12 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
         cluster: [['', 'I', ''], ['J', 'K', 'L']],
         effect: 'Move starting point in metric net.'
       }, {
+        keys: ['Space'],
+        effect: 'Attempt to converge to a periodic orbit in 2D.'
+      }, {
+        cluster: [['E', 'U']],
+        effect: 'Attempt to converge to a periodic orbit in 3D.'
+      }, {
         keys: ['Shift'],
         effect: 'Slow motion of points by 10x.'
       }, {
@@ -360,7 +413,7 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     this.registerColor('q', 0x00aaaa, 0x00aaaa);
     this.registerColor('p', 0xaa0000, 0xaa0000);
     this.registerColor('edge', 0x000000, 0xffffff);
-    this.registerColor('vertex', 0x888800, 0xaaaa00);
+    this.registerColor('vertex', 0x000000, 0xffffff);
     this.registerColor('first_dot', 0x880088, 0xff88ff);
 
     this.qLineMat = new LineMaterial({
@@ -381,6 +434,8 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     });
 
     this.boundaryMaterial = new LineMaterial({resolution: this.resolution});
+    this.qPhaseMat = new LineMaterial({resolution: this.resolution});
+    this.pPhaseMat = new LineMaterial({resolution: this.resolution});
     this.phaseMaterial = new RoundPointsMaterial({size: 0.2});
     this.firstDotMat = new RoundPointsMaterial({size: 0.4});
     this.arrowHeadMat = new MeshBasicMaterial();
@@ -396,6 +451,8 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     this.registerColorable(this.pFaceMat, 'p');
     this.registerColorable(this.rightMat, 'p');
     this.registerColorable(this.boundaryMaterial, 'boundary');
+    this.registerColorable(this.qPhaseMat, 'q');
+    this.registerColorable(this.pPhaseMat, 'p');
     this.registerColorable(this.phaseMaterial, 'phase');
     this.registerColorable(this.firstDotMat, 'first_dot');
     this.registerColorable(this.arrowHeadMat, 'first_dot');
@@ -410,9 +467,7 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     this.pTank = new Mesh(new ShapeGeometry(arrowHead), this.arrowHeadMat);
 
     if (this.previewRenderer) {
-      this.tablePane = this.createPane(this.tableRef, new Vector4(0, 0.5, 0.5, 0.5));
-      this.metricPane = this.createPane(this.metricRef, new Vector4(0.5, 0.5, 0.5, 0.5));
-      this.phasePane = this.createPane(this.phaseRef, new Vector4(0, 0, 1, 0.5));
+      this.initPanes();
     }
 
     this.updateTables();
@@ -420,7 +475,6 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
 
   ngOnInit() {
     this.gui.add(this, 'dim3').name('3D').onChange((v) => {
-      this.dirty = true;
       this.switchDimension(v);
     });
     this.gui.add(this, 'symplectic')
@@ -429,7 +483,6 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
       .showIf(() => !this.dim3)
       .onChange(() => {
         this.updateTables();
-        this.dirty = true;
       });
     const qFolder = this.gui.addFolder('Table');
     const pFolder = this.gui.addFolder('Metric');
@@ -450,9 +503,9 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
       folder.add(params, 'polygonN', 3, 12, 1)
         .name('n')
         .showIf(() => !this.dim3 && params.type === TableType.REGULAR);
-      folder.add(params, 'smoothN', 3, 12, 1)
-        .name('n')
-        .showIf(() => !this.dim3 && params.type === TableType.SMOOTH);
+      folder.add(params, 'radius', 0, 1, 0.01)
+        .name('Radius')
+        .showIf(() => !this.dim3 && params.type === TableType.REGULAR);
       folder.add(params, 'smoothP', 1.1, 2, 0.01)
         .name('Smoothness')
         .showIf(() => !this.dim3 && params.type === TableType.SMOOTH);
@@ -471,20 +524,20 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
         .name('Rotation')
         .format(formatAngle)
         .showIf(() => !this.dim3);
-      folder.add(params.scale, 'x', 0.05, 2, 0.01)
+      const transformFolder = folder.addFolder('Transform').showIf(() => this.dim3);
+      transformFolder.add(params.scale, 'x', 0.05, 2, 0.01)
         .name('Scale x').showIf(() => this.dim3);
-      folder.add(params.scale, 'y', 0.05, 2, 0.01)
+      transformFolder.add(params.scale, 'y', 0.05, 2, 0.01)
         .name('Scale y').showIf(() => this.dim3);
-      folder.add(params.scale, 'z', 0.05, 2, 0.01)
+      transformFolder.add(params.scale, 'z', 0.05, 2, 0.01)
         .name('Scale z').showIf(() => this.dim3);
-      folder.add(params.rotateVector, 'x', -1, +1, 0.01)
+      transformFolder.add(params.rotateVector, 'x', -1, +1, 0.01)
         .name('Pitch').showIf(() => this.dim3).format(formatAngle);
-      folder.add(params.rotateVector, 'y', -1, +1, 0.01)
+      transformFolder.add(params.rotateVector, 'y', -1, +1, 0.01)
         .name('Roll').showIf(() => this.dim3).format(formatAngle);
-      folder.add(params.rotateVector, 'z', -1, +1, 0.01)
+      transformFolder.add(params.rotateVector, 'z', -1, +1, 0.01)
         .name('Yaw').showIf(() => this.dim3).format(formatAngle);
       folder.onChange(() => {
-        this.dirty = true;
         this.updateTables();
       });
     }
@@ -503,15 +556,39 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
         else return `${it}`;
       })
       .onChange(() => {
-        this.dirty = true;
+        this.orbitDirty = true;
       });
     experimentFolder.add(this, 'showFirstPoint')
       .name('Show start')
       .tooltip('Hightlight initial state').onChange(() => {
-      this.dirty = true;
+      this.drawDirty = true;
     });
+    experimentFolder.add(this, 'drawDots')
+      .name('Draw vertices/foci')
+      .onChange(() => {
+        this.qDrawable = this.drawable2D(this.qShape, this.qLineMat, this.qDotMat);
+        this.pDrawable = this.drawable2D(this.pShape, this.pLineMat, this.pDotMat);
+        this.drawDirty = true;
+      }).showIf(() => !this.dim3);
+    experimentFolder.add(this, 'showAxes')
+      .name('Draw axes')
+      .onChange(() => {
+        this.qAxes.visible = this.showAxes;
+        this.pAxes.visible = this.showAxes
+        this.drawDirty = true;
+      }).showIf(() => this.dim3);
+    experimentFolder.add(this, 'opacity', 0, 1, 0.1)
+      .name('Opacity')
+      .onChange(() => {
+        this.qFaceMat.opacity = this.opacity;
+        this.pFaceMat.opacity = this.opacity;
+        this.drawDirty = true;
+      }).showIf(() => this.dim3);
 
     this.gui.add(this, 'openMainHelp').name('Help');
+    this.gui.onChange(() => {
+      this.containerRef?.nativeElement.focus();
+    });
   }
 
   switchDimension(dim3: boolean) {
@@ -529,8 +606,6 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     this.pNetPane.active = dim3;
 
     this.updateTables();
-
-    this.dirty = true;
   }
 
   openMainHelp() {
@@ -557,31 +632,50 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
       alpha: true,
       canvas: this.canvasRef.nativeElement,
       antialias: true,
+      preserveDrawingBuffer: true,
     });
     this.standardRenderer.setPixelRatio(window.devicePixelRatio);
 
-    this.tablePane = this.createPane(this.tableRef, new Vector4(0, 0.5, 0.5, 0.5));
-    this.metricPane = this.createPane(this.metricRef, new Vector4(0.5, 0.5, 0.5, 0.5));
-    this.phasePane = this.createPane(this.phaseRef, new Vector4(0, 0, 1, 0.5));
-
-    this.qNetPane = this.createPane(this.qNetRef, new Vector4(0, 0, 0.5, 0.5));
-    this.pNetPane = this.createPane(this.pNetRef, new Vector4(0.5, 0, 0.5, 0.5));
+    this.initPanes();
 
     window.requestAnimationFrame(this.run.bind(this));
   }
 
-  createPane(ref: ElementRef<HTMLDivElement> | undefined, defaults: Vector4): Pane {
+  initPanes() {
+    this.tablePane = this.createPane(this.tableRef, this.dim3, new Vector4(0, 0.5, 0.5, 0.5));
+    this.metricPane = this.createPane(this.metricRef, this.dim3, new Vector4(0.5, 0.5, 0.5, 0.5));
+    this.phasePane = this.createPane(this.phaseRef, false, new Vector4(0, 0, 1, 0.5));
+
+    this.qNetPane = this.createPane(this.qNetRef, false, new Vector4(0, 0, 0.5, 0.5));
+    this.pNetPane = this.createPane(this.pNetRef, false, new Vector4(0.5, 0, 0.5, 0.5));
+    this.centerNets();
+
+    this.phasePane.active = !this.dim3;
+    this.qNetPane.active = this.dim3;
+    this.pNetPane.active = this.dim3;
+  }
+
+  centerNets() {
+    if (this.dim3 && this.qNet && this.qNetPane) {
+      this.qNetPane.orthographicCamera.zoom = 3 / this.qNet.ll.distanceTo(this.qNet.ur);
+    }
+    if (this.dim3 && this.pNet && this.pNetPane) {
+      this.pNetPane.orthographicCamera.zoom = 3 / this.pNet.ll.distanceTo(this.pNet.ur);
+    }
+  }
+
+  createPane(ref: ElementRef<HTMLDivElement> | undefined, dim3: boolean, defaults: Vector4): Pane {
     const scene = new Scene();
     const pane = new Pane(
       scene,
       defaults,
-      true,
+      !dim3,
       ref,
     );
     pane.orbitControls = new OrbitControls(pane.camera, ref?.nativeElement || this.renderer.domElement);
-    pane.orbitControls.enablePan = true;
-    pane.orbitControls.enableRotate = false;
-    pane.orbitControls.zoomToCursor = true;
+    pane.orbitControls.enablePan = !dim3;
+    pane.orbitControls.enableRotate = dim3;
+    pane.orbitControls.zoomToCursor = !dim3;
 
     this.leftNormal.visible = this.showFirstPoint;
     this.leftVector.visible = this.showFirstPoint;
@@ -603,7 +697,7 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
   }
 
   updateTables() {
-    this.dirty = true;
+    this.orbitDirty = true;
     if (this.dim3) {
       const qm = this.transform(this.qParams);
       const pm = this.transform(this.pParams);
@@ -614,8 +708,10 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
       this.pDrawable = this.pPolyhedron.drawable(this.vertexMaterial, this.edgeMaterial, this.pFaceMat);
 
       this.qNet = new PolyhedronNet(this.qPolyhedron);
+      this.qNetDrawable = this.netDrawable(this.qNet, this.qFaceMat);
       this.pNet = new PolyhedronNet(this.pPolyhedron);
-
+      this.pNetDrawable = this.netDrawable(this.pNet, this.pFaceMat);
+      this.centerNets();
       try {
         this.qFace = this.qNet.findNetFace(this.qStart.clone());
       } catch (e) {
@@ -639,7 +735,6 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
       } else {
         this.pShape = createShape(this.pParams);
       }
-
       this.qDrawable = this.drawable2D(this.qShape, this.qLineMat, this.qDotMat);
       this.pDrawable = this.drawable2D(this.pShape, this.pLineMat, this.pDotMat);
     }
@@ -676,9 +771,6 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
 
     this.qNetPane.scene.clear();
     this.pNetPane.scene.clear();
-
-    this.qNetDrawable = this.netDrawable(this.qNet, this.qFaceMat);
-    this.pNetDrawable = this.netDrawable(this.pNet, this.pFaceMat);
 
     this.qNetPane.scene.add(this.qNetDrawable);
     this.pNetPane.scene.add(this.pNetDrawable);
@@ -730,14 +822,14 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     if (this.qOrbit.length > 1) {
       this.qOrbitDrawable = new Line2(
         populateLineGeometry(new LineGeometry(), this.qOrbit),
-        this.boundaryMaterial
+        this.qPhaseMat
       );
       this.tablePane.scene.add(this.qOrbitDrawable);
     }
     if (this.pOrbit.length > 1) {
       this.pOrbitDrawable = new Line2(
         populateLineGeometry(new LineGeometry(), this.pOrbit),
-        this.boundaryMaterial
+        this.pPhaseMat
       );
       this.metricPane.scene.add(this.pOrbitDrawable);
     }
@@ -747,11 +839,116 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
   }
 
   iterate(iters: number) {
+    this.drawDirty = true;
+    console.log('iterating');
     if (this.dim3) {
       this.iterate3D(iters);
     } else {
       this.iterate2D(iters);
     }
+  }
+
+  leftStep2D(state: State2D): number {
+    let qd = state.pNormal.dot(state.qNormal);
+    if (closeEnough(qd, 0)) throw Error('perpendicular normals');
+    let qdir = state.pNormal.clone().multiplyScalar(qd > 0 ? -1 : 1);
+    let qsrc = state.qPoint.clone().addScaledVector(qdir, EPSILON);
+    let qCollision = this.qShape.castRay({src: qsrc, dir: qdir});
+    const newQ = this.qShape.param(qCollision.paramTime);
+    const l = this.pShape.support(newQ.point.clone().sub(state.qPoint));
+    state.qTime = qCollision.paramTime;
+    state.qPoint = newQ.point;
+    state.qNormal = newQ.normal;
+    return l;
+  }
+
+  rightStep2D(state: State2D): number {
+    let pd = state.qNormal.dot(state.pNormal);
+    if (closeEnough(pd, 0)) throw Error('perpendicular normals');
+    let pdir = state.qNormal.clone().multiplyScalar(pd > 0 ? -1 : 1);
+    let psrc = state.pPoint.clone().addScaledVector(pdir, EPSILON);
+    let pCollision = this.pShape.castRay({src: psrc, dir: pdir});
+    const newP = this.pShape.param(pCollision.paramTime);
+    const l = this.qShape.support(newP.point.clone().sub(state.pPoint));
+    state.pTime = pCollision.paramTime;
+    state.pPoint = newP.point;
+    state.pNormal = newP.normal;
+    return l;
+  }
+
+  phaseCell(qt: number, pt: number) {
+    const qCorners = this.qShape.corners();
+    const pCorners = this.pShape.corners();
+    if (qCorners.length === 0 || pCorners.length === 0) throw Error('no phase cells');
+
+    let lq = 0;
+    let hq = 0;
+    for (let i = 0; i < qCorners.length - 1; i++) {
+      const l = qCorners[i];
+      const h = qCorners[i + 1];
+      if (l === qt || h === qt) throw Error('on phase cell boundary');
+      if (l < qt && h > qt) {
+        lq = l;
+        hq = h;
+      }
+    }
+
+    let lp = 0;
+    let hp = 0;
+    for (let i = 0; i < pCorners.length - 1; i++) {
+      const l = pCorners[i];
+      const h = pCorners[i + 1];
+      if (l === pt || h === pt) throw Error('on phase cell boundary');
+      if (l < pt && h > pt) {
+        lp = l;
+        hp = h;
+      }
+    }
+    return new Vector4(lq, lp, hq, hp);
+  }
+
+  cellContains(cell: Vector4, phase: Vector2): boolean {
+    return cell.x < phase.x && cell.y < phase.y && cell.z > phase.x && cell.w > phase.y;
+  }
+
+  firstReturn2D(qt: number, pt: number): [Vector2, number] {
+    let q, p;
+    try {
+      q = this.qShape.param(qt);
+      p = this.pShape.param(pt);
+    } catch (e) {
+      console.log(e);
+      return [new Vector2(), 0];
+    }
+
+    const state: State2D = {
+      qTime: qt,
+      qPoint: q.point,
+      qNormal: q.normal,
+      pTime: pt,
+      pPoint: p.point,
+      pNormal: p.normal,
+    };
+
+    let cell: Vector4;
+    try {
+      cell = this.phaseCell(qt, pt);
+    } catch {
+      return [new Vector2(), 0];
+    }
+
+    let departed = false;
+    for (let i = 0; i < Math.pow(2, this.logIters); i++) {
+      this.leftStep2D(state);
+      this.rightStep2D(state);
+      const phase = new Vector2(state.qTime, state.pTime);
+      const contains = this.cellContains(cell, phase);
+      if (!contains) departed = true;
+      if (departed && contains) {
+        return [phase.sub(new Vector2(qt, pt)), i];
+      }
+    }
+    return [new Vector2(), 0];
   }
 
   iterate2D(iters: number) {
@@ -766,23 +963,21 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     this.qOrbit = [q.point.clone()];
     this.pOrbit = [p.point.clone()];
 
-    const qp3 = new Vector3(q.point.x, q.point.y, 1);
-    const pp3 = new Vector3(p.point.x, p.point.y, 1);
-    const qn3 = new Vector3(q.normal.x, q.normal.y, 0);
-    const pn3 = new Vector3(p.normal.x, p.normal.y, 0);
+    let qp3 = new Vector3(q.point.x, q.point.y, 1);
+    let pp3 = new Vector3(p.point.x, p.point.y, 1);
+    let qn3 = new Vector3(q.normal.x, q.normal.y, 0);
+    let pn3 = new Vector3(p.normal.x, p.normal.y, 0);
 
     // place the leftBall at q.point
     this.leftBall.position.set(qp3.x, qp3.y, qp3.z);
     // place the rightBall at p.point
     this.rightBall.position.set(pp3.x, pp3.y, pp3.z);
-    // make the leftNormal point from q.point in the direction of q.normal
-    this.leftNormal = new ArrowHelper(qn3, qp3, ARROW_LENGTH, this.getColor('q'), HEAD_LENGTH, HEAD_WIDTH);
     // make the rightNormal point from p.point in the direction of p.normal
     this.rightNormal = new ArrowHelper(pn3, pp3, ARROW_LENGTH, this.getColor('p'), HEAD_LENGTH, HEAD_WIDTH);
     // make the leftVector point from q.point in the direction of p.normal
     this.leftVector = new ArrowHelper(pn3, qp3, ARROW_LENGTH, this.getColor('p'), HEAD_LENGTH, HEAD_WIDTH);
-    // make the rightVector point from p.point in the direction q.normal
-    this.rightVector = new ArrowHelper(qn3, pp3, ARROW_LENGTH, this.getColor('q'), HEAD_LENGTH, HEAD_WIDTH);
+    this.leftNormal.visible = false;
+    this.rightVector.visible = false;
 
     this.phase2D = [];
     let qt = this.qTime;
@@ -791,44 +986,58 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     let period = -1;
     let qLength = 0;
     let pLength = 0;
+    let logDist = 0;
+
+    const state: State2D = {
+      qTime: qt,
+      qPoint: q.point,
+      qNormal: q.normal,
+      pTime: pt,
+      pPoint: p.point,
+      pNormal: p.normal,
+    };
 
     for (let i = 0; i < iters; i++) {
-      let qd = p.normal.dot(q.normal);
-      if (closeEnough(qd, 0)) break;
-      let qdir = p.normal.clone().multiplyScalar(qd > 0 ? -1 : 1);
-      let qsrc = q.point.clone().addScaledVector(qdir, EPSILON);
       try {
-        let qCollision = this.qShape.castRay({src: qsrc, dir: qdir});
-        const newQ = this.qShape.param(qCollision.paramTime);
-        qLength += this.pShape.support(newQ.point.clone().sub(q.point));
-        q = newQ;
-        qt = qCollision.paramTime;
-        this.qOrbit.push(q.point.clone());
-        this.phase2D.push(new Vector2(qt, pt));
+        qLength += this.leftStep2D(state);
       } catch (e) {
         console.warn(e);
         break;
+      }
+      this.qOrbit.push(state.qPoint.clone());
+      // this.phase2D.push(new Vector2(state.qTime, state.pTime));
+
+      if (i === 0) {
+        qp3 = new Vector3(state.qPoint.x, state.qPoint.y, 1);
+        pp3 = new Vector3(state.pPoint.x, state.pPoint.y, 1);
+        qn3 = new Vector3(state.qNormal.x, state.qNormal.y, 0);
+        pn3 = new Vector3(state.pNormal.x, state.pNormal.y, 0);
+
+        // make the leftNormal point from q.point in the direction of q.normal
+        this.leftNormal = new ArrowHelper(qn3, qp3, ARROW_LENGTH, this.getColor('q'), HEAD_LENGTH, HEAD_WIDTH);
+
+        // make the rightVector point from p.point in the direction q.normal
+        this.rightVector = new ArrowHelper(qn3, pp3, ARROW_LENGTH, this.getColor('q'), HEAD_LENGTH, HEAD_WIDTH);
+
+        this.leftNormal.visible = true;
+        this.rightVector.visible = true;
       }
 
-      let pd = q.normal.dot(p.normal);
-      if (closeEnough(pd, 0)) {
-        break;
-      }
-      let pdir = q.normal.clone().multiplyScalar(pd > 0 ? -1 : 1);
-      let psrc = p.point.clone().addScaledVector(pdir, EPSILON);
       try {
-        let pCollision = this.pShape.castRay({src: psrc, dir: pdir});
-        const newP = this.pShape.param(pCollision.paramTime);
-        pLength += this.qShape.support(newP.point.clone().sub(p.point));
-        p = newP;
-        pt = pCollision.paramTime;
-        this.pOrbit.push(p.point.clone());
-        this.phase2D.push(new Vector2(qt, pt));
+        pLength += this.rightStep2D(state);
       } catch (e) {
         console.warn(e);
         break;
       }
-      if (closeEnough(qt, this.qTime) && closeEnough(pt, this.pTime)) {
+      this.pOrbit.push(state.pPoint.clone());
+      this.phase2D.push(new Vector2(state.qTime, state.pTime));
+
+      const dq = state.qTime - this.qTime;
+      const dp = state.pTime - this.pTime;
+      const d = new Vector2(dq, dp).length();
+
+      if (closeEnough(d, 0)) {
+        logDist = -Math.log10(d);
         period = i + 1;
         break;
       }
@@ -837,7 +1046,7 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     const vol = this.qShape.area() * this.pShape.area();
 
     this.results = [
-      {key: 'Period', value: period < 0 ? '?' : period},
+      {key: 'Period', value: period < 0 ? '?' : `${period} (${logDist.toFixed(1)}-digit accuracy)`},
       {key: 'Volume', value: vol.toFixed(8)},
     ];
     if (period > 0) {
@@ -855,6 +1064,64 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
         {key: 'P²/(2V)', value: '?'},
       );
     }
+  }
+
+  leftStep3D(state: State3D): number {
+    const qNormal = state.qFace.polygon.plane.normal;
+    const pNormal = state.pFace.polygon.plane.normal;
+    const dot = qNormal.dot(pNormal);
+    if (closeEnough(dot, 0)) throw Error('perpendicular normals');
+    const qdir = pNormal.clone().multiplyScalar(dot > 0 ? -1 : 1);
+    const qsrc = state.qPoint.clone();
+
+    [state.qPoint, state.qFace] = this.qPolyhedron.intersectRay({src: qsrc, dir: qdir});
+    return this.pPolyhedron.support(state.qPoint.clone().sub(qsrc));
+  }
+
+  rightStep3D(state: State3D): number {
+    const qNormal = state.qFace.polygon.plane.normal;
+    const pNormal = state.pFace.polygon.plane.normal;
+    const dot = qNormal.dot(pNormal);
+    if (closeEnough(dot, 0)) throw Error('perpendicular normals');
+    let pdir = qNormal.clone().multiplyScalar(dot > 0 ? -1 : 1);
+    let psrc = state.pPoint.clone();
+
+    [state.pPoint, state.pFace] = this.pPolyhedron.intersectRay({src: psrc, dir: pdir});
+    return this.qPolyhedron.support(state.pPoint.clone().sub(psrc));
+  }
+
+  firstReturn3D(q: boolean): Vector2 {
+    let qPoint, qFace, pPoint, pFace;
+    try {
+      const rq = this.qNet.netToPolyhedron(this.qStart.clone(), this.qFace);
+      qPoint = rq.p3;
+      qFace = this.qPolyhedron.faces[rq.face];
+      const rp = this.pNet.netToPolyhedron(this.pStart.clone(), this.pFace);
+      pPoint = rp.p3;
+      pFace = this.pPolyhedron.faces[rp.face];
+    } catch (e) {
+      console.error(e);
+      return new Vector2();
+    }
+
+    let state: State3D = {qPoint, qFace, pPoint, pFace};
+    const ip3 = q ? state.qPoint.clone() : state.pPoint.clone();
+    const initialFaceIndex = q ? qFace.index : pFace.index;
+    const initialPoint = (q ? this.qStart : this.pStart).clone();
+
+    let departed = false;
+    for (let i = 0; i < Math.pow(2, this.logIters); i++) {
+      this.leftStep3D(state);
+      this.rightStep3D(state);
+      const index = q ? state.qFace.index : state.pFace.index;
+      if (index !== initialFaceIndex) departed = true;
+      if (departed && index === initialFaceIndex) {
+        const pt3 = q ? state.qPoint.clone() : state.pPoint.clone();
+        const pt = (q ? this.qNet : this.pNet).polyhedronToNet(pt3, index).p2;
+        return pt.sub(initialPoint);
+      }
+    }
+    return new Vector2();
   }
 
   iterate3D(iters: number) {
@@ -877,10 +1144,10 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
       return;
     }
 
-    const qp3 = qPoint.clone();
-    const pp3 = pPoint.clone();
-    const qn3 = qFace.polygon.plane.normal.clone();
-    const pn3 = pFace.polygon.plane.normal.clone();
+    let qp3 = qPoint.clone();
+    let pp3 = pPoint.clone();
+    let qn3 = qFace.polygon.plane.normal.clone();
+    let pn3 = pFace.polygon.plane.normal.clone();
 
     // place the leftBall at q.point
     this.leftBall.position.set(qp3.x, qp3.y, qp3.z);
@@ -895,54 +1162,67 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     // make the rightVector point from p.point in the direction q.normal
     this.rightVector = new ArrowHelper(qn3, pp3, ARROW_LENGTH, this.getColor('q'), HEAD_LENGTH, HEAD_WIDTH);
 
+    this.leftNormal.visible = false;
+    this.rightVector.visible = false;
+
     this.qOrbit.push(qPoint);
     this.pOrbit.push(pPoint);
 
     let period = -1;
     let qLength = 0;
     let pLength = 0;
+    let logDist = 0;
+
+    let state: State3D = {
+      qPoint,
+      qFace,
+      pPoint,
+      pFace,
+    };
 
     for (let i = 0; i < iters; i++) {
-      // Left foot
-      let qNormal = qFace.polygon.plane.normal;
-      let pNormal = pFace.polygon.plane.normal;
-      let dot = qNormal.dot(pNormal);
-      if (closeEnough(dot, 0)) break;
-      let qdir = pNormal.clone().multiplyScalar(dot > 0 ? -1 : 1);
-      let qsrc = qPoint.clone();
-
-      let qPhase;
       try {
-        [qPoint, qFace] = this.qPolyhedron.intersectRay({src: qsrc, dir: qdir});
-        qLength += this.pPolyhedron.support(qPoint.clone().sub(qsrc));
-        this.qOrbit.push(qPoint.clone());
-        qPhase = this.qNet.polyhedronToNet(qPoint, qFace.index).p2;
-        this.qPhase3D.push(qPhase);
+        qLength += this.leftStep3D(state);
       } catch (e) {
         console.warn(e);
         break;
       }
 
-      // Right foot
-      qNormal = qFace.polygon.plane.normal;
-      dot = qNormal.dot(pNormal);
-      if (closeEnough(dot, 0)) break;
-      let pdir = qNormal.clone().multiplyScalar(dot > 0 ? -1 : 1);
-      let psrc = pPoint.clone();
+      this.qOrbit.push(state.qPoint.clone());
+      const qPhase = this.qNet.polyhedronToNet(state.qPoint, state.qFace.index).p2;
+      this.qPhase3D.push(qPhase);
 
-      let pPhase;
+      if (i === 0) {
+        qp3 = state.qPoint.clone();
+        pp3 = state.pPoint.clone();
+        qn3 = state.qFace.polygon.plane.normal.clone();
+        pn3 = state.pFace.polygon.plane.normal.clone();
+
+        // make the leftNormal point from q.point in the direction of q.normal
+        this.leftNormal = new ArrowHelper(qn3, qp3, ARROW_LENGTH, this.getColor('q'), HEAD_LENGTH, HEAD_WIDTH);
+
+        // make the rightVector point from p.point in the direction q.normal
+        this.rightVector = new ArrowHelper(qn3, pp3, ARROW_LENGTH, this.getColor('q'), HEAD_LENGTH, HEAD_WIDTH);
+
+        this.leftNormal.visible = true;
+        this.rightVector.visible = true;
+      }
+
       try {
-        [pPoint, pFace] = this.pPolyhedron.intersectRay({src: psrc, dir: pdir});
-        pLength += this.qPolyhedron.support(pPoint.clone().sub(psrc));
-        this.pOrbit.push(pPoint.clone());
-        pPhase = this.pNet.polyhedronToNet(pPoint, pFace.index).p2;
-        this.pPhase3D.push(pPhase);
+        pLength += this.rightStep3D(state);
       } catch (e) {
         console.warn(e);
         break;
       }
 
-      if (closeEnough(qPhase.distanceTo(this.qStart), 0) && closeEnough(pPhase.distanceTo(this.pStart), 0)) {
+      this.pOrbit.push(state.pPoint.clone());
+      const pPhase = this.pNet.polyhedronToNet(state.pPoint, state.pFace.index).p2;
+      this.pPhase3D.push(pPhase);
+
+      const dq = qPhase.distanceTo(this.qStart);
+      const dp = pPhase.distanceTo(this.pStart);
+      if (closeEnough(dq, 0) && closeEnough(dp, 0)) {
+        logDist = -Math.log10(new Vector2(dp, dq).length());
         period = i + 1;
         break;
       }
@@ -951,7 +1231,7 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     const vol = this.qPolyhedron.volume * this.pPolyhedron.volume;
 
     this.results = [
-      {key: 'Period', value: period < 0 ? '?' : period},
+      {key: 'Period', value: period < 0 ? '?' : `${period} (${logDist.toFixed(1)}-digit accuracy)`},
       {key: 'Volume', value: vol.toFixed(8)},
     ];
     if (period > 0) {
@@ -965,13 +1245,11 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
       this.results.push(
         {key: 'Q length', value: '?'},
         {key: 'P length', value: '?'},
-        {key: 'Q²/(2V)', value: '?'},
-        {key: 'P²/(2V)', value: '?'},
+        {key: 'Q³/(6V)', value: '?'},
+        {key: 'P³/(6V)', value: '?'},
       );
     }
   }
-
-  // TODO: fix smooth case... what happened?
 
   // Up, down, right, left
   pointDelta(keys: string[]): Vector2 {
@@ -981,7 +1259,7 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     if (this.keyHeld(keys[1])) dy -= 1;
     if (this.keyHeld(keys[2])) dx += 1;
     if (this.keyHeld(keys[3])) dx -= 1;
-    if (dx !== 0 || dy !== 0) this.dirty = true;
+    if (dx !== 0 || dy !== 0) this.orbitDirty = true;
     return new Vector2(dx, dy)
   }
 
@@ -992,6 +1270,14 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     }
 
     if (this.dialogIsOpen) return;
+
+    if (this.keyJustPressed('Enter')) {
+      this.containerRef?.nativeElement.focus();
+    }
+
+    if (this.keyJustPressed('KeyP')) {
+      this.screenshot();
+    }
 
     let multiplier = 1;
     if (this.keyHeld('ShiftLeft') || this.keyHeld('ShiftRight')) multiplier *= 0.1;
@@ -1024,13 +1310,59 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
         this.pHeading = netPoint.heading - offset;
         this.pFace = netPoint.face;
       }
-
+      if (this.keyHeld('KeyE')) {
+        try {
+          const frd = this.firstReturn3D(true);
+          this.qStart.add(frd.multiplyScalar(dt * 5));
+          this.orbitDirty = true;
+        } catch {
+        }
+      }
+      if (this.keyHeld('KeyU')) {
+        try {
+          const frd = this.firstReturn3D(false);
+          this.pStart.add(frd.multiplyScalar(dt * 5));
+          this.orbitDirty = true;
+        } catch {
+        }
+      }
     } else {
       const speed = 0.5 / this.phasePane.camera.zoom;
       const dv = this.pointDelta(['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft'])
         .multiplyScalar(dt * multiplier * speed);
       this.qTime += dv.x;
       this.pTime += dv.y;
+      if (this.keyHeld('KeyE') || this.keyHeld('KeyU')) {
+        try {
+          let eps = 1e-9;
+          let steps = 0;
+          while (steps < 10) {
+            const [frd, i] = this.firstReturn2D(this.qTime, this.pTime);
+            const [xp, xpi] = this.firstReturn2D(this.qTime + eps, this.pTime);
+            const [xm, xmi] = this.firstReturn2D(this.qTime - eps, this.pTime);
+            const [yp, ypi] = this.firstReturn2D(this.qTime, this.pTime + eps);
+            const [ym, ymi] = this.firstReturn2D(this.qTime, this.pTime - eps);
+            if (i > 0 && i === xpi && i === xmi && i === ypi && i === ymi) {
+              console.log('updating');
+              const grad = new Vector2(
+                (xp.length() - xm.length()) / (2 * eps),
+                (yp.length() - ym.length()) / (2 * eps),
+              );
+              // if (grad.length() > 1) grad.normalize();
+              const v = frd.length();
+              if (this.keyHeld('KeyE')) this.qTime -= grad.x * dt * multiplier * v * speed;
+              if (this.keyHeld('KeyU')) this.pTime -= grad.y * dt * multiplier * v * speed;
+              this.orbitDirty = true;
+              break;
+            } else {
+              eps /= 2;
+              steps++;
+            }
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+      }
       this.qTime = fixTime(this.qTime);
       this.pTime = fixTime(this.pTime);
     }
@@ -1042,21 +1374,35 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
     this.rightNormal.setColor(this.getColor('p'));
     this.rightVector.setColor(this.getColor('q'));
     this.handleInput(dt);
-    if (this.dim3) {
-      const qz = this.qNetPane.camera.zoom;
-      const qzf = this.oldQz / qz;
-      this.qTank.geometry.scale(qzf, qzf, 1);
-      this.oldQz = qz;
 
-      const pz = this.pNetPane.camera.zoom;
-      const pzf = this.oldPz / pz;
-      this.pTank.geometry.scale(pzf, pzf, 1);
-      this.oldPz = pz;
+    const qz = this.tablePane.camera.zoom;
+    const qzf = this.oldQz / qz;
+    this.leftBall.geometry.scale(qzf, qzf, 1);
+    this.oldQz = qz;
+
+    const pz = this.metricPane.camera.zoom;
+    const pzf = this.oldPz / pz;
+    this.rightBall.geometry.scale(pzf, pzf, 1);
+    this.oldPz = pz;
+
+    if (this.dim3) {
+      const qnz = this.qNetPane.camera.zoom;
+      const qnzf = this.oldQNz / qnz;
+      this.qTank.geometry.scale(qnzf, qnzf, 1);
+      this.oldQNz = qnz;
+
+      const pnz = this.pNetPane.camera.zoom;
+      const pnzf = this.oldPNz / pnz;
+      this.pTank.geometry.scale(pnzf, pnzf, 1);
+      this.oldPNz = pnz;
     }
 
-    if (this.dirty) {
-      this.dirty = false;
+    if (this.orbitDirty) {
+      this.orbitDirty = false;
       this.iterate(Math.pow(2, this.logIters));
+    }
+    if (this.drawDirty) {
+      this.drawDirty = false;
       this.updatePanes();
     }
   }
@@ -1079,9 +1425,11 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
   drawable2D(shape: EuclideanShape, mat: LineMaterial, dotMat: RoundPointsMaterial): Object3D {
     const data = shape.shapeData();
     const path = new Line2(populateLineGeometry(new LineGeometry(), data.path), mat);
-    const dots = new RoundPoints(
-      new BufferGeometry().setFromPoints(data.dots.map(v => new Vector3(v.x, v.y, 0.1))), dotMat);
-    path.add(dots);
+    if (this.drawDots) {
+      const dots = new RoundPoints(
+        new BufferGeometry().setFromPoints(data.dots.map(v => new Vector3(v.x, v.y, 0.1))), dotMat);
+      path.add(dots);
+    }
     return path;
   }
 
@@ -1108,6 +1456,17 @@ export class MinkowskiBilliardComponent extends PaneDemo implements Previewable,
 
   get renderer(): WebGLRenderer {
     return this.previewRenderer || this.standardRenderer;
+  }
+
+  screenshot() {
+    if (!this.canvasRef) throw Error('no canvas');
+    const link = document.createElement('a');
+    link.href = this.canvasRef.nativeElement.toDataURL('image/png');
+    link.download = 'minkowski-screenshot.png';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }
 

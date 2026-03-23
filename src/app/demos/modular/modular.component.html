@@ -1,0 +1,38 @@
+<div #container class="pane-container" tabindex="0">
+    <canvas #canvas class="full-page"></canvas>
+    <div class="full-page">
+        <as-split direction="horizontal" unit="pixel" useTransition="true">
+            <as-split-area [size]="'*'">
+                <div #pane class="canvas-pane-mask">
+                </div>
+            </as-split-area>
+            <as-split-area [size]="400" [minSize]="400" [visible]="showSettings" class="plain-pane settings-pane">
+                <div class="plain-pane-mask">
+                    <div class="settings-container">
+                        <div class="settings-header">
+                            <h3>Settings</h3>
+                            <button mat-icon-button (click)="this.showSettings = false" class="close-btn">
+                                <mat-icon>close</mat-icon>
+                            </button>
+                        </div>
+                        <div class="settings-panel">
+                            <settings-panel [gui]="gui"></settings-panel>
+                        </div>
+                    </div>
+                </div>
+            </as-split-area>
+        </as-split>
+        @if (!showSettings) {
+            <button mat-mini-fab
+                    class="reopen-btn"
+                    (click)="this.showSettings = true">
+                <mat-icon>tune</mat-icon>
+            </button>
+            <!--            <button mat-mini-fab-->
+                    <!--                    class="help-fab"-->
+                    <!--                    (click)="openMainHelp()">-->
+                    <!--                <mat-icon>help</mat-icon>-->
+                    <!--            </button>-->
+        }
+    </div>
+</div>

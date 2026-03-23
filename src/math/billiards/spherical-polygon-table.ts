@@ -102,7 +102,16 @@ export class SphericalPolygonTable extends SphericalOuterBilliardTable {
   }
 
   time(point: SpherePoint): number {
-    throw new Error('not yet implemented');
+    let l = 0;
+    for (let a of this.polygon.arcs) {
+      if (a.containsPoint(point)) {
+        l += a.p1.distanceTo(point);
+        return l / this.polygon.perimeter;
+      } else {
+        l += a.length
+      }
+    }
+    throw Error('Point is not on boundary');
   }
 
   get n(): number {

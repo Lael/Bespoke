@@ -17,7 +17,7 @@ export class Pane {
     public ref?: ElementRef<HTMLDivElement>,
   ) {
     this.perspectiveCamera = new PerspectiveCamera(36, 1, 0.25, 2000);
-    this.perspectiveCamera.position.set(0, 0, 5);
+    this.perspectiveCamera.position.set(3, 4, 5);
     this.orthographicCamera = new OrthographicCamera(-1, 1, 1, -1);
     this.orthographicCamera.position.set(0, 0, 10);
   }

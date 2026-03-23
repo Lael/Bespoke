@@ -253,7 +253,8 @@ export class SphericalPolygon {
   contains(point: SpherePoint) {
     let w = 0;
     for (let a of this.arcs) {
-      w += includedAngle(a.p1, point, a.p2);
+      const ia = includedAngle(a.p1, point, a.p2);
+      w += ia;
     }
 
     return closeEnough(w, Math.PI * 2);
@@ -282,8 +283,9 @@ export class SphericalPolygon {
 export function includedAngle(l1: SpherePoint, vertex: SpherePoint, l2: SpherePoint): number {
   const tv1 = new SphericalArc(vertex, l1).t1;
   const tv2 = new SphericalArc(vertex, l2).t1;
-  const c = tv1.cross(tv2);
-  return Math.asin(c.dot(vertex.coords));
+  return tv1.angleTo(tv2);
+  // const c = tv1.cross(tv2);
+  // return Math.asin(c.dot(vertex.coords));
 }
 
 export class SphericalCircle {

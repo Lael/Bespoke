@@ -144,6 +144,7 @@ export class HomePageComponent implements AfterViewInit, OnDestroy {
       });
 
       const instance = componentRef.instance;
+      instance
 
       if (instance.initPromise !== null) {
         console.log(`waiting for ${demo.title}`);
@@ -154,7 +155,7 @@ export class HomePageComponent implements AfterViewInit, OnDestroy {
       this.generatePreview(instance, demo, renderer, true);
       this.generatePreview(instance, demo, renderer, false);
 
-      componentRef.destroy();
+      this.container.remove();
       setTimeout(() => processNext(), 32);
     };
 

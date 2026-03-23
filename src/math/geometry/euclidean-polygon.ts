@@ -13,12 +13,19 @@ export interface EuclideanPolygonRayCollision extends ShapeRayCollision {
 export class EuclideanPolygon implements EuclideanShape {
   public readonly n: number;
   vertices: Vector2[];
+  sides: LineSegment[] = [];
 
   private _area: number | undefined = undefined;
 
   constructor(vertices: Vector2[]) {
     this.vertices = vertices;
     this.n = vertices.length;
+    for (let i = 0; i < this.n; i++) {
+      this.sides.push(new LineSegment(
+        vertices[i],
+        vertices[(i + 1) % this.n]
+      ));
+    }
   }
 
   static regular(n: number, sidelength?: number) {
@@ -94,7 +101,7 @@ export class EuclideanPolygon implements EuclideanShape {
     for (let i = 0; i < this.n; i++) {
       let v1 = this.vertices[i];
       let v2 = this.vertices[(i + 1) % this.n];
-      if (new LineSegment(v1, v2).containsPoint(point)) return true;
+      if (this.sides[i].containsPoint(point)) return true;
       wn += normalizeAngle(
         v2.clone().sub(point).angle() - v1.clone().sub(point).angle()
       );
@@ -116,7 +123,7 @@ export class EuclideanPolygon implements EuclideanShape {
       // loop over the sides of the polygon
       let v1 = this.vertices[i];
       let v2 = this.vertices[(i + 1) % this.n];
-      let side = new LineSegment(v1, v2);
+      let side = this.sides[i];
       let intersection = side.intersectLine(rayLine)?.toVector2();
       if (intersection == undefined) {
         s += side.length;

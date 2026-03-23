@@ -15,6 +15,8 @@ import {ImsoTalkComponent} from "./talks/imso-talk/imso-talk.component";
 import {SquareTilingComponent} from "./demos/square-tiling/square-tiling.component";
 import {MinkowskiBilliardComponent} from "./demos/minkowski/minkowski-billiard.component";
 import {ColorMode} from "./demos/color-scheme";
+import {TeichmullerComponent} from "./demos/regge/teichmuller.component";
+import {ModularComponent} from "./demos/modular/modular.component";
 
 export interface Previewable {
   initPromise: Promise<any> | null;
@@ -43,7 +45,10 @@ export const demoRoutes: DemoConfig[] = [
   {path: 'pentagram', component: PentagramComponent, title: 'Pentagram Map'},
   {path: 'squares', component: SquareTilingComponent, title: 'Squares'},
   {path: 'sourdough', component: SourdoughComponent, title: 'Sourdough Fractal'},
+  {path: 'modular', component: ModularComponent, title: 'Modular Tiling'},
+
   // {path: 'polyhedron', component: PolyhedronPickerComponent, title: 'Polyhedron Picker'},
+
 
   // {path: 'demo/tiling', component: TilingComponent, title: 'Tiling'},
   // {path: 'demo/symplectic', component: SymplecticComponent, title: 'Symplectic'},
@@ -77,6 +82,7 @@ export const demoRoutes: DemoConfig[] = [
 export const otherDemoRoutes: OtherDemoConfig[] = [
   // {path: 'wasm', component: WasmDemoComponent, title: 'WASM Demo'},
   // {path: 'drag', component: DraggableComponent, title: 'Drag'},
+  {path: 'teichmuller', component: TeichmullerComponent, title: 'Teichmuller'},
 ];
 
 interface TalkConfig {

@@ -69,11 +69,11 @@ export abstract class ThreeDemoComponent extends Demo implements AfterViewInit, 
   }
 
   ngOnDestroy(): void {
+    console.log('destroying');
     if (this.showStats) {
       try {
         document.body.removeChild(this.stats.dom);
-      } catch (e) {
-
+      } catch {
       }
     }
 
@@ -82,13 +82,9 @@ export abstract class ThreeDemoComponent extends Demo implements AfterViewInit, 
 
     try {
       this.hostElement?.nativeElement.removeChild(this.renderer.domElement);
-    } catch (e) {
-
+    } catch {
     }
-
-
     window.removeEventListener('resize', this.onResize.bind(this));
-
     this.tidy();
   }
 

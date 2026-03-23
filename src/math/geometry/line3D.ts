@@ -11,7 +11,11 @@ export class Line3D {
     if (closeEnough(d, 0)) return null;
     const w = this.start.clone().sub(plane.point);
     const factor = -(w.dot(plane.normal)) / d;
-    return this.start.clone().add(this.direction.clone().multiplyScalar(factor));
+    return new Vector3(
+      this.start.x + factor * this.direction.x,
+      this.start.y + factor * this.direction.y,
+      this.start.z + factor * this.direction.z,
+    );
   }
 
   containsPoint(v: Vector3): boolean {

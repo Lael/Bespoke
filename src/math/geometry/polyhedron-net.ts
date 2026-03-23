@@ -111,6 +111,8 @@ function createIdentification(v1: Vector2, v2: Vector2, w1: Vector2, w2: Vector2
 
 export class PolyhedronNet {
   faces: NetFace[] = []; // Indices should line up with polyhedron
+  ll: Vector2 = new Vector2();
+  ur: Vector2 = new Vector2();
 
   constructor(readonly polyhedron: Polyhedron, root: number = 0) {
     const netFaces = new Map<number, NetFace>();
@@ -120,8 +122,8 @@ export class PolyhedronNet {
     const v1 = face0.polygon.vertices[0];
     const v2 = face0.polygon.vertices[1];
     const v3 = face0.polygon.vertices[2];
-    const p1 = new Vector2();
-    const p2 = new Vector2(0, v1.distanceTo(v2));
+    const p1 = new Vector2(0, -1);
+    const p2 = new Vector2(0, v1.distanceTo(v2) - 1);
     const chartRoot = createChart(v1, v2, v3, p1, p2);
     const netFaceRoot: NetFace = {
       faceIndex: root,
@@ -166,7 +168,12 @@ export class PolyhedronNet {
 
           const neighborFace: NetFace = {
             faceIndex: neighbor,
-            polygon: new EuclideanPolygon(face.polygon.vertices.map(v => mapToR2(v, chart))),
+            polygon: new EuclideanPolygon(face.polygon.vertices.map(v => {
+              const image = mapToR2(v, chart)
+              this.ll.min(image);
+              this.ur.max(image);
+              return image;
+            })),
             embedding: chart.clone().invert(),
             chart: chart,
             halfEdges: [],
@@ -238,7 +245,7 @@ export class PolyhedronNet {
   netToPolyhedron(p: Vector2, face?: number) {
     if (face !== undefined) {
       // Check that p does indeed lie on this face
-      if (!this.faces[face].polygon.contains(p)) throw Error('bad hint');
+      // if (!this.faces[face].polygon.contains(p)) throw Error('bad hint');
     } else {
       face = this.findNetFace(p);
     }
@@ -247,7 +254,7 @@ export class PolyhedronNet {
 
   polyhedronToNet(p: Vector3, face?: number) {
     if (face !== undefined) {
-      if (!this.polyhedron.faces[face].polygon.containsPoint(p)) throw Error('bad hint');
+      // if (!this.polyhedron.faces[face].polygon.containsPoint(p)) throw Error('bad hint');
     } else {
       face = this.findPolyhedronFace(p);
     }

@@ -86,7 +86,7 @@ body {
   height: 100%;
 }
 
-.canvas-pane-mask::before {
+.plain-pane-mask::before, .canvas-pane-mask::before {
   pointer-events: none;
 }
 

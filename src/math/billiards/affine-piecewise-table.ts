@@ -9,6 +9,8 @@ import {Complex} from "../complex/complex";
 import {ArcSegment} from "../geometry/arc-segment";
 import {closeEnough, normalizeAngle, polar} from "../math-helpers";
 import {fixTime} from "./tables";
+import {EuclideanShape, NormalPair, ShapeData, ShapeRayCollision} from "../geometry/euclidean-shape";
+import {EuclideanPolygon} from "../geometry/euclidean-polygon";
 
 function segmentWithCurvature(v1: Vector2, v2: Vector2, k: number): Segment {
   if (k === 0) return new LineSegment(v1, v2);
@@ -25,7 +27,7 @@ function segmentWithCurvature(v1: Vector2, v2: Vector2, k: number): Segment {
   return new ArcSegment(c, r, a1, a2);
 }
 
-export class AffinePiecewiseTable extends AffineOuterBilliardTable {
+export class AffinePiecewiseTable extends AffineOuterBilliardTable implements EuclideanShape {
   readonly n: number;
   readonly segments: Segment[] = [];
   readonly lengths: number[] = [];
@@ -89,11 +91,11 @@ export class AffinePiecewiseTable extends AffineOuterBilliardTable {
     return this.time(bestPT);
   }
 
-  outerAreaPreimages(iterations: number): Straight[] {
+  outerAreaPreimages(_: number): Straight[] {
     return [];
   }
 
-  outerLengthPreimages(iterations: number): Straight[] {
+  outerLengthPreimages(_: number): Straight[] {
     return [];
   }
 
@@ -118,7 +120,7 @@ export class AffinePiecewiseTable extends AffineOuterBilliardTable {
     throw Error('no point found');
   }
 
-  override shape(n: number): Shape {
+  override shape(_: number): Shape {
     let points: Vector2[] = [];
     for (let s of this.segments) {
       points.push(...s.interpolate(1).map(c => c.toVector2()));
@@ -247,7 +249,96 @@ export class AffinePiecewiseTable extends AffineOuterBilliardTable {
     throw Error('point not on boundary');
   }
 
-  width(angle: number): number {
+  width(_: number): number {
     return 0;
+  }
+
+  scale(factor: number): AffinePiecewiseTable {
+    return new AffinePiecewiseTable(
+      this.vertices.map(v => v.clone().multiplyScalar(factor)),
+      this.curvatures.map(c => c / factor)
+    );
+  }
+
+  rotate(angle: number): EuclideanShape {
+    return new AffinePiecewiseTable(
+      this.vertices.map(v => v.clone().rotateAround(new Vector2(), angle)),
+      this.curvatures
+    );
+  }
+
+  translate(t: Vector2): EuclideanShape {
+    return new AffinePiecewiseTable(
+      this.vertices.map(v => v.clone().add(t)),
+      this.curvatures
+    );
+  }
+
+  castRay(ray: EuclideanRay): ShapeRayCollision {
+    const t = this.intersect(ray);
+    return {
+      point: this.point(t),
+      paramTime: t,
+    }
+  }
+
+  shapeData(): ShapeData {
+    const dots = this.vertices.map(v => v.clone());
+    const path = [];
+    for (let segment of this.segments) {
+      path.push(...segment.interpolate(+1).map(c => c.toVector2()));
+    }
+    return {
+      dots,
+      path,
+    }
+  }
+
+  param(t: number): NormalPair {
+    return {
+      point: this.point(t),
+      normal: this.outwardNormal(t),
+    }
+  }
+
+  corners(): number[] {
+    return this.vertices.map(v => this.time(v)).concat([1]);
+  }
+
+  _area: number | undefined = undefined;
+
+  area(): number {
+    if (this._area === undefined) {
+      let a = new EuclideanPolygon(this.vertices).area();
+      for (let s of this.segments) {
+        if (s instanceof ArcSegment) {
+          const r = s.radius;
+          const l = s.end.distance(s.start);
+          const t2 = l / (2 * r);
+          a += r * r * (Math.asin(t2) - t2 * Math.sqrt(1 - t2 * t2));
+        }
+      }
+      this._area = a;
+    }
+    return this._area;
+  }
+
+  support(p: Vector2): number {
+    let best = Number.NEGATIVE_INFINITY;
+    for (let v of this.vertices) {
+      const d = v.dot(p);
+      if (d > best) best = d;
+    }
+    const h = p.angle();
+    for (let s of this.segments) {
+      if (s instanceof ArcSegment) {
+        if (s.endAngle > normalizeAngle(h, s.startAngle)) {
+          const v = s.center.plus(Complex.polar(s.radius, h)).toVector2();
+          const d = v.dot(p);
+          if (d > best) best = d;
+        }
+      }
+    }
+    return best;
   }
 }

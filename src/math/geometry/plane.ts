@@ -3,21 +3,23 @@ import {closeEnough} from "../math-helpers";
 import {Line3D} from "./line3D";
 
 export class Plane {
+  normal: Vector3;
+  point: Vector3;
+
   // ax + by + cy + d = 0
   constructor(readonly a: number,
               readonly b: number,
               readonly c: number,
               readonly d: number,
   ) {
-    if (this.normal.length() === 0) throw new Error('Zero normal');
-  }
-
-  get normal(): Vector3 {
-    return new Vector3(this.a, this.b, this.c).normalize();
-  }
-
-  get point(): Vector3 {
-    return this.normal.setLength(-this.d / new Vector3(this.a, this.b, this.c).lengthSq());
+    if (a === 0 && b === 0 && c === 0) throw new Error('Zero normal');
+    const l = new Vector3(a, b, c).length();
+    this.a /= l;
+    this.b /= l;
+    this.c /= l;
+    this.d /= l;
+    this.normal = new Vector3(this.a, this.b, this.c);
+    this.point = this.normal.clone().setLength(-this.d / new Vector3(this.a, this.b, this.c).lengthSq());
   }
 
   static fromPointAndNormal(point: Vector3, normal: Vector3): Plane {

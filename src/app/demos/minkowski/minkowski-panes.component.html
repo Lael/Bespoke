@@ -1,4 +1,4 @@
-<div #container class="pane-container">
+<div #container class="pane-container" tabindex="0">
     <canvas #canvas class="full-page"></canvas>
     <div class="full-page">
         <as-split direction="horizontal" unit="pixel" useTransition="true">
@@ -55,12 +55,13 @@
                                 </div>
                             </div>
                         </div>
+
                     </as-split-area>
                     <as-split-area [size]="40" [minSize]="20" class="plain-pane settings-pane">
                         <div class="plain-pane-mask">
-                            <div class="output-text">
-                                <section>
-                                    <h3>Statistics</h3>
+                            <div class="stats-container">
+                                <h3 class="stats-header">Statistics</h3>
+                                <div class="output-text">
                                     <table mat-table [dataSource]="results">
                                         <!-- Key Column -->
                                         <ng-container matColumnDef="key">
@@ -77,9 +78,10 @@
                                         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                                         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
                                     </table>
-                                </section>
+                                </div>
                             </div>
                         </div>
+
                     </as-split-area>
                 </as-split>
             </as-split-area>

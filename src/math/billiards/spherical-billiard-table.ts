@@ -105,18 +105,21 @@ export abstract class SphericalInnerBilliardTable extends SphericalCurve impleme
     let state = start;
     for (let i = 0; i < iterations; i++) {
       let next: SphericalInnerState;
-      switch (generator) {
-      case Generator.LENGTH:
-        next = this.innerLength(state);
+      try {
+        switch (generator) {
+        case Generator.LENGTH:
+          next = this.innerLength(state);
+          break;
+        case Generator.AREA:
+          next = this.innerArea(state);
+          break;
+        }
+        chords.push({start: this.point(state.time), end: this.point(next.time)});
+        state = next;
+      } catch (e) {
+        console.warn(e);
         break;
-      case Generator.AREA:
-        next = this.innerArea(state);
-        break;
-      default:
-        throw Error('unknown generator');
       }
-      chords.push({start: this.point(state.time), end: this.point(next.time)});
-      state = next;
     }
     return chords;
   }

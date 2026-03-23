@@ -5,7 +5,6 @@ import {
   BufferGeometry,
   CircleGeometry,
   ColorRepresentation,
-  Group,
   Light,
   Line,
   LineBasicMaterial,
@@ -66,6 +65,8 @@ import {HyperbolicPolygonTable} from "../../../math/billiards/hyperbolic-polygon
 import {ArcCSVGenerator} from "./arc-data";
 import {SuperellipseTable} from "../../../math/billiards/superellipse-table";
 import {populateLineGeometry} from "../demo-helpers";
+import {CircularArc} from "./svg-output";
+import {ArcSegment} from "../../../math/geometry/arc-segment";
 
 const SPHERE_COLOR: ColorRepresentation = 0xffffff;
 const SPHERE_TABLE_COLOR: ColorRepresentation = 0x123456;
@@ -214,9 +215,9 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
 
   // Parameters
   billiardTypeParams = {
-    duality: Duality.OUTER,
-    generator: Generator.AREA,
-    geometry: Geometry.HYPERBOLIC,
+    duality: Duality.INNER,
+    generator: Generator.LENGTH,
+    geometry: Geometry.SPHERICAL,
   }
 
   tableParams: TableParams = {
@@ -327,7 +328,6 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
   scaffoldMaterial: LineMaterial;
 
   // coordinate view
-  coordScene: THREE.Scene;
   coordRenderer: THREE.WebGLRenderer;
   coordCamera: THREE.OrthographicCamera;
 
@@ -337,6 +337,9 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
 
   phaseDots: Points = new Points();
   phaseMaterial: PointsMaterial;
+
+  marks: CircularArc[] = [];
+  private sphereArcs: SphericalArc[] = [];
 
   constructor(private route: ActivatedRoute) {
     super();
@@ -364,9 +367,9 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
     this.registerColor('clear', 0xffffff, 0x000000);
     // this.registerColor('disk', 0xffffff, 0xffffff);
     this.registerColor('disk', 0x000000, 0xffffff);
-    this.registerColor('outer_table_fill', 0x123456, 0xabcdef);
+    // this.registerColor('outer_table_fill', 0x123456, 0xabcdef);
     // this.registerColor('outer_table_fill', 0xbbbbee, 0xddddee);
-    // this.registerColor('outer_table_fill', 0xdddddd, 0xddddee);
+    this.registerColor('outer_table_fill', 0xdddddd, 0xddddee);
     // this.registerColor('outer_table_fill', 0xffffff, 0xddddee);
     this.registerColor('outer_table_boundary', 0x3060aa, 0x3060aa);
     // this.registerColor('outer_table_boundary', 0x0, 0x3060aa);
@@ -457,7 +460,6 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
 
     this.lights.push(al, dl);
 
-    this.coordScene = new THREE.Scene();
     this.coordRenderer = new THREE.WebGLRenderer({
       antialias: true,
     });
@@ -686,6 +688,43 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
       this.updateGUI();
     }
 
+    if (this.keyJustPressed('KeyL')) {
+      // const cuts: CircularArc[] = [
+      //   {center: new Vector2(), radius: 1, startAngle: 0, endAngle: 2 * Math.PI},
+      // ];
+      // for (let i = 0; i < this.hyperbolicTable.n; i++) {
+      //   const geo = new HyperGeodesic(this.hyperbolicTable.vertices[(i + 1) % this.hyperbolicTable.n], this.hyperbolicTable.vertices[i]);
+      //   const segment = geo.segment(HyperbolicModel.POINCARE) as ArcSegment;
+      //   cuts.push({
+      //     center: segment.center.toVector2(),
+      //     radius: segment.radius,
+      //     startAngle: segment.startAngle,
+      //     endAngle: segment.endAngle,
+      //   });
+      // }
+      //
+      // const scale = 100;
+      // exportSVG(
+      //   cuts,
+      //   this.marks.concat(
+      //     this.marks.map(m => {
+      //       return {
+      //         center: new Vector2(-m.center.x, m.center.y),
+      //         radius: m.radius,
+      //         startAngle: Math.PI - m.endAngle,
+      //         endAngle: Math.PI - m.startAngle,
+      //       };
+      //     })
+      //   ),
+      //   scale
+      // );
+      const csv = new ArcCSVGenerator();
+      for (let segment of this.sphereArcs) {
+        csv.appendArc(segment.p1.coords.clone(), segment.p2.coords.clone());
+      }
+      csv.download();
+    }
+
     if (this.keyJustPressed('KeyT')) {
       console.log(JSON.stringify(this.billiardTypeParams));
       console.log(JSON.stringify(this.tableParams));
@@ -708,9 +747,31 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
       this.tableParams.tableType === TableType.POLYGON) {
       (this.affineOuterTable as AffinePolygonTable).outerLengthSingularDF(5, 9, 200);
     }
-    // if (this.keyJustPressed('KeyD')) {
-    //   this.chartToggle = !this.chartToggle;
-    // }
+
+    if (this.keyJustPressed('KeyD')) {
+      this.billiardTypeParams.duality = this.duality === Duality.INNER ? Duality.OUTER : Duality.INNER;
+      this.billiardTypeParams.generator = this.generator === Generator.LENGTH ? Generator.AREA : Generator.LENGTH;
+      if (this.geometry === Geometry.SPHERICAL && this.tableParams.tableType === TableType.POLYGON) {
+        this.sphericalTable = new SphericalPolygonTable((this.sphericalTable as SphericalPolygonTable).polygon.dual().vertices);
+        const spts = this.sphericalTable.points(36, this.drawParams.stereograph);
+        if (!this.drawParams.stereograph) {
+          this.antiTable = this.sphericalTable.mesh(36, this.getColor('outer_table_fill'), this.drawParams.stereograph);
+          this.antiTable.scale.set(-1, -1, -1);
+          const aspts = spts.map(p => p.clone().multiplyScalar(-1));
+          this.antiBoundary = new Line2(populateLineGeometry(new LineGeometry(), aspts.concat(aspts[0])), this.tableBoundaryMaterial);
+        }
+        this.tableMesh = this.sphericalTable.mesh(36, this.getColor('outer_table_fill'), this.drawParams.stereograph);
+        this.tableBoundary = new Line2(populateLineGeometry(new LineGeometry(), spts.concat(spts[0])), this.tableBoundaryMaterial);
+        this.updateGUI();
+
+        if (this.duality === Duality.INNER && this.singularities) this.scene.remove(this.singularities);
+
+        this.singularityDirty = true;
+        this.orbitDirty = true;
+        this.drawDirty = true;
+      }
+    }
+
     this.showChart = this.runawayPoints.length > 0;
     if (this.showChart && this.chart && this.keyHeld('KeyD')) {
       // const ds1: ChartDataset = {
@@ -782,7 +843,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
       this.orbitControls.reset();
     }
     if (this.keyJustPressed('KeyP')) {
-      this.printScreen(1000, 1000);
+      this.printScreen(2000, 2000);
     }
     // if (this.geometry === Geometry.EUCLIDEAN &&
     //   this.duality === Duality.OUTER &&
@@ -903,8 +964,6 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
   override ngOnDestroy() {
     super.ngOnDestroy();
     if (this.gui) this.gui.destroy();
-    // this.coordHostElement?.nativeElement.removeChild(this.renderer.domElement);
-    // this.coordRenderer.dispose();
   }
 
   override frame(dt: number) {
@@ -935,25 +994,6 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
     this.tableBoundaryMaterial.color.set(this.getColor('outer_table_boundary'));
     this.tableBoundaryMaterial.linewidth = this.drawParams.orbitSize * TABLE_BOUNDARY_THICKNESS;
     this.tableBoundaryMaterial.resolution = this.resolution;
-
-    if (this.drawParams.phase && this.duality === Duality.INNER) {
-      this.coordRenderer.clear();
-      this.coordScene.clear();
-      const group = new Group();
-      group.add(this.phaseDots);
-      group.add(new Line(new BufferGeometry().setFromPoints([
-        new Vector2(0, 0),
-        new Vector2(1, 0),
-        new Vector2(1, Math.PI),
-        new Vector2(0, Math.PI),
-        new Vector2(0, 0),
-      ]), new LineBasicMaterial({color: this.getColor('outer_orbit')})));
-      group.translateX(-0.85);
-      group.translateY(-0.9);
-      group.scale.set(1.75, 1.75 / Math.PI, 1);
-      this.coordScene.add(group);
-      this.coordRenderer.render(this.coordScene, this.coordCamera);
-    }
 
     const z = 0.5 / this.camera.zoom;
     this.startPoint.scale.set(z, z, z);
@@ -1104,7 +1144,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
         .min(0).max(12).step(1)
         .onFinishChange(this.markOrbitDirty.bind(this));
       drawFolder.add(this.drawParams, 'orbitSize').name('Orbit size')
-        .min(1).max(5).step(1)
+        .min(0.0).max(5.0).step(0.1)
         .onFinishChange(this.markOrbitDirty.bind(this));
     } else {
       drawFolder.add(this.drawParams, 'phase').name('Phase').onFinishChange(
@@ -1404,6 +1444,7 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
     case Geometry.SPHERICAL:
       const lsp: Vector3[] = [];
       const spherePreimages = this.sphericalTable.preimages(this.generator, si);
+      this.sphereArcs = spherePreimages;
       for (let sp of spherePreimages) {
         const spp = sp.points(720, this.drawParams.stereograph);
         for (let i = 0; i < spp.length - 1; i++) {
@@ -1474,10 +1515,23 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
   }
 
   private drawHyperbolicPreimages(preimages: HyperGeodesic[]): void {
+    this.marks = [];
     // console.log('drawing', preimages.length, 'preimages');
     this.scene.remove(this.singularities);
     const points = [];
     for (let preimage of preimages) {
+      try {
+        const segment = preimage.segment(HyperbolicModel.POINCARE) as ArcSegment;
+        if (segment.length > 0.01) {
+          this.marks.push({
+            center: segment.center.toVector2(),
+            radius: segment.radius,
+            startAngle: segment.startAngle,
+            endAngle: segment.endAngle,
+          });
+        }
+      } catch {
+      }
       const preimagePoints = preimage.interpolate(this.model, preimage.start, true).map(c => c.toVector2());
       for (let i = 0; i < preimagePoints.length - 1; i++) {
         points.push(preimagePoints[i]);
@@ -1524,9 +1578,9 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
         const diff = new Vector2(Math.cos(h2), Math.sin(h2)).multiplyScalar(10);
         const p3 = this.affineInnerTable.point(chords[1].endTime);
         const sc = new Line2(new LineGeometry(), this.scaffoldMaterial);
-        populateLineGeometry(sc.geometry, [p1, p3]);
+        populateLineGeometry(sc.geometry, [p1, p3], 2);
         const tl = new Line2(new LineGeometry(), this.scaffoldMaterial);
-        populateLineGeometry(tl.geometry, [p2.clone().add(diff), p2.clone().sub(diff)]);
+        populateLineGeometry(tl.geometry, [p2.clone().add(diff), p2.clone().sub(diff)], 2);
         this.scaffold.push(sc, tl);
       }
       const points = chords.map(chord => chord.p1);
@@ -1544,8 +1598,9 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
       nextPointPosition = points[1];
 
       geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-      this.orbit = [new THREE.Line(geometry, this.chordMaterial)];
+      const orb = new THREE.Line(geometry, this.chordMaterial);
+      orb.translateZ(2);
+      this.orbit = [orb];
       break;
     case Duality.OUTER:
       let table = this.affineOuterTable;
@@ -1729,9 +1784,9 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
         this.nextPoint = new THREE.Mesh();
         return;
       }
-      geometry = new THREE.BufferGeometry().setFromPoints(points);
+      geometry = populateLineGeometry(new LineGeometry(), points, 1);
       material = new THREE.LineBasicMaterial({color: CHORDS_COLOR});
-      this.orbit = [new THREE.Line(geometry, material)];
+      this.orbit = [new Line2(geometry, this.outerOrbitLineMaterial)];
       startPointPosition = chords[0].start.resolve(this.model).toVector2();
       nextPointPosition = chords[0].end.resolve(this.model).toVector2();
       this.startPoint.position.set(startPointPosition.x, startPointPosition.y, 0.001);
@@ -1815,6 +1870,21 @@ export class BilliardsComponent extends ThreeDemoComponent implements OnInit {
   sphericalOrbit() {
     switch (this.duality) {
     case Duality.INNER:
+      const chords = this.sphericalTable.iterateInner({
+        time: this.gameParams.startTime,
+        angle: this.gameParams.angle * Math.PI,
+      }, this.generator, this.iterations);
+      const line = [];
+      for (let chord of chords) {
+        line.push(...new SphericalArc(chord.start, chord.end).points(36, this.drawParams.stereograph)
+          .map(v => v.multiplyScalar(1.005)));
+      }
+      this.orbit = [
+        new Line(
+          new BufferGeometry().setFromPoints(line),
+          new LineBasicMaterial({color: SPHERE_OUTER_ORBIT_COLOR}),
+        )
+      ];
       break;
     case Duality.OUTER:
       if (this.generator === Generator.LENGTH) return;

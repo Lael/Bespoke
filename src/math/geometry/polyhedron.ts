@@ -361,6 +361,7 @@ export class Polyhedron {
         bestT = t;
         bestV = v;
         bestF = face;
+        break;
       }
     }
     if (!bestV || !bestF) {
